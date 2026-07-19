@@ -112,20 +112,24 @@ async function loadDashboard(){
   document.getElementById('userAvatar').textContent = displayName.trim().charAt(0) || '؟';
 
   // ===== الرصيد =====
-  const { data: balance } = await supabaseClient
+  const { data: balance, error: balError } = await supabaseClient
     .from('balances')
     .select('available_balance, locked_balance, total_earned')
     .eq('user_id', user.id)
     .maybeSingle();
 
-  const availableBalance = balance ? balance.available_balance : 0;
-  const lockedBalance = balance ? balance.locked_balance : 0;
-  const totalEarned = balance ? balance.total_earned : 0;
-  const totalValue = Number(availableBalance) + Number(lockedBalance);
+  if(balError){
+    document.getElementById('totalValue').textContent = 'خطأ: ' + balError.message;
+  } else {
+    const availableBalance = Number(balance ? balance.available_balance : 0) || 0;
+    const lockedBalance = Number(balance ? balance.locked_balance : 0) || 0;
+    const totalEarned = Number(balance ? balance.total_earned : 0) || 0;
+    const totalValue = availableBalance + lockedBalance;
 
-  document.getElementById('totalValue').textContent = formatMoney(totalValue) + ' $';
-  document.getElementById('totalEarned').textContent = formatMoney(totalEarned) + ' $';
-  document.getElementById('availableBalance').textContent = formatMoney(availableBalance) + ' $';
+    document.getElementById('totalValue').textContent = formatMoney(totalValue) + ' $';
+    document.getElementById('totalEarned').textContent = formatMoney(totalEarned) + ' $';
+    document.getElementById('availableBalance').textContent = formatMoney(availableBalance) + ' $';
+  }
 
   // ===== الحصص الحالية (الاستثمارات النشطة) =====
   const { data: investments, error: invError } = await supabaseClient
@@ -177,6 +181,9 @@ async function loadDashboard(){
   }).join('');
 }
 
-loadDashboard();
+loadDashboard().catch(err => {
+  document.getElementById('totalValue').textContent = 'خطأ غير متوقع: ' + err.message;
+  console.error(err);
+});
 </script>
 </body></html>

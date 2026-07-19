@@ -108,6 +108,14 @@ async function handlePurchase(){
     return;
   }
 
+  // نسجل عملية الشراء بجدول transactions عشان تظهر بالإشعارات وسجل العمليات
+  await supabaseClient.from('transactions').insert({
+    user_id: user.id,
+    type: 'investment',
+    amount: selectedAmount,
+    status: 'completed'
+  });
+
   // نجيب آخر استثمار انسوى للمستخدم بنفس العرض عشان نطلع رقم الوثيقة بإيصال النجاح
   const { data: newInvestment } = await supabaseClient
     .from('investments')

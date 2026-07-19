@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>إدارة المستخدمين</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.search-box{margin-bottom:14px;}
+.user-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);}
+.u-avatar{width:36px;height:36px;border-radius:50%;background:var(--bg-surface-2);border:1px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--gold-soft);flex-shrink:0;}
+.u-info{flex:1;min-width:0;}
+.u-name{font-size:13.5px;color:var(--cream);}
+.u-meta{font-size:11px;color:var(--text-muted);}
+.u-balance{font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--cream);direction:ltr;flex-shrink:0;}
+.empty-note{text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><a href="22-admin-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">إدارة المستخدمين</div><div style="width:38px"></div></div>
+  <div class="field-group search-box">
+    <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="searchInput" type="text" placeholder="بحث بالاسم أو الهاتف..."/></div>
+  </div>
+  <div id="usersList"><div class="empty-note">جاري تحميل المستخدمين...</div></div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+let allUsers = [];
+
+function kycLabel(status){
+  if(status === 'approved') return 'موثّق';
+  if(status === 'pending') return 'قيد التوثيق';
+  if(status === 'rejected') return 'مرفوض التوثيق';
+  return 'غير موثّق';
+}
+
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+
+function renderUsers(list){
+  const el = document.getElementById('usersList');
+  if(list.length === 0){
+    el.innerHTML = '<div class="empty-note">ما فيه نتائج مطابقة</div>';
+    return;
+  }
+  el.innerHTML = list.map(u => {
+    const initial = (u.full_name || '?').trim().charAt(0);
+    return `<div class="user-row">
+      <div class="u-avatar">${escapeHtml(initial)}</div>
+      <div class="u-info">
+        <div class="u-name">${escapeHtml(u.full_name || 'بدون اسم')}</div>
+        <div class="u-meta">${escapeHtml(kycLabel(u.kyc_status))} · انضم ${fmtDate(u.created_at)} · ${escapeHtml(u.phone || '')}</div>
+      </div>
+      <div class="u-balance">${formatMoney(u.available_balance, false)}$</div>
+    </div>`;
+  }).join('');
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  if(!q){ renderUsers(allUsers); return; }
+  renderUsers(allUsers.filter(u =>
+    (u.full_name || '').toLowerCase().includes(q) || (u.phone || '').includes(q)
+  ));
+});
+
+async function loadUsers(){
+  const admin = await requireAdmin();
+  if(!admin) return;
+
+  const [{ data: profiles, error: profilesError }, { data: balances }, { data: kycRows }] = await Promise.all([
+    supabaseClient.from('profiles').select('id, full_name, phone, created_at').order('created_at', { ascending: false }),
+    supabaseClient.from('balances').select('user_id, available_balance'),
+    supabaseClient.from('kyc_documents').select('user_id, status')
+  ]);
+
+  if(profilesError){
+    document.getElementById('usersList').innerHTML = '<div class="empty-note">تعذر تحميل المستخدمين</div>';
+    return;
+  }
+
+  const balanceMap = {};
+  (balances || []).forEach(b => { balanceMap[b.user_id] = b.available_balance; });
+
+  // آخر حالة KYC مسجلة لكل مستخدم (نعتمد ترتيب رجوع الصفوف من قاعدة البيانات)
+  const kycMap = {};
+  (kycRows || []).forEach(k => { kycMap[k.user_id] = k.status; });
+
+  allUsers = (profiles || []).map(p => ({
+    ...p,
+    available_balance: balanceMap[p.id] || 0,
+    kyc_status: kycMap[p.id] || null
+  }));
+
+  renderUsers(allUsers);
+}
+
+loadUsers();
+</script>
+</body></html>

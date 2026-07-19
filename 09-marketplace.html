@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>09 — السوق</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.tabs{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;}
+.tab{padding:8px 16px;border-radius:var(--radius-pill);font-size:12.5px;border:1px solid var(--line);color:var(--text-muted);white-space:nowrap;}
+.tab.active{background:var(--gold);color:#1C1500;border-color:var(--gold);font-weight:700;}
+.offer{margin-bottom:14px;}
+.offer-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.range-badge{text-align:left;}
+.range-num{font-family:var(--font-display);font-weight:900;font-size:19px;color:var(--gold-soft);direction:ltr;}
+.range-label{font-size:10.5px;color:var(--text-muted);}
+.progress-bar{height:6px;background:var(--bg-deep);border-radius:4px;overflow:hidden;margin:10px 0 6px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-soft));}
+.offer-foot{display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-muted);}
+.disclaimer{font-size:11px;color:var(--text-muted);text-align:center;padding:6px 0 100px;line-height:1.8;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><div class="top-title">سوق الحصص</div><a href="06-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg></a></div>
+  <div class="tabs"><div class="tab active" data-cat="الكل">الكل</div><div class="tab" data-cat="أبقار">أبقار</div><div class="tab" data-cat="أغنام">أغنام</div><div class="tab" data-cat="جاموس">جاموس</div><div class="tab" data-cat="دواجن">دواجن</div></div>
+
+  <div id="offersList"><div style="text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;">جاري تحميل العروض...</div></div>
+
+  <div class="disclaimer">النسب أعلاه تقديرية ومبنية على أداء دورات سابقة، وهي غير مضمونة وتتغير حسب الأداء الفعلي للقطيع والسوق</div>
+
+  <div class="bottom-nav" style="position:absolute;bottom:0;left:0;right:0;">
+    <a class="nav-item" href="06-dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l9-7 9 7v10a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>الرئيسية</a>
+    <a class="nav-item active" href="09-marketplace.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>السوق</a>
+    <a class="nav-item" href="13-history.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1z"/></svg>عروضي</a>
+    <a class="nav-item" href="17-notifications.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/></svg>الإشعارات</a>
+    <a class="nav-item" href="14-profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg>حسابي</a>
+  </div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+let allOffers = [];
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+function renderOffers(category){
+  const list = document.getElementById('offersList');
+  const filtered = category === 'الكل' ? allOffers : allOffers.filter(o => o.category === category);
+
+  if(filtered.length === 0){
+    list.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;">ما فيه عروض متاحة حالياً بهذا التصنيف</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map((o, idx) => {
+    const cardClass = idx % 2 === 0 ? 'deed-card offer' : 'card offer';
+    const funded = o.funding_percent != null ? o.funding_percent : 0;
+    return `
+    <a class="${cardClass}" href="10-offer-details.html?id=${o.id}">
+      <div class="offer-head">
+        <div><div class="chip">${escapeHtml(o.title)}</div>
+          <div class="card-sub" style="margin-top:8px;">مدة الدورة ${toArabicDigits(o.duration_days)} يوم · الحد الأدنى ${o.min_amount}$</div></div>
+        <div class="range-badge"><div class="range-num">${o.min_return}–${o.max_return}%</div><div class="range-label">تقديري / شهرياً</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${funded}%;"></div></div>
+      <div class="offer-foot"><span>تم تمويل ${toArabicDigits(funded)}%</span><span>&nbsp;</span></div>
+    </a>`;
+  }).join('');
+}
+
+async function loadOffers(){
+  const user = await requireAuth();
+  if(!user) return;
+
+  const { data, error } = await supabaseClient
+    .from('offers')
+    .select('id, title, category, min_return, max_return, duration_days, min_amount, funding_percent')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false });
+
+  if(error){
+    document.getElementById('offersList').innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;">تعذر تحميل العروض</div>';
+    return;
+  }
+
+  allOffers = data || [];
+  renderOffers('الكل');
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderOffers(tab.dataset.cat);
+  });
+});
+
+loadOffers();
+</script>
+</body></html>

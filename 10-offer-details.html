@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>10 — تفاصيل العرض</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.hero{height:150px;border-radius:var(--radius-card);background:linear-gradient(135deg,#2C3823,#1D2617);border:1px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+.hero svg{width:64px;height:64px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.stat-box{background:var(--bg-surface);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;}
+.stat-num{font-family:var(--font-display);font-weight:900;font-size:17px;color:var(--gold-soft);}
+.stat-label{font-size:11px;color:var(--text-muted);margin-top:4px;}
+.amount-row{display:flex;gap:8px;margin-bottom:18px;}
+.amt-btn{flex:1;text-align:center;padding:10px 0;border:1px solid var(--line);border-radius:10px;font-size:12.5px;color:var(--cream);}
+.amt-btn.active{border-color:var(--gold);background:rgba(201,162,39,.1);color:var(--gold-soft);font-weight:700;}
+.desc{font-size:13.5px;color:var(--text-muted);line-height:2;margin-bottom:16px;}
+.source-note{font-size:12px;color:var(--gold-soft);background:rgba(201,162,39,.08);border-radius:10px;padding:10px 12px;margin-bottom:110px;line-height:1.8;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><a href="09-marketplace.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title" id="offerTitle">تفاصيل العرض</div><div style="width:38px"></div></div>
+  <div class="hero"><svg viewBox="0 0 48 48" fill="none" stroke="#E4C766" stroke-width="1.5"><path d="M24 6L38 14V30L24 42L10 30V14L24 6Z"/></svg></div>
+  <div class="stat-grid">
+    <div class="stat-box"><div class="stat-num" id="statReturn">—</div><div class="stat-label">عائد تقديري شهري</div></div>
+    <div class="stat-box"><div class="stat-num" id="statDuration">—</div><div class="stat-label">مدة الدورة</div></div>
+    <div class="stat-box"><div class="stat-num" id="statMin">—</div><div class="stat-label">الحد الأدنى</div></div>
+    <div class="stat-box"><div class="stat-num" id="statFunded">—</div><div class="stat-label">نسبة التمويل</div></div>
+  </div>
+  <label class="label">اختر مبلغ المشاركة</label>
+  <div class="amount-row" id="amountRow"></div>
+  <div id="formMsg" style="display:none;font-size:12.5px;text-align:center;margin-bottom:10px;"></div>
+  <div class="desc">مشاركتك تموّل حصة موثقة من قطيع حقيقي تديره المزرعة. العائد يُحتسب شهرياً بناءً على الأداء الفعلي (الحليب، الوزن، السوق) ويُعرض هنا كنطاق تقديري وليس رقماً مضموناً.</div>
+  <div class="source-note">📄 مصدر العائد: تقرير الأداء الشهري للقطيع متاح للمشاركين داخل التطبيق بعد كل دورة</div>
+  <div style="position:absolute;bottom:0;left:0;right:0;padding:16px 22px 26px;background:var(--bg-deep);border-top:1px solid var(--line);">
+    <button class="cta" id="confirmBtn" onclick="handlePurchase()">تأكيد المشاركة</button>
+  </div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+const offerId = new URLSearchParams(location.search).get('id');
+let currentOffer = null;
+let selectedAmount = 0;
+
+async function loadOffer(){
+  const user = await requireAuth();
+  if(!user) return;
+
+  if(!offerId){
+    document.getElementById('offerTitle').textContent = 'عرض غير موجود';
+    return;
+  }
+
+  const { data: offer, error } = await supabaseClient
+    .from('offers')
+    .select('*')
+    .eq('id', offerId)
+    .maybeSingle();
+
+  if(error || !offer){
+    document.getElementById('offerTitle').textContent = 'عرض غير موجود';
+    return;
+  }
+
+  currentOffer = offer;
+  document.getElementById('offerTitle').textContent = offer.title;
+  document.getElementById('statReturn').textContent = offer.min_return + '–' + offer.max_return + '%';
+  document.getElementById('statDuration').textContent = toArabicDigits(offer.duration_days) + ' يوم';
+  document.getElementById('statMin').textContent = offer.min_amount + '$';
+  document.getElementById('statFunded').textContent = toArabicDigits(offer.funding_percent || 0) + '%';
+
+  const min = Number(offer.min_amount);
+  const amounts = [min, min * 5, min * 10, min * 25];
+  selectedAmount = amounts[0];
+  document.getElementById('amountRow').innerHTML = amounts.map((a, idx) =>
+    `<div class="amt-btn${idx===0?' active':''}" data-amt="${a}">${a}</div>`
+  ).join('');
+  updateConfirmLabel();
+
+  document.querySelectorAll('.amt-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedAmount = Number(btn.dataset.amt);
+      updateConfirmLabel();
+    });
+  });
+}
+
+function updateConfirmLabel(){
+  document.getElementById('confirmBtn').textContent = 'تأكيد المشاركة بـ ' + selectedAmount + '$';
+}
+
+async function handlePurchase(){
+  const user = await requireAuth();
+  if(!user || !currentOffer) return;
+
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true; btn.textContent = 'جاري تنفيذ الشراء...';
+
+  const { data, error } = await supabaseClient.rpc('purchase_offer', {
+    p_offer_id: currentOffer.id,
+    p_amount: selectedAmount
+  });
+
+  if(error){
+    showFormMessage('formMsg', 'تعذر إتمام الشراء: ' + error.message, true);
+    btn.disabled = false; updateConfirmLabel();
+    return;
+  }
+
+  const now = new Date();
+  const endDate = new Date(now.getTime() + Number(currentOffer.duration_days) * 86400000);
+  sessionStorage.setItem('last_purchase', JSON.stringify({
+    title: currentOffer.title,
+    amount: selectedAmount,
+    purchasedAt: now.toISOString(),
+    endsAt: endDate.toISOString()
+  }));
+
+  location.href = '11-purchase-success.html';
+}
+
+loadOffer();
+</script>
+</body></html>

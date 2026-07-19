@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>04 — التحقق</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.otp-row{display:flex;gap:12px;justify-content:center;margin:34px 0 28px;direction:ltr;}
+.otp-box{width:52px;height:60px;background:var(--bg-surface);border:1.5px solid var(--line);border-radius:14px;
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--cream);}
+.otp-box.filled{border-color:var(--gold);}
+.center-text{text-align:center;}
+.phone-chip{display:inline-block;background:var(--bg-surface);border:1px solid var(--line);border-radius:var(--radius-pill);
+  padding:8px 18px;font-size:13.5px;color:var(--gold-soft);margin-top:10px;direction:ltr;}
+.resend{text-align:center;font-size:13.5px;color:var(--text-muted);margin-top:8px;}
+.resend b{color:var(--gold-soft);font-family:var(--font-display);font-weight:700;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><div></div><a href="03-register.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></a></div>
+  <div class="center-text" style="margin-top:30px;">
+    <div class="eyebrow" style="justify-content:center;">التحقق من الهاتف</div>
+    <div class="title">أدخل رمز التحقق</div>
+    <div class="subtitle">أرسلنا رمزاً مكوناً من ٦ أرقام إلى</div>
+    <div class="phone-chip">+964 770 123 4567</div>
+  </div>
+  <div class="otp-row">
+    <div class="otp-box filled">٤</div><div class="otp-box filled">٧</div><div class="otp-box filled">٢</div>
+    <div class="otp-box">١</div><div class="otp-box">٩</div><div class="otp-box">٦</div>
+  </div>
+  <div class="resend">لم يصلك الرمز؟ <b>إعادة الإرسال (٠٠:٤٥)</b></div>
+  <div style="margin-top:auto;padding-bottom:26px;">
+    <button class="cta" onclick="location.href='06-dashboard.html'">تأكيد ومتابعة</button>
+  </div>
+</div></div></body></html>

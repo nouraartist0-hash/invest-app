@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>08 — سحب</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>.summary-row{display:flex;justify-content:space-between;font-size:13px;color:var(--text-muted);padding:8px 0;border-bottom:1px solid var(--line);}
+.summary-row b{color:var(--cream);font-family:var(--font-display);}
+.avail{font-size:12px;color:var(--text-muted);margin-top:-8px;margin-bottom:16px;}
+.avail b{color:var(--gold-soft);}
+.form-msg{display:none;font-size:13px;text-align:center;margin-bottom:14px;font-weight:600;}</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><a href="06-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">طلب سحب</div><div style="width:38px"></div></div>
+  <div class="field-group"><label class="label">اختر الشبكة</label>
+    <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg><select id="network"><option value="TRC20">TRC20 - USDT</option><option value="BEP20">BEP20 - USDT</option></select></div></div>
+  <div class="field-group"><label class="label">عنوان المحفظة</label>
+    <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="1.8"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg><input id="walletAddress" type="text" placeholder="ألصق عنوان المحفظة"/></div></div>
+  <div class="field-group"><label class="label">المبلغ (USDT)</label>
+    <div class="field focused"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.5 1.3-2.5 3-2.5s3 1 3 2.5-1.3 2-3 2.5-3 1-3 2.5 1.3 2.5 3 2.5 3-1 3-2.5"/></svg><input id="amount" type="number" min="1" step="0.01" placeholder="0.00"/></div></div>
+  <div class="avail">الرصيد المتاح: <b id="availableLabel">جاري التحميل...</b></div>
+  <div class="card">
+    <div class="summary-row"><span>المبلغ المطلوب</span><b id="sumAmount">0 USDT</b></div>
+    <div class="summary-row"><span>رسوم الشبكة</span><b id="sumFee">1 USDT</b></div>
+    <div class="summary-row" style="border:none;"><span>المبلغ المستلم</span><b id="sumReceived">0 USDT</b></div>
+  </div>
+  <div id="formMsg" class="form-msg"></div>
+  <div style="margin-top:auto;padding-bottom:24px;"><button id="submitBtn" class="cta" onclick="handleWithdraw()">تأكيد طلب السحب</button></div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+const NETWORK_FEE = 1;
+let availableBalance = 0;
+
+async function initWithdraw(){
+  const user = await requireAuth();
+  if(!user) return;
+
+  const { data: balance } = await supabaseClient
+    .from('balances')
+    .select('available_balance')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  availableBalance = balance ? Number(balance.available_balance) : 0;
+  document.getElementById('availableLabel').textContent = formatMoney(availableBalance) + ' USDT';
+}
+
+function updateSummary(){
+  const amount = parseFloat(document.getElementById('amount').value) || 0;
+  const received = Math.max(0, amount - NETWORK_FEE);
+  document.getElementById('sumAmount').textContent = formatMoney(amount, false) + ' USDT';
+  document.getElementById('sumFee').textContent = NETWORK_FEE + ' USDT';
+  document.getElementById('sumReceived').textContent = formatMoney(received, false) + ' USDT';
+}
+document.getElementById('amount').addEventListener('input', updateSummary);
+
+async function handleWithdraw(){
+  const amount = parseFloat(document.getElementById('amount').value);
+  const walletAddress = document.getElementById('walletAddress').value.trim();
+  const network = document.getElementById('network').value;
+
+  if(!walletAddress){
+    showFormMessage('formMsg','الرجاء إدخال عنوان المحفظة',true); return;
+  }
+  if(!amount || amount <= NETWORK_FEE){
+    showFormMessage('formMsg','الرجاء إدخال مبلغ أكبر من رسوم الشبكة',true); return;
+  }
+  if(amount > availableBalance){
+    showFormMessage('formMsg','المبلغ المطلوب أكبر من رصيدك المتاح',true); return;
+  }
+
+  sessionStorage.setItem('wd_pending', JSON.stringify({ amount, walletAddress, network, fee: NETWORK_FEE }));
+  location.href = '08b-withdraw-confirm.html';
+}
+
+initWithdraw();
+</script>
+</body></html>

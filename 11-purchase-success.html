@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>11 — نجاح المشاركة</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.screen{align-items:center;justify-content:center;text-align:center;}
+.check{width:84px;height:84px;border-radius:50%;background:rgba(91,140,90,.15);border:2px solid var(--success);
+  display:flex;align-items:center;justify-content:center;margin-bottom:22px;}
+.check svg{width:38px;height:38px;}
+.receipt{width:100%;text-align:right;margin-top:22px;}
+.r-row{display:flex;justify-content:space-between;font-size:13px;color:var(--text-muted);padding:9px 0;border-bottom:1px dashed var(--line);}
+.r-row b{color:var(--cream);font-family:var(--font-display);}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#8FC98D" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></div>
+  <div class="title">تمت المشاركة بنجاح</div>
+  <div class="subtitle">حصتك موثقة الآن ووثيقة الملكية بحسابك</div>
+  <div class="card receipt">
+    <div class="r-row"><span>اسم العرض</span><b id="rTitle">—</b></div>
+    <div class="r-row"><span>المبلغ</span><b id="rAmount">—</b></div>
+    <div class="r-row"><span>تاريخ المشاركة</span><b id="rDate">—</b></div>
+    <div class="r-row" style="border:none;"><span>تاريخ انتهاء الدورة</span><b id="rEnd">—</b></div>
+  </div>
+  <div style="width:100%;margin-top:26px;">
+    <button class="cta" onclick="location.href='06-dashboard.html'">عرض في حساباتي</button>
+    <button class="cta outline" onclick="location.href='09-marketplace.html'">العودة للسوق</button>
+  </div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+function fmtDate(iso){
+  const d = new Date(iso);
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+const purchase = JSON.parse(sessionStorage.getItem('last_purchase') || 'null');
+if(purchase){
+  document.getElementById('rTitle').textContent = purchase.title;
+  document.getElementById('rAmount').textContent = formatMoney(purchase.amount, false) + ' $';
+  document.getElementById('rDate').textContent = fmtDate(purchase.purchasedAt);
+  document.getElementById('rEnd').textContent = fmtDate(purchase.endsAt);
+  sessionStorage.removeItem('last_purchase');
+}
+</script>
+</body></html>

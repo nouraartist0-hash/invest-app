@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>14 — حسابي</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.profile-head{display:flex;flex-direction:column;align-items:center;gap:10px;margin:10px 0 24px;}
+.avatar-lg{width:76px;height:76px;border-radius:50%;background:var(--bg-surface-2);border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--gold-soft);}
+.p-name{font-family:var(--font-display);font-weight:900;font-size:18px;color:var(--cream);}
+.p-email{font-size:12.5px;color:var(--text-muted);}
+.kyc-chip{margin-top:4px;}
+.menu-item{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--line);}
+.menu-item svg{width:19px;height:19px;flex-shrink:0;}
+.menu-item span{flex:1;font-size:14px;color:var(--cream);}
+.menu-item .chev{width:14px;height:14px;opacity:.5;}
+.logout{color:var(--terracotta);margin-top:10px;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><div></div><div class="top-title">الملف الشخصي</div><a href="15-settings.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></a></div>
+  <div class="profile-head">
+    <div class="avatar-lg" id="avatarInitial">؟</div>
+    <div class="p-name" id="profileName">...</div>
+    <div class="p-email" id="profilePhone"></div>
+    <div class="chip kyc-chip" id="kycChip" style="display:none;"></div>
+  </div>
+
+  <div class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg><span>الملف الشخصي</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#A9AF9B" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></div>
+  <a class="menu-item" href="19-security.html"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span>الأمان</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#A9AF9B" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></a>
+  <a class="menu-item" href="20-kyc.html"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 12l2 2 4-4"/></svg><span>توثيق الهوية (KYC)</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#A9AF9B" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></a>
+  <a class="menu-item" href="13-history.html"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg><span>التقارير والإحصائيات</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#A9AF9B" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></a>
+  <a class="menu-item" href="18-support.html"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><path d="M21 11.5a8.5 8.5 0 01-12.4 7.5L3 20l1-5.4A8.5 8.5 0 1121 11.5z"/></svg><span>الدعم والمراسلة</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#A9AF9B" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></a>
+  <a class="menu-item" href="15-settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg><span>إعدادات الحساب</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#A9AF9B" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></a>
+
+  <button class="cta outline logout" onclick="location.href='02-login.html'" style="margin-top:24px;">تسجيل الخروج</button>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+(async function(){
+  const user = await requireAuth();
+  if (!user) return;
+
+  const { data: profile } = await supabaseClient
+    .from('profiles')
+    .select('full_name, phone, kyc_status')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  const displayName = (profile && profile.full_name) ? profile.full_name : 'مستخدم';
+  document.getElementById('profileName').textContent = displayName;
+  document.getElementById('avatarInitial').textContent = displayName.trim().charAt(0) || '؟';
+  document.getElementById('profilePhone').textContent = (profile && profile.phone) ? profile.phone : (user.email || '');
+
+  const kycChip = document.getElementById('kycChip');
+  const status = profile && profile.kyc_status;
+  if (status === 'verified' || status === 'approved') {
+    kycChip.textContent = '✓ الهوية موثّقة';
+    kycChip.classList.add('success');
+    kycChip.style.display = '';
+  } else if (status === 'pending') {
+    kycChip.textContent = 'الهوية قيد المراجعة';
+    kycChip.style.display = '';
+  } else {
+    kycChip.textContent = 'الهوية غير موثّقة';
+    kycChip.style.display = '';
+  }
+})();
+</script>
+</body></html>

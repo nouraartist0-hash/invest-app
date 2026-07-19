@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>01 — البداية</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.horizon{position:absolute;inset:0;z-index:0;background:radial-gradient(circle at 50% 18%,rgba(201,162,39,.16),transparent 55%);overflow:hidden;}
+.horizon svg{position:absolute;bottom:0;left:0;width:100%;}
+.brand{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:22px;margin-top:110px;}
+.seal{width:104px;height:104px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;position:relative;}
+.seal::before{content:'';position:absolute;inset:8px;border-radius:50%;border:1px dashed rgba(201,162,39,.5);}
+.seal svg{width:46px;height:46px;}
+.brand-name{font-family:var(--font-display);font-weight:900;font-size:30px;color:var(--cream);}
+.brand-tag{font-size:14.5px;color:var(--text-muted);text-align:center;line-height:1.9;max-width:250px;}
+.footer{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;padding:0 32px 40px;margin-top:auto;}
+.dots{display:flex;gap:6px;margin-bottom:6px;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--line);}
+.dot.active{background:var(--gold);width:20px;border-radius:3px;}
+.ghost-note{font-size:13px;color:var(--text-muted);}
+.ghost-note b{color:var(--gold-soft);font-weight:500;}
+.screen{padding:0;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="horizon"><svg viewBox="0 0 390 260" preserveAspectRatio="none">
+    <path d="M0,140 C60,110 110,160 180,130 C250,100 300,150 390,120 L390,260 L0,260 Z" fill="#26301F"/>
+    <path d="M0,180 C70,160 140,190 200,170 C270,150 330,185 390,165 L390,260 L0,260 Z" fill="#1B2416"/>
+  </svg></div>
+  <div class="brand">
+    <div class="seal"><svg viewBox="0 0 48 48" fill="none"><path d="M24 6L38 14V30L24 42L10 30V14L24 6Z" stroke="#C9A227" stroke-width="1.6"/><path d="M16 24C16 19 19.5 15 24 15C28.5 15 32 19 32 24C32 29 28.5 33 24 33" stroke="#E4C766" stroke-width="1.6" stroke-linecap="round"/><circle cx="24" cy="24" r="3" fill="#E4C766"/></svg></div>
+    <div class="brand-name">اسم المشروع</div>
+    <div class="brand-tag">تملّك حصتك من مواشٍ حقيقية، وتابع عائدها الفعلي أولاً بأول</div>
+  </div>
+  <div class="footer">
+    <div class="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+    <button class="cta" onclick="location.href='02-login.html'">ابدأ الآن</button>
+    <div class="ghost-note">العائد <b>مرتبط بالأداء الفعلي</b> للمزرعة — وليس نسبة ثابتة</div>
+  </div>
+</div></div></body></html>

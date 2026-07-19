@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>15 — الإعدادات</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.set-row{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line);}
+.set-row span{font-size:14px;color:var(--cream);}
+.set-val{font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:6px;}
+.switch{width:42px;height:24px;border-radius:14px;background:var(--line);position:relative;}
+.switch.on{background:var(--gold);}
+.knob{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;right:3px;}
+.switch.on .knob{right:auto;left:3px;}
+.danger-row span{color:var(--terracotta);}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><a href="14-profile.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">إعدادات الحساب</div><div style="width:38px"></div></div>
+
+  <div class="set-row"><span>اللغة</span><div class="set-val">العربية ›</div></div>
+  <div class="set-row"><span>العملة المعروضة</span><div class="set-val">USD ›</div></div>
+  <div class="set-row"><span>الإشعارات</span><div class="switch on"><div class="knob"></div></div></div>
+  <div class="set-row"><span>الوضع الليلي</span><div class="switch on"><div class="knob"></div></div></div>
+  <a class="set-row" href="19-security.html"><span>تغيير كلمة المرور</span><div class="set-val">›</div></a>
+  <a class="set-row" href="19-security.html"><span>الجلسات النشطة</span><div class="set-val">عرض ›</div></a>
+  <a class="set-row danger-row" href="#"><span>حذف الحساب</span><div class="set-val">›</div></a>
+
+  <button class="cta outline" style="margin-top:26px;" onclick="location.href='02-login.html'">تسجيل الخروج</button>
+</div></div></body></html>

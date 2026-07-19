@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>06 — لوحة الحساب</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.screen{padding:22px 22px 0;}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--bg-surface-2);border:1.5px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;color:var(--gold-soft);}
+.hello{font-size:12px;color:var(--text-muted);}
+.name{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--cream);}
+.who{display:flex;align-items:center;gap:10px;}
+
+.balance-card{
+  background:linear-gradient(135deg,#2C3823,#1D2617);
+  border:1px solid var(--gold);border-radius:var(--radius-card);
+  padding:22px;margin:18px 0 14px;position:relative;overflow:hidden;
+}
+.balance-card::after{content:'';position:absolute;inset:6px;border:1px dashed rgba(201,162,39,.3);border-radius:14px;}
+.balance-label{font-size:12.5px;color:var(--gold-soft);font-family:var(--font-display);font-weight:700;margin-bottom:8px;}
+.balance-amount{font-family:var(--font-display);font-size:32px;font-weight:900;color:var(--cream);direction:ltr;text-align:right;}
+.balance-sub{display:flex;gap:18px;margin-top:14px;}
+.balance-sub .item{font-size:12px;color:var(--text-muted);}
+.balance-sub .item b{color:#8FC98D;display:block;font-family:var(--font-display);font-size:13.5px;margin-top:2px;}
+
+.quick-actions{display:flex;justify-content:space-between;margin-bottom:22px;}
+.qa{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:12px;color:var(--cream);flex:1;}
+.qa .circle{width:48px;height:48px;border-radius:50%;background:var(--bg-surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;}
+.qa .circle svg{width:20px;height:20px;}
+
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.section-title{font-family:var(--font-display);font-weight:700;font-size:15.5px;color:var(--cream);}
+.see-all{font-size:12.5px;color:var(--gold-soft);}
+
+.holding{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.holding-info{flex:1;}
+.holding-name{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--cream);}
+.holding-meta{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+.holding-value{text-align:left;}
+.holding-amount{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--cream);direction:ltr;}
+.holding-change{font-size:11px;color:#8FC98D;direction:ltr;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row">
+    <a href="17-notifications.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></a>
+    <div class="who"><div><div class="hello">مرحباً بعودتك</div><div class="name" id="userName">...</div></div><div class="avatar" id="userAvatar">؟</div></div>
+  </div>
+
+  <div class="balance-card">
+    <div class="balance-label">إجمالي قيمة حصصك</div>
+    <div class="balance-amount" id="totalValue">٠.٠٠ $</div>
+    <div class="balance-sub">
+      <div class="item">إجمالي الأرباح<b id="totalEarned">٠.٠٠ $</b></div>
+      <div class="item">الرصيد المتاح<b id="availableBalance">٠.٠٠ $</b></div>
+    </div>
+  </div>
+
+  <div class="quick-actions">
+    <a class="qa" href="07-deposit.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><path d="M12 5v14M5 12l7-7 7 7"/></svg></div>إيداع</a>
+    <a class="qa" href="08-withdraw.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><path d="M12 19V5M5 12l7 7 7-7"/></svg></div>سحب</a>
+    <a class="qa" href="09-marketplace.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg></div>السوق</a>
+    <a class="qa" href="12-referral.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/><circle cx="18" cy="8" r="2.5"/></svg></div>الإحالة</a>
+  </div>
+
+  <div class="section-head"><div class="section-title">حصصك الحالية</div><a class="see-all" href="09-marketplace.html">عرض الكل</a></div>
+
+  <div id="holdingsList" style="margin-bottom:110px;">
+    <div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">جاري التحميل...</div>
+  </div>
+
+  <div class="bottom-nav" style="position:absolute;bottom:0;left:0;right:0;">
+    <a class="nav-item active" href="06-dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l9-7 9 7v10a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>الرئيسية</a>
+    <a class="nav-item" href="09-marketplace.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>السوق</a>
+    <a class="nav-item" href="10-offer-details.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1z"/></svg>عروضي</a>
+    <a class="nav-item" href="17-notifications.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/></svg>الإشعارات</a>
+    <a class="nav-item" href="14-profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg>حسابي</a>
+  </div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+const CATEGORY_ICONS = {
+  'أبقار': '<path d="M12 3l9 4v5c0 5-3.5 8-9 9-5.5-1-9-4-9-9V7z"/>',
+  'أغنام': '<circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/>',
+  'default': '<path d="M12 3l9 4v5c0 5-3.5 8-9 9-5.5-1-9-4-9-9V7z"/>'
+};
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+function daysAgo(dateStr){
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const days = Math.max(0, Math.floor(diffMs / (1000*60*60*24)));
+  return toArabicDigits(days);
+}
+
+async function loadDashboard(){
+  const user = await requireAuth();
+  if(!user) return;
+
+  // ===== الملف الشخصي =====
+  const { data: profile } = await supabaseClient
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  const displayName = (profile && profile.full_name) ? profile.full_name : 'مستخدم';
+  document.getElementById('userName').textContent = displayName;
+  document.getElementById('userAvatar').textContent = displayName.trim().charAt(0) || '؟';
+
+  // ===== الرصيد =====
+  const { data: balance } = await supabaseClient
+    .from('balances')
+    .select('available_balance, locked_balance, total_earned')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  const availableBalance = balance ? balance.available_balance : 0;
+  const lockedBalance = balance ? balance.locked_balance : 0;
+  const totalEarned = balance ? balance.total_earned : 0;
+  const totalValue = Number(availableBalance) + Number(lockedBalance);
+
+  document.getElementById('totalValue').textContent = formatMoney(totalValue) + ' $';
+  document.getElementById('totalEarned').textContent = formatMoney(totalEarned) + ' $';
+  document.getElementById('availableBalance').textContent = formatMoney(availableBalance) + ' $';
+
+  // ===== الحصص الحالية (الاستثمارات النشطة) =====
+  const { data: investments, error: invError } = await supabaseClient
+    .from('investments')
+    .select('id, amount, started_at, deed_number, status, offers(title, category, min_return, max_return)')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .order('started_at', { ascending: false })
+    .limit(5);
+
+  const holdingsList = document.getElementById('holdingsList');
+
+  if(invError){
+    holdingsList.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">تعذر تحميل الحصص</div>';
+    return;
+  }
+
+  if(!investments || investments.length === 0){
+    holdingsList.innerHTML = `
+      <div class="card" style="text-align:center;padding:28px 16px;">
+        <div style="color:var(--text-muted);font-size:13.5px;margin-bottom:14px;">ما عندك حصص فعالة حالياً</div>
+        <a class="cta" style="display:inline-block;padding:10px 22px;" href="09-marketplace.html">تصفح السوق</a>
+      </div>`;
+    return;
+  }
+
+  holdingsList.innerHTML = investments.map((inv, idx) => {
+    const offer = inv.offers || {};
+    const category = offer.category || 'default';
+    const icon = CATEGORY_ICONS[category] || CATEGORY_ICONS['default'];
+    const avgReturn = offer.min_return != null && offer.max_return != null
+      ? ((Number(offer.min_return) + Number(offer.max_return)) / 2)
+      : 0;
+    const cardClass = idx % 2 === 0 ? 'deed-card' : 'card';
+    return `
+      <div class="${cardClass}" style="margin-bottom:10px;">
+        <div class="holding">
+          <div class="seal-mini"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8">${icon}</svg></div>
+          <div class="holding-info">
+            <div class="holding-name">${escapeHtml(offer.title || 'حصة استثمارية')}</div>
+            <div class="holding-meta">منذ ${daysAgo(inv.started_at)} يوم · وثيقة ملكية #${inv.deed_number || '—'}</div>
+          </div>
+          <div class="holding-value">
+            <div class="holding-amount">${formatMoney(inv.amount)} $</div>
+            <div class="holding-change">${formatPercent(avgReturn)}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+loadDashboard();
+</script>
+</body></html>

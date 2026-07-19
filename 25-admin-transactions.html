@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>سجل كل المعاملات</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.tabs{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;}
+.tab{padding:8px 16px;border-radius:var(--radius-pill);font-size:12.5px;border:1px solid var(--line);color:var(--text-muted);white-space:nowrap;}
+.tab.active{background:var(--gold);color:#1C1500;border-color:var(--gold);font-weight:700;}
+.tx-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);}
+.tx-info{flex:1;}
+.tx-title{font-size:13px;color:var(--cream);}
+.tx-date{font-size:10.5px;color:var(--text-muted);}
+.tx-amount{font-family:var(--font-display);font-weight:700;font-size:13px;direction:ltr;}
+.action-btns{display:flex;gap:6px;}
+.mini-btn{font-size:11px;padding:6px 10px;border-radius:8px;border:1px solid var(--line);color:var(--text-muted);}
+.mini-btn.approve{border-color:var(--success);color:#8FC98D;}
+.mini-btn.reject{border-color:var(--danger);color:#E0916A;}
+.mini-btn:disabled{opacity:.5;}
+.empty-state{text-align:center;color:var(--text-muted);font-size:13px;padding:40px 0;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><a href="22-admin-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">سجل كل المعاملات</div><div style="width:38px"></div></div>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-filter="all">الكل</div>
+    <div class="tab" data-filter="deposit">إيداعات</div>
+    <div class="tab" data-filter="withdraw">سحوبات معلّقة</div>
+    <div class="tab" data-filter="investment">مشاركات</div>
+  </div>
+
+  <div id="txList"><div class="empty-state">جاري التحميل...</div></div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+const TYPE_LABEL = {
+  deposit: 'إيداع', withdraw: 'سحب', investment: 'مشاركة',
+  profit: 'عائد', referral_bonus: 'مكافأة إحالة'
+};
+const STATUS_LABEL = {
+  pending: 'قيد المراجعة', completed: 'مكتملة', rejected: 'مرفوضة', cancelled: 'ملغاة'
+};
+
+let allTx = [];
+let currentFilter = 'all';
+let adminUser = null;
+
+function formatDate(iso){
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function render(){
+  const list = document.getElementById('txList');
+  const filtered = currentFilter === 'all' ? allTx
+    : currentFilter === 'withdraw' ? allTx.filter(t => t.type === 'withdraw' && t.status === 'pending')
+    : allTx.filter(t => t.type === currentFilter);
+
+  if(filtered.length === 0){
+    list.innerHTML = '<div class="empty-state">ماكو عمليات بهذا القسم</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map((t, idx) => {
+    const name = (t.profiles && t.profiles.full_name) || 'مستخدم';
+    const isLast = idx === filtered.length - 1;
+    const isPending = t.status === 'pending';
+    const actions = isPending
+      ? `<div class="action-btns">
+           <div class="mini-btn approve" onclick="approveTx('${t.id}')">قبول</div>
+           <div class="mini-btn reject" onclick="rejectTx('${t.id}')">رفض</div>
+         </div>`
+      : `<div class="chip ${t.status === 'completed' ? 'success' : ''}">${STATUS_LABEL[t.status] || t.status}</div>`;
+    return `
+      <div class="tx-row" ${isLast ? 'style="border:none;"' : ''}>
+        <div class="tx-info">
+          <div class="tx-title">${TYPE_LABEL[t.type] || t.type} — ${name}</div>
+          <div class="tx-date">${formatDate(t.created_at)} · ${formatMoney(t.amount, false)} USDT</div>
+        </div>
+        ${actions}
+      </div>`;
+  }).join('');
+}
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if(!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  currentFilter = tab.dataset.filter;
+  render();
+});
+
+async function loadTransactions(){
+  const { data, error } = await supabaseClient
+    .from('transactions')
+    .select('id, user_id, type, amount, status, network, wallet_address, created_at, profiles(full_name)')
+    .order('created_at', { ascending: false });
+
+  if(error){
+    document.getElementById('txList').innerHTML = '<div class="empty-state">تعذر تحميل المعاملات: ' + error.message + '</div>';
+    return;
+  }
+  allTx = data || [];
+  render();
+}
+
+async function approveTx(txId){
+  if(!confirm('تأكيد الموافقة على هذه العملية؟')) return;
+  const tx = allTx.find(t => t.id === txId);
+  if(!tx) return;
+
+  // نجيب رصيد المستخدم الحالي
+  const { data: balance, error: balErr } = await supabaseClient
+    .from('balances')
+    .select('available_balance')
+    .eq('user_id', tx.user_id)
+    .maybeSingle();
+
+  if(balErr || !balance){
+    alert('تعذر جلب رصيد المستخدم');
+    return;
+  }
+
+  let newBalance = Number(balance.available_balance);
+  if(tx.type === 'deposit'){
+    newBalance += Number(tx.amount);
+  } else if(tx.type === 'withdraw'){
+    if(Number(tx.amount) > newBalance){
+      alert('رصيد المستخدم غير كافٍ لهذا السحب');
+      return;
+    }
+    newBalance -= Number(tx.amount);
+  }
+
+  const { error: updBalErr } = await supabaseClient
+    .from('balances')
+    .update({ available_balance: newBalance, updated_at: new Date().toISOString() })
+    .eq('user_id', tx.user_id);
+
+  if(updBalErr){ alert('خطأ بتحديث الرصيد: ' + updBalErr.message); return; }
+
+  const { error: updTxErr } = await supabaseClient
+    .from('transactions')
+    .update({ status: 'completed', reviewed_at: new Date().toISOString(), reviewed_by: adminUser.id })
+    .eq('id', txId);
+
+  if(updTxErr){ alert('خطأ بتحديث حالة المعاملة: ' + updTxErr.message); return; }
+
+  loadTransactions();
+}
+
+async function rejectTx(txId){
+  if(!confirm('تأكيد رفض هذه العملية؟')) return;
+  const { error } = await supabaseClient
+    .from('transactions')
+    .update({ status: 'rejected', reviewed_at: new Date().toISOString(), reviewed_by: adminUser.id })
+    .eq('id', txId);
+
+  if(error){ alert('خطأ: ' + error.message); return; }
+  loadTransactions();
+}
+
+async function init(){
+  adminUser = await requireAdmin();
+  if(!adminUser) return;
+  loadTransactions();
+}
+init();
+</script>
+</body></html>

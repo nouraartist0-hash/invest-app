@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>03 — إنشاء حساب</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.bottom-note{text-align:center;font-size:14px;color:var(--text-muted);padding:16px 0 26px;margin-top:auto;}
+.bottom-note b{color:var(--gold-soft);font-family:var(--font-display);font-weight:700;}
+.terms{font-size:12px;color:var(--text-muted);text-align:center;line-height:1.8;margin-bottom:16px;}
+.terms b{color:var(--gold-soft);font-weight:500;}
+.form-msg{display:none;font-size:13px;text-align:center;margin-bottom:14px;font-weight:600;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><div></div><a href="02-login.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></a></div>
+  <div class="eyebrow">إنشاء حساب</div>
+  <div class="title">أنشئ حسابك</div>
+  <div class="subtitle">خطوة وحدة تفصلك عن تملّك حصتك الأولى</div>
+  <div style="height:22px"></div>
+  <div class="field-group"><label class="label">الاسم الكامل</label>
+    <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg>
+    <input id="fullName" type="text" placeholder="أحمد محمد"/></div></div>
+  <div class="field-group"><label class="label">رقم الهاتف</label>
+    <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.12.9.32 1.78.6 2.63a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.45-1.17a2 2 0 012.11-.45c.85.28 1.73.48 2.63.6A2 2 0 0122 16.92z"/></svg>
+    <input id="phone" type="tel" placeholder="٧٧٠ ١٢٣ ٤٥٦٧"/></div></div>
+  <div class="field-group"><label class="label">كلمة المرور</label>
+    <div class="field focused"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="1.8"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    <input id="password" type="password" placeholder="٨ أحرف على الأقل"/></div></div>
+  <div class="field-group"><label class="label">تأكيد كلمة المرور</label>
+    <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="1.8"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    <input id="confirmPassword" type="password" placeholder="أعد كتابة كلمة المرور"/></div></div>
+  <div class="field-group"><label class="label">رمز الدعوة (اختياري)</label>
+    <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="1.8"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1z"/></svg>
+    <input id="referralCode" type="text" placeholder="AHMD2026"/></div></div>
+  <div id="formMsg" class="form-msg"></div>
+  <div class="terms">بإنشاء الحساب أنت توافق على <b>شروط الاستخدام</b> و<b>سياسة الخصوصية</b></div>
+  <button id="submitBtn" class="cta" onclick="handleRegister()">إنشاء حساب</button>
+  <a class="bottom-note" href="02-login.html">عندك حساب؟ <b>تسجيل الدخول</b></a>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+async function handleRegister(){
+  const fullName = document.getElementById('fullName').value.trim();
+  const phoneRaw = document.getElementById('phone').value.trim();
+  const password = document.getElementById('password').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  const referralCode = document.getElementById('referralCode').value.trim();
+  const btn = document.getElementById('submitBtn');
+
+  if(!fullName || !phoneRaw || !password){
+    showFormMessage('formMsg','الرجاء تعبئة كل الحقول المطلوبة',true); return;
+  }
+  if(password.length < 8){
+    showFormMessage('formMsg','كلمة المرور يجب أن تكون ٨ أحرف على الأقل',true); return;
+  }
+  if(password !== confirmPassword){
+    showFormMessage('formMsg','كلمتا المرور غير متطابقتين',true); return;
+  }
+
+  btn.disabled = true; btn.textContent = 'جاري إنشاء الحساب...';
+
+  const phoneDigits = normalizePhone(phoneRaw);
+  const email = phoneToInternalEmail(phoneRaw);
+
+  try{
+    const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({ email, password });
+    if(signUpError){
+      if(signUpError.message && signUpError.message.toLowerCase().includes('already')){
+        showFormMessage('formMsg','رقم الهاتف مسجل مسبقاً، جرب تسجيل الدخول',true);
+      } else {
+        showFormMessage('formMsg','تعذر إنشاء الحساب: ' + signUpError.message,true);
+      }
+      btn.disabled = false; btn.textContent = 'إنشاء حساب';
+      return;
+    }
+
+    const userId = signUpData.user.id;
+
+    // إذا فيه رمز دعوة، نجيب صاحب الرمز
+    let referredBy = null;
+    if(referralCode){
+      const { data: refProfile } = await supabaseClient
+        .from('profiles')
+        .select('id')
+        .eq('referral_code', referralCode)
+        .maybeSingle();
+      if(refProfile) referredBy = refProfile.id;
+    }
+
+    const newReferralCode = generateReferralCode(fullName);
+
+    const { error: profileError } = await supabaseClient.from('profiles').insert({
+      id: userId,
+      full_name: fullName,
+      phone: phoneDigits,
+      referral_code: newReferralCode,
+      referred_by: referredBy
+    });
+    if(profileError){
+      showFormMessage('formMsg','تم إنشاء الحساب لكن حدث خطأ بالبيانات: ' + profileError.message,true);
+      btn.disabled = false; btn.textContent = 'إنشاء حساب';
+      return;
+    }
+
+    const { error: balanceError } = await supabaseClient.from('balances').insert({
+      user_id: userId,
+      available_balance: 0,
+      locked_balance: 0,
+      total_earned: 0
+    });
+    if(balanceError){
+      showFormMessage('formMsg','تم إنشاء الحساب لكن حدث خطأ بإعداد الرصيد: ' + balanceError.message,true);
+      btn.disabled = false; btn.textContent = 'إنشاء حساب';
+      return;
+    }
+
+    showFormMessage('formMsg','تم إنشاء الحساب بنجاح، جاري تحويلك...',false);
+    setTimeout(() => { location.href = '06-dashboard.html'; }, 900);
+
+  } catch(err){
+    showFormMessage('formMsg','حدث خطأ غير متوقع: ' + err.message,true);
+    btn.disabled = false; btn.textContent = 'إنشاء حساب';
+  }
+}
+</script>
+</body></html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>13 — سجل العمليات</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.tabs{display:flex;gap:8px;margin-bottom:16px;}
+.tab{padding:8px 16px;border-radius:var(--radius-pill);font-size:12.5px;border:1px solid var(--line);color:var(--text-muted);}
+.tab.active{background:var(--gold);color:#1C1500;border-color:var(--gold);font-weight:700;}
+.tx-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);}
+.tx-icon{width:38px;height:38px;border-radius:50%;background:var(--bg-surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tx-icon svg{width:16px;height:16px;}
+.tx-info{flex:1;}
+.tx-title{font-size:13.5px;color:var(--cream);font-family:var(--font-body);font-weight:500;}
+.tx-date{font-size:11px;color:var(--text-muted);}
+.tx-amount{font-family:var(--font-display);font-weight:700;font-size:13.5px;direction:ltr;text-align:left;}
+.empty-state{text-align:center;color:var(--text-muted);font-size:13px;padding:40px 0;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><a href="06-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">سجل العمليات</div><div style="width:38px"></div></div>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-filter="all">الكل</div>
+    <div class="tab" data-filter="deposit">إيداع</div>
+    <div class="tab" data-filter="withdraw">سحب</div>
+    <div class="tab" data-filter="investment">مشاركات</div>
+  </div>
+
+  <div id="txList"><div class="empty-state">جاري التحميل...</div></div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+const TYPE_META = {
+  deposit:        { title: n => `إيداع USDT — ${escapeHtml(n.network || '')}`, icon:'<path d="M12 5v14M5 12l7-7 7 7"/>', color:'#8FC98D', sign:'+' },
+  withdraw:       { title: () => 'سحب إلى محفظة خارجية', icon:'<path d="M12 19V5M5 12l7 7 7-7"/>', color:'#E0916A', sign:'-' },
+  investment:     { title: () => 'مشاركة استثمارية', icon:'<path d="M12 3l9 4v5c0 5-3.5 8-9 9-5.5-1-9-4-9-9V7z"/>', color:'var(--cream)', sign:'-' },
+  profit:         { title: () => 'عائد استثماري', icon:'<path d="M12 5v14M5 12l7-7 7 7"/>', color:'#8FC98D', sign:'+' },
+  referral_bonus: { title: () => 'مكافأة إحالة', icon:'<circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/>', color:'#8FC98D', sign:'+' }
+};
+const STATUS_META = {
+  pending:   { label:'قيد المراجعة', cls:'' },
+  completed: { label:'مكتملة', cls:'success' },
+  rejected:  { label:'مرفوضة', cls:'' },
+  cancelled: { label:'ملغاة', cls:'' }
+};
+
+let allTx = [];
+let currentFilter = 'all';
+
+function formatDate(iso){
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function render(){
+  const list = document.getElementById('txList');
+  const filtered = currentFilter === 'all' ? allTx : allTx.filter(t => t.type === currentFilter);
+
+  if(filtered.length === 0){
+    list.innerHTML = '<div class="empty-state">ماكو عمليات بهذا القسم</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map((t, idx) => {
+    const meta = TYPE_META[t.type] || TYPE_META.deposit;
+    const status = STATUS_META[t.status] || { label: t.status, cls: '' };
+    const isLast = idx === filtered.length - 1;
+    return `
+      <div class="tx-row" ${isLast ? 'style="border:none;"' : ''}>
+        <div class="tx-icon"><svg viewBox="0 0 24 24" fill="none" stroke="${meta.color}" stroke-width="1.8">${meta.icon}</svg></div>
+        <div class="tx-info"><div class="tx-title">${meta.title(t)}</div><div class="tx-date">${formatDate(t.created_at)}</div></div>
+        <div><div class="tx-amount" style="color:${meta.color};">${meta.sign}${formatMoney(t.amount, false)}</div>
+        <div class="chip ${status.cls}" style="margin-top:4px;">${status.label}</div></div>
+      </div>`;
+  }).join('');
+}
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if(!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  currentFilter = tab.dataset.filter;
+  render();
+});
+
+async function loadHistory(){
+  const user = await requireAuth();
+  if(!user) return;
+
+  const { data, error } = await supabaseClient
+    .from('transactions')
+    .select('id, type, amount, status, network, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  if(error){
+    document.getElementById('txList').innerHTML = '<div class="empty-state">تعذر تحميل السجل</div>';
+    return;
+  }
+
+  allTx = data || [];
+  render();
+}
+
+loadHistory();
+</script>
+</body></html>

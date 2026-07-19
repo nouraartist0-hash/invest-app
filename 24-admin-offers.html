@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>إدارة العروض</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.offer-admin{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer;}
+.oa-info{flex:1;min-width:0;}
+.oa-name{font-size:13.5px;color:var(--cream);font-weight:500;}
+.oa-meta{font-size:11px;color:var(--text-muted);margin-top:3px;}
+.empty-note{text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;}
+.panel-overlay{position:absolute;inset:0;background:rgba(12,15,9,.82);display:none;align-items:flex-end;z-index:20;}
+.panel-overlay.open{display:flex;}
+.panel-sheet{width:100%;max-height:88%;overflow-y:auto;background:var(--bg-deep);border-top:1px solid var(--gold);
+  border-radius:20px 20px 0 0;padding:20px 22px 26px;}
+.panel-title{font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--cream);margin-bottom:16px;}
+.field-row{display:flex;gap:10px;}
+.field-row .field-group{flex:1;}
+.panel-msg{font-size:12.5px;text-align:center;margin-bottom:10px;display:none;}
+.close-section{border-top:1px dashed var(--line);margin-top:6px;padding-top:16px;}
+.close-note{font-size:11.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.8;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><a href="22-admin-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">إدارة عروض الاستثمار</div><div style="width:38px"></div></div>
+  <button class="cta small" id="addBtn" style="margin-bottom:16px;">+ إضافة عرض جديد</button>
+
+  <div id="offersList"><div class="empty-note">جاري تحميل العروض...</div></div>
+  <div class="card-sub" style="text-align:center;line-height:1.9;margin-top:16px;padding-bottom:20px;">نسب العائد المدخلة هنا تُشتق من التقرير الشهري الفعلي للقطيع — لا تُدخل رقماً تسويقياً منفصلاً عن الأداء الحقيقي</div>
+
+  <div class="panel-overlay" id="panelOverlay">
+    <div class="panel-sheet">
+      <div class="panel-title" id="panelTitle">إضافة عرض جديد</div>
+      <div id="panelMsg" class="panel-msg"></div>
+
+      <div class="field-group"><label class="label">اسم العرض</label>
+        <div class="field"><input id="fTitle" type="text" placeholder="مثال: قطيع أبقار — الدفعة ٥"/></div></div>
+
+      <div class="field-group"><label class="label">التصنيف</label>
+        <div class="field"><select id="fCategory">
+          <option value="أبقار">أبقار</option>
+          <option value="أغنام">أغنام</option>
+          <option value="جاموس">جاموس</option>
+          <option value="دواجن">دواجن</option>
+        </select></div></div>
+
+      <div class="field-row">
+        <div class="field-group"><label class="label">عائد أدنى شهري %</label>
+          <div class="field"><input id="fMinReturn" type="number" step="0.1" placeholder="1.0"/></div></div>
+        <div class="field-group"><label class="label">عائد أعلى شهري %</label>
+          <div class="field"><input id="fMaxReturn" type="number" step="0.1" placeholder="1.8"/></div></div>
+      </div>
+
+      <div class="field-row">
+        <div class="field-group"><label class="label">مدة الدورة (يوم)</label>
+          <div class="field"><input id="fDuration" type="number" placeholder="30"/></div></div>
+        <div class="field-group"><label class="label">الحد الأدنى للمشاركة $</label>
+          <div class="field"><input id="fMinAmount" type="number" placeholder="50"/></div></div>
+      </div>
+
+      <div class="field-group"><label class="label">نسبة التمويل الحالية %</label>
+        <div class="field"><input id="fFunding" type="number" min="0" max="100" placeholder="0"/></div></div>
+
+      <button class="cta" id="saveBtn">حفظ</button>
+      <button class="cta outline" id="cancelBtn">إلغاء</button>
+
+      <div class="close-section" id="closeSection" style="display:none;">
+        <div class="close-note">إغلاق الدورة يوقف استقبال مشاركات جديدة بهذا العرض ويثبّت نتيجة العائد الفعلي كما وردت بتقرير أداء القطيع.</div>
+        <div class="field-group"><label class="label">نتيجة الدورة الفعلية %</label>
+          <div class="field"><input id="fActualReturn" type="number" step="0.1" placeholder="1.4"/></div></div>
+        <button class="cta outline" id="closeCycleBtn" style="border-color:var(--danger);color:#E0916A;">إغلاق الدورة بهذه النتيجة</button>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+let allOffers = [];
+let editingId = null;
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+function statusChip(o){
+  if(o.status === 'closed') return '<div class="chip" style="background:var(--bg-surface);color:var(--text-muted);">مغلق</div>';
+  if(Number(o.funding_percent || 0) >= 80) return '<div class="chip">قريباً يُغلق</div>';
+  return '<div class="chip success">نشط</div>';
+}
+
+function metaLine(o){
+  if(o.status === 'closed'){
+    const result = o.actual_return != null ? formatPercent(o.actual_return, false).replace('+','+') : '—';
+    return `اكتمل · نتيجة الدورة: ${result} فعلي`;
+  }
+  return `ممول ${toArabicDigits(o.funding_percent || 0)}٪ · العائد المُدخل: ${o.min_return}–${o.max_return}٪`;
+}
+
+function renderOffers(){
+  const list = document.getElementById('offersList');
+  if(allOffers.length === 0){
+    list.innerHTML = '<div class="empty-note">ماكو عروض بعد — أضف أول عرض</div>';
+    return;
+  }
+  list.innerHTML = allOffers.map((o, idx) => {
+    const isLast = idx === allOffers.length - 1;
+    return `<div class="offer-admin" ${isLast ? 'style="border:none;"' : ''} onclick="openEditPanel('${o.id}')">
+      <div class="oa-info"><div class="oa-name">${escapeHtml(o.title)}</div><div class="oa-meta">${metaLine(o)}</div></div>
+      ${statusChip(o)}
+    </div>`;
+  }).join('');
+}
+
+async function loadOffers(){
+  const admin = await requireAdmin();
+  if(!admin) return;
+
+  const { data, error } = await supabaseClient
+    .from('offers')
+    .select('id, title, category, min_return, max_return, duration_days, min_amount, funding_percent, status, actual_return, created_at')
+    .order('created_at', { ascending: false });
+
+  if(error){
+    document.getElementById('offersList').innerHTML = '<div class="empty-note">تعذر تحميل العروض: ' + error.message + '</div>';
+    return;
+  }
+  allOffers = data || [];
+  renderOffers();
+}
+
+function showPanelMsg(text, isError){
+  const el = document.getElementById('panelMsg');
+  el.textContent = text;
+  el.style.display = 'block';
+  el.style.color = isError ? '#E5675A' : '#8FC98D';
+}
+
+function resetForm(){
+  document.getElementById('fTitle').value = '';
+  document.getElementById('fCategory').value = 'أبقار';
+  document.getElementById('fMinReturn').value = '';
+  document.getElementById('fMaxReturn').value = '';
+  document.getElementById('fDuration').value = '';
+  document.getElementById('fMinAmount').value = '';
+  document.getElementById('fFunding').value = '0';
+  document.getElementById('fActualReturn').value = '';
+  document.getElementById('panelMsg').style.display = 'none';
+}
+
+function openAddPanel(){
+  editingId = null;
+  resetForm();
+  document.getElementById('panelTitle').textContent = 'إضافة عرض جديد';
+  document.getElementById('closeSection').style.display = 'none';
+  document.getElementById('panelOverlay').classList.add('open');
+}
+
+function openEditPanel(id){
+  const o = allOffers.find(x => x.id === id);
+  if(!o) return;
+  editingId = id;
+  resetForm();
+  document.getElementById('panelTitle').textContent = 'تعديل العرض';
+  document.getElementById('fTitle').value = o.title || '';
+  document.getElementById('fCategory').value = o.category || 'أبقار';
+  document.getElementById('fMinReturn').value = o.min_return;
+  document.getElementById('fMaxReturn').value = o.max_return;
+  document.getElementById('fDuration').value = o.duration_days;
+  document.getElementById('fMinAmount').value = o.min_amount;
+  document.getElementById('fFunding').value = o.funding_percent || 0;
+  document.getElementById('closeSection').style.display = o.status === 'closed' ? 'none' : 'block';
+  document.getElementById('panelOverlay').classList.add('open');
+}
+
+function closePanel(){
+  document.getElementById('panelOverlay').classList.remove('open');
+}
+
+function readForm(){
+  return {
+    title: document.getElementById('fTitle').value.trim(),
+    category: document.getElementById('fCategory').value,
+    min_return: Number(document.getElementById('fMinReturn').value),
+    max_return: Number(document.getElementById('fMaxReturn').value),
+    duration_days: Number(document.getElementById('fDuration').value),
+    min_amount: Number(document.getElementById('fMinAmount').value),
+    funding_percent: Number(document.getElementById('fFunding').value || 0)
+  };
+}
+
+function validateForm(f){
+  if(!f.title) return 'لازم تدخل اسم العرض';
+  if(!f.category) return 'لازم تختار التصنيف';
+  if(!f.min_return || !f.max_return || f.max_return < f.min_return) return 'تأكد من نطاق العائد (الأدنى يجب أن يكون أصغر من الأعلى)';
+  if(!f.duration_days || f.duration_days <= 0) return 'مدة الدورة غير صحيحة';
+  if(!f.min_amount || f.min_amount <= 0) return 'الحد الأدنى للمشاركة غير صحيح';
+  if(f.funding_percent < 0 || f.funding_percent > 100) return 'نسبة التمويل يجب أن تكون بين ٠ و١٠٠';
+  return null;
+}
+
+async function saveOffer(){
+  const f = readForm();
+  const err = validateForm(f);
+  if(err){ showPanelMsg(err, true); return; }
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'جاري الحفظ...';
+
+  let result;
+  if(editingId){
+    result = await supabaseClient.from('offers').update(f).eq('id', editingId);
+  } else {
+    result = await supabaseClient.from('offers').insert({ ...f, status: 'active' });
+  }
+
+  btn.disabled = false; btn.textContent = 'حفظ';
+
+  if(result.error){
+    showPanelMsg('تعذر الحفظ: ' + result.error.message, true);
+    return;
+  }
+  closePanel();
+  loadOffers();
+}
+
+async function closeCycle(){
+  const actual = Number(document.getElementById('fActualReturn').value);
+  if(document.getElementById('fActualReturn').value === '' || isNaN(actual)){
+    showPanelMsg('أدخل نتيجة الدورة الفعلية أولاً', true);
+    return;
+  }
+  if(!confirm('تأكيد إغلاق هذه الدورة بنتيجة ' + actual + '٪؟ هذا الإجراء نهائي.')) return;
+
+  const btn = document.getElementById('closeCycleBtn');
+  btn.disabled = true; btn.textContent = 'جاري الإغلاق...';
+
+  const { error } = await supabaseClient.rpc('admin_close_offer', {
+    p_offer_id: editingId,
+    p_actual_return: actual
+  });
+
+  btn.disabled = false; btn.textContent = 'إغلاق الدورة بهذه النتيجة';
+
+  if(error){ showPanelMsg('تعذر إغلاق الدورة: ' + error.message, true); return; }
+  closePanel();
+  loadOffers();
+}
+
+document.getElementById('addBtn').addEventListener('click', openAddPanel);
+document.getElementById('cancelBtn').addEventListener('click', closePanel);
+document.getElementById('saveBtn').addEventListener('click', saveOffer);
+document.getElementById('closeCycleBtn').addEventListener('click', closeCycle);
+document.getElementById('panelOverlay').addEventListener('click', (e) => {
+  if(e.target.id === 'panelOverlay') closePanel();
+});
+
+loadOffers();
+</script>
+</body></html>

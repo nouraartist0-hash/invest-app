@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>22 — لوحة تحكم الإدارة</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.stat-box{background:var(--bg-surface);border:1px solid var(--line);border-radius:12px;padding:14px;}
+.stat-num{font-family:var(--font-display);font-weight:900;font-size:18px;color:var(--gold-soft);}
+.stat-label{font-size:11px;color:var(--text-muted);margin-top:4px;}
+.admin-menu{display:flex;flex-direction:column;gap:8px;}
+.admin-item{display:flex;justify-content:space-between;align-items:center;background:var(--bg-surface);border:1px solid var(--line);
+  border-radius:12px;padding:14px;font-size:13.5px;color:var(--cream);}
+.pending{font-size:11px;color:var(--terracotta);}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><div class="top-title">لوحة تحكم الإدارة</div><div class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg></div></div>
+
+  <div class="stat-grid">
+    <div class="stat-box"><div class="stat-num" id="statUsers">...</div><div class="stat-label">إجمالي المستخدمين</div></div>
+    <div class="stat-box"><div class="stat-num" id="statDeposits">...</div><div class="stat-label">إجمالي الإيداعات</div></div>
+    <div class="stat-box"><div class="stat-num" id="statWithdrawals">...</div><div class="stat-label">إجمالي السحوبات</div></div>
+    <div class="stat-box"><div class="stat-num" id="statInvestments">...</div><div class="stat-label">إجمالي المشاركات</div></div>
+  </div>
+
+  <div class="admin-menu">
+    <a class="admin-item" href="25-admin-transactions.html"><span>طلبات السحب</span><span class="pending" id="pendingWithdrawCount">... قيد المراجعة</span></a>
+    <a class="admin-item" href="20-kyc.html"><span>طلبات KYC</span><span class="pending" id="pendingKycCount">... قيد المراجعة</span></a>
+    <a class="admin-item" href="23-admin-users.html"><span>إدارة المستخدمين</span><span>›</span></a>
+    <a class="admin-item" href="24-admin-offers.html"><span>إدارة عروض الاستثمار</span><span>›</span></a>
+    <a class="admin-item" href="25-admin-transactions.html"><span>سجل كل المعاملات</span><span>›</span></a>
+    <a class="admin-item" href="26-admin-settings.html"><span>إعدادات النظام</span><span>›</span></a>
+  </div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+function sumAmount(rows){
+  return (rows || []).reduce((sum, r) => sum + Number(r.amount), 0);
+}
+
+async function loadStats(){
+  const [{ count: usersCount }, { data: deposits }, { data: withdrawals }, { data: investments }, { count: pendingWithdraw }, { count: pendingKyc }] = await Promise.all([
+    supabaseClient.from('profiles').select('id', { count: 'exact', head: true }),
+    supabaseClient.from('transactions').select('amount').eq('type', 'deposit').eq('status', 'completed'),
+    supabaseClient.from('transactions').select('amount').eq('type', 'withdraw').eq('status', 'completed'),
+    supabaseClient.from('investments').select('amount'),
+    supabaseClient.from('transactions').select('id', { count: 'exact', head: true }).eq('type', 'withdraw').eq('status', 'pending'),
+    supabaseClient.from('kyc_documents').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+  ]);
+
+  document.getElementById('statUsers').textContent = usersCount || 0;
+  document.getElementById('statDeposits').textContent = formatMoney(sumAmount(deposits), false) + '$';
+  document.getElementById('statWithdrawals').textContent = formatMoney(sumAmount(withdrawals), false) + '$';
+  document.getElementById('statInvestments').textContent = formatMoney(sumAmount(investments), false) + '$';
+  document.getElementById('pendingWithdrawCount').textContent = (pendingWithdraw || 0) + ' قيد المراجعة';
+  document.getElementById('pendingKycCount').textContent = (pendingKyc || 0) + ' قيد المراجعة';
+}
+
+async function init(){
+  const admin = await requireAdmin();
+  if(!admin) return;
+  loadStats();
+}
+init();
+</script>
+</body></html>

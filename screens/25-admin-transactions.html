@@ -110,48 +110,60 @@ async function approveTx(txId){
   const tx = allTx.find(t => t.id === txId);
   if(!tx) return;
 
-  // نجيب رصيد المستخدم الحالي
-  const { data: balance, error: balErr } = await supabaseClient
-    .from('balances')
-    .select('available_balance')
-    .eq('user_id', tx.user_id)
-    .maybeSingle();
-
-  if(balErr || !balance){
-    alert('تعذر جلب رصيد المستخدم');
+  // ===== السحب: يستخدم دالة آمنة تخصم من locked_balance (المبلغ مقفول من وقت الطلب) =====
+  if(tx.type === 'withdraw'){
+    const { error } = await supabaseClient.rpc('approve_withdrawal', { p_tx_id: txId });
+    if(error){ alert('خطأ: ' + error.message); return; }
+    loadTransactions();
     return;
   }
 
-  let newBalance = Number(balance.available_balance);
+  // ===== الإيداع: يضيف المبلغ مباشرة للرصيد المتاح =====
   if(tx.type === 'deposit'){
-    newBalance += Number(tx.amount);
-  } else if(tx.type === 'withdraw'){
-    if(Number(tx.amount) > newBalance){
-      alert('رصيد المستخدم غير كافٍ لهذا السحب');
+    const { data: balance, error: balErr } = await supabaseClient
+      .from('balances')
+      .select('available_balance')
+      .eq('user_id', tx.user_id)
+      .maybeSingle();
+
+    if(balErr || !balance){
+      alert('تعذر جلب رصيد المستخدم');
       return;
     }
-    newBalance -= Number(tx.amount);
+
+    const newBalance = Number(balance.available_balance) + Number(tx.amount);
+
+    const { error: updBalErr } = await supabaseClient
+      .from('balances')
+      .update({ available_balance: newBalance, updated_at: new Date().toISOString() })
+      .eq('user_id', tx.user_id);
+
+    if(updBalErr){ alert('خطأ بتحديث الرصيد: ' + updBalErr.message); return; }
+
+    const { error: updTxErr } = await supabaseClient
+      .from('transactions')
+      .update({ status: 'completed', reviewed_at: new Date().toISOString(), reviewed_by: adminUser.id })
+      .eq('id', txId);
+
+    if(updTxErr){ alert('خطأ بتحديث حالة المعاملة: ' + updTxErr.message); return; }
+
+    loadTransactions();
   }
-
-  const { error: updBalErr } = await supabaseClient
-    .from('balances')
-    .update({ available_balance: newBalance, updated_at: new Date().toISOString() })
-    .eq('user_id', tx.user_id);
-
-  if(updBalErr){ alert('خطأ بتحديث الرصيد: ' + updBalErr.message); return; }
-
-  const { error: updTxErr } = await supabaseClient
-    .from('transactions')
-    .update({ status: 'completed', reviewed_at: new Date().toISOString(), reviewed_by: adminUser.id })
-    .eq('id', txId);
-
-  if(updTxErr){ alert('خطأ بتحديث حالة المعاملة: ' + updTxErr.message); return; }
-
-  loadTransactions();
 }
 
 async function rejectTx(txId){
   if(!confirm('تأكيد رفض هذه العملية؟')) return;
+  const tx = allTx.find(t => t.id === txId);
+  if(!tx) return;
+
+  // ===== السحب: يستخدم دالة آمنة ترجّع المبلغ من locked_balance للرصيد المتاح =====
+  if(tx.type === 'withdraw'){
+    const { error } = await supabaseClient.rpc('reject_withdrawal', { p_tx_id: txId });
+    if(error){ alert('خطأ: ' + error.message); return; }
+    loadTransactions();
+    return;
+  }
+
   const { error } = await supabaseClient
     .from('transactions')
     .update({ status: 'rejected', reviewed_at: new Date().toISOString(), reviewed_by: adminUser.id })

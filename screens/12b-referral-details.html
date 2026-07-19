@@ -3,7 +3,7 @@
 <title>تفاصيل الإحالة</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
 .tabs{display:flex;gap:8px;margin-bottom:16px;}
-.tab{padding:8px 16px;border-radius:var(--radius-pill);font-size:12.5px;border:1px solid var(--line);color:var(--text-muted);}
+.tab{padding:8px 16px;border-radius:var(--radius-pill);font-size:12.5px;border:1px solid var(--line);color:var(--text-muted);cursor:pointer;}
 .tab.active{background:var(--gold);color:#1C1500;border-color:var(--gold);font-weight:700;}
 .level-card{display:flex;justify-content:space-between;align-items:center;background:var(--bg-surface);border:1px solid var(--line);
   border-radius:12px;padding:14px;margin-bottom:10px;}
@@ -19,12 +19,110 @@
 <div class="screen">
   <div class="top-row"><a href="12-referral.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">تفاصيل الإحالة</div><div style="width:38px"></div></div>
 
-  <div class="level-card"><div><div class="level-name">المستوى الأول (مباشر)</div><div class="level-sub">عمولة 5٪ من رسوم إدارة حصصهم</div></div><div class="level-num">98</div></div>
-  <div class="level-card"><div><div class="level-name">المستوى الثاني (غير مباشر)</div><div class="level-sub">عمولة 2٪ من رسوم إدارة حصصهم</div></div><div class="level-num">26</div></div>
+  <div class="level-card"><div><div class="level-name">المستوى الأول (مباشر)</div><div class="level-sub">عمولة 5٪ من رسوم إدارة حصصهم</div></div><div class="level-num" id="directCount">٠</div></div>
+  <div class="level-card"><div><div class="level-name">المستوى الثاني (غير مباشر)</div><div class="level-sub">عمولة 2٪ من رسوم إدارة حصصهم</div></div><div class="level-num" id="indirectCount">٠</div></div>
 
-  <div class="tabs"><div class="tab active">الكل</div><div class="tab">مباشر</div><div class="tab">غير مباشر</div></div>
+  <div class="tabs">
+    <div class="tab active" data-filter="all">الكل</div>
+    <div class="tab" data-filter="direct">مباشر</div>
+    <div class="tab" data-filter="indirect">غير مباشر</div>
+  </div>
 
-  <div class="person-row"><div><div class="p-name">Ahmed Ali</div><div class="p-date">مستوى أول · انضم 2026-06-02</div></div><div class="p-amount">+10.00$</div></div>
-  <div class="person-row"><div><div class="p-name">Mohammed</div><div class="p-date">مستوى أول · انضم 2026-05-14</div></div><div class="p-amount">+15.00$</div></div>
-  <div class="person-row" style="border:none;"><div><div class="p-name">Sara Ahmed</div><div class="p-date">مستوى ثاني · انضم 2026-04-28</div></div><div class="p-amount">+8.00$</div></div>
-</div></div></body></html>
+  <div id="peopleList" style="margin-bottom:110px;">
+    <div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">جاري التحميل...</div>
+  </div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+
+let allPeople = [];
+let amountByPerson = {};
+
+function renderPeople(filter){
+  const list = document.getElementById('peopleList');
+  const filtered = filter === 'all' ? allPeople : allPeople.filter(p => p.level === filter);
+
+  if(filtered.length === 0){
+    list.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">ما فيه إحالات بهذا التصنيف</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map((p, idx) => {
+    const border = idx === filtered.length - 1 ? 'style="border:none;"' : '';
+    const levelLabel = p.level === 'direct' ? 'مستوى أول' : 'مستوى ثاني';
+    const personAmount = amountByPerson[p.id] || 0;
+    return `
+      <div class="person-row" ${border}>
+        <div><div class="p-name">${escapeHtml(p.full_name || 'مستخدم')}</div><div class="p-date">${levelLabel} · انضم ${fmtDate(p.created_at)}</div></div>
+        <div class="p-amount">${personAmount > 0 ? '+' + formatMoney(personAmount) + '$' : '—'}</div>
+      </div>`;
+  }).join('');
+}
+
+async function loadReferralDetails(){
+  const user = await requireAuth();
+  if(!user) return;
+
+  const { data: directRefs } = await supabaseClient
+    .from('profiles')
+    .select('id, full_name, created_at')
+    .eq('referred_by', user.id)
+    .order('created_at', { ascending: false });
+
+  const direct = directRefs || [];
+  const directIds = direct.map(r => r.id);
+
+  let indirect = [];
+  if(directIds.length > 0){
+    const { data: indirectRefs } = await supabaseClient
+      .from('profiles')
+      .select('id, full_name, created_at')
+      .in('referred_by', directIds)
+      .order('created_at', { ascending: false });
+    indirect = indirectRefs || [];
+  }
+
+  document.getElementById('directCount').textContent = toArabicDigits(direct.length);
+  document.getElementById('indirectCount').textContent = toArabicDigits(indirect.length);
+
+  allPeople = [
+    ...direct.map(p => ({ ...p, level: 'direct' })),
+    ...indirect.map(p => ({ ...p, level: 'indirect' }))
+  ];
+
+  const { data: commissions } = await supabaseClient
+    .from('referral_commissions')
+    .select('from_user_id, commission_amount')
+    .eq('beneficiary_id', user.id);
+
+  (commissions || []).forEach(c => {
+    amountByPerson[c.from_user_id] = (amountByPerson[c.from_user_id] || 0) + Number(c.commission_amount);
+  });
+
+  renderPeople('all');
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      renderPeople(tab.dataset.filter);
+    });
+  });
+}
+
+loadReferralDetails();
+</script>
+</body></html>

@@ -91,11 +91,12 @@ function updateConfirmLabel(){
 }
 
 async function handlePurchase(){
-  const user = await requireAuth();
-  if(!user || !currentOffer) return;
-
   const btn = document.getElementById('confirmBtn');
+  if(btn.disabled) return; // منع أي تنفيذ مكرر
   btn.disabled = true; btn.textContent = 'جاري تنفيذ الشراء...';
+
+  const user = await requireAuth();
+  if(!user || !currentOffer){ btn.disabled = false; updateConfirmLabel(); return; }
 
   const { data, error } = await supabaseClient.rpc('purchase_offer', {
     p_offer_id: currentOffer.id,

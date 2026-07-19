@@ -81,15 +81,12 @@ async function handleRegister(){
 
     const userId = signUpData.user.id;
 
-    // إذا فيه رمز دعوة، نجيب صاحب الرمز
+    // إذا فيه رمز دعوة، نجيب صاحب الرمز عن طريق RPC آمنة (تتجاوز RLS بأمان)
     let referredBy = null;
     if(referralCode){
-      const { data: refProfile } = await supabaseClient
-        .from('profiles')
-        .select('id')
-        .eq('referral_code', referralCode)
-        .maybeSingle();
-      if(refProfile) referredBy = refProfile.id;
+      const { data: refUserId, error: refError } = await supabaseClient
+        .rpc('get_user_id_by_referral_code', { code: referralCode });
+      if(!refError && refUserId) referredBy = refUserId;
     }
 
     const newReferralCode = generateReferralCode(fullName);

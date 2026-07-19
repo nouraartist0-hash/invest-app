@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap');
+
+html{color-scheme:dark;}
+:root{
+  --bg-deep:#161D12;
+  --bg-surface:#212B1B;
+  --bg-surface-2:#2A3622;
+  --gold:#C9A227;
+  --gold-soft:#E4C766;
+  --cream:#F3EEDD;
+  --terracotta:#B5652D;
+  --text-muted:#A9AF9B;
+  --line:#3A4531;
+  --success:#5B8C5A;
+  --danger:#C9612A;
+
+  --font-display:'Cairo',sans-serif;
+  --font-body:'Tajawal',sans-serif;
+  --radius-card:20px;
+  --radius-field:14px;
+  --radius-pill:999px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  background:#0C0F09;
+  font-family:var(--font-body);
+  display:flex;align-items:center;justify-content:center;min-height:100vh;
+}
+a{text-decoration:none;color:inherit;}
+
+.device{
+  width:390px;height:844px;background:var(--bg-deep);
+  border-radius:44px;border:10px solid #0a0d07;
+  box-shadow:0 30px 80px rgba(0,0,0,.6);
+  overflow:hidden;position:relative;
+}
+.statusbar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 28px 0;font-family:var(--font-display);
+  font-size:14px;color:var(--cream);font-weight:700;
+}
+.screen{
+  height:calc(100% - 40px);
+  display:flex;flex-direction:column;
+  padding:22px 22px 0;
+  overflow-y:auto;
+}
+.screen::-webkit-scrollbar{display:none;}
+
+/* Top bar */
+.top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.icon-btn{
+  width:38px;height:38px;border-radius:50%;
+  background:var(--bg-surface);display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);flex-shrink:0;
+}
+.icon-btn svg{width:16px;height:16px;}
+.top-title{font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--cream);}
+
+/* Headings */
+.eyebrow{font-family:var(--font-display);font-size:12.5px;font-weight:700;color:var(--gold-soft);letter-spacing:1px;margin-bottom:8px;}
+.title{font-family:var(--font-display);font-size:24px;font-weight:900;color:var(--cream);}
+.subtitle{font-size:14px;color:var(--text-muted);margin-top:8px;line-height:1.8;}
+
+/* Fields */
+.field-group{margin-bottom:16px;}
+.label{font-size:13px;color:var(--text-muted);margin-bottom:8px;display:block;font-family:var(--font-body);font-weight:500;}
+.field{
+  background:var(--bg-surface);border:1px solid var(--line);border-radius:var(--radius-field);
+  display:flex;align-items:center;gap:10px;padding:14px 16px;
+}
+.field.focused{border-color:var(--gold);}
+.field svg{width:18px;height:18px;flex-shrink:0;opacity:.7;}
+.field input,.field select{
+  background:none;border:none;outline:none;color:var(--cream);
+  font-family:var(--font-body);font-size:15px;width:100%;direction:rtl;
+}
+.field input::placeholder{color:#6B7360;}
+
+/* Buttons */
+.cta{
+  width:100%;background:linear-gradient(180deg,var(--gold-soft),var(--gold));
+  color:#1C1500;font-family:var(--font-display);font-weight:700;font-size:16px;
+  border:none;border-radius:var(--radius-pill);padding:16px 0;cursor:pointer;margin-bottom:14px;
+}
+.cta.outline{
+  background:none;border:1.5px solid var(--gold);color:var(--gold-soft);
+}
+.cta.small{padding:12px 0;font-size:14px;}
+
+/* Cards */
+a.card, a.deed-card{
+  display:block;
+  width:100%;
+}
+.card{
+  background:var(--bg-surface);border:1px solid var(--line);
+  border-radius:var(--radius-card);padding:18px;margin-bottom:14px;
+}
+.card-title{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--cream);margin-bottom:4px;}
+.card-sub{font-size:12.5px;color:var(--text-muted);}
+
+/* Deed / certificate accent used on holding & offer cards */
+.deed-card{
+  position:relative;
+  background:linear-gradient(135deg,var(--bg-surface-2),var(--bg-surface));
+  border:1px solid var(--gold);
+  border-radius:var(--radius-card);
+  padding:20px;
+  overflow:hidden;
+}
+.deed-card::after{
+  content:'';position:absolute;inset:6px;border:1px dashed rgba(201,162,39,.35);border-radius:14px;pointer-events:none;
+}
+.seal-mini{
+  width:34px;height:34px;border-radius:50%;border:1.5px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.seal-mini svg{width:16px;height:16px;}
+
+/* Bottom nav */
+.bottom-nav{
+  display:flex;justify-content:space-around;align-items:center;
+  padding:14px 10px 22px;background:var(--bg-surface);
+  border-top:1px solid var(--line);
+  position:sticky;bottom:0;margin-top:auto;
+}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--text-muted);font-size:10.5px;}
+.nav-item.active{color:var(--gold-soft);}
+.nav-item svg{width:20px;height:20px;}
+
+/* Chip / pill tag */
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(201,162,39,.12);color:var(--gold-soft);
+  font-size:11.5px;font-family:var(--font-display);font-weight:700;
+  padding:5px 12px;border-radius:var(--radius-pill);
+}
+.chip.success{background:rgba(91,140,90,.15);color:#8FC98D;}
+.chip.danger{background:rgba(201,97,42,.15);color:#E0916A;}
+
+/* Divider row */
+.row-between{display:flex;justify-content:space-between;align-items:center;}
+
+/* Screen list index page */
+.index-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(390px,1fr));gap:28px;}

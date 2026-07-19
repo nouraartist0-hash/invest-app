@@ -50,13 +50,10 @@ async function handleConfirmWithdraw(){
   const btn = document.getElementById('confirmBtn');
   btn.disabled = true; btn.textContent = 'جاري إرسال الطلب...';
 
-  const { error } = await supabaseClient.from('transactions').insert({
-    user_id: user.id,
-    type: 'withdraw',
-    amount: pending.amount,
-    status: 'pending',
-    network: pending.network,
-    wallet_address: pending.walletAddress
+  const { error } = await supabaseClient.rpc('request_withdrawal', {
+    p_amount: pending.amount,
+    p_network: pending.network,
+    p_wallet_address: pending.walletAddress
   });
 
   if(error){

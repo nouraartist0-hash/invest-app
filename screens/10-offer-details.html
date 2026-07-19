@@ -97,7 +97,7 @@ async function handlePurchase(){
   const btn = document.getElementById('confirmBtn');
   btn.disabled = true; btn.textContent = 'جاري تنفيذ الشراء...';
 
-  const { error } = await supabaseClient.rpc('purchase_offer', {
+  const { data, error } = await supabaseClient.rpc('purchase_offer', {
     p_offer_id: currentOffer.id,
     p_amount: selectedAmount
   });
@@ -108,32 +108,14 @@ async function handlePurchase(){
     return;
   }
 
-  // نسجل عملية الشراء بجدول transactions عشان تظهر بالإشعارات وسجل العمليات
-  await supabaseClient.from('transactions').insert({
-    user_id: user.id,
-    type: 'investment',
-    amount: selectedAmount,
-    status: 'completed'
-  });
-
-  // نجيب آخر استثمار انسوى للمستخدم بنفس العرض عشان نطلع رقم الوثيقة بإيصال النجاح
-  const { data: newInvestment } = await supabaseClient
-    .from('investments')
-    .select('deed_number, started_at')
-    .eq('user_id', user.id)
-    .eq('offer_id', currentOffer.id)
-    .order('started_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
   const now = new Date();
   const endDate = new Date(now.getTime() + Number(currentOffer.duration_days) * 86400000);
   sessionStorage.setItem('last_purchase', JSON.stringify({
     title: currentOffer.title,
     amount: selectedAmount,
-    purchasedAt: (newInvestment && newInvestment.started_at) ? newInvestment.started_at : now.toISOString(),
+    purchasedAt: now.toISOString(),
     endsAt: endDate.toISOString(),
-    deedNumber: newInvestment ? newInvestment.deed_number : null
+    deedNumber: data ? data.deed_number : null
   }));
 
   location.href = '11-purchase-success.html';

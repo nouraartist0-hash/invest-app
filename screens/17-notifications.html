@@ -6,21 +6,116 @@
 .n-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .n-icon.ok{background:rgba(91,140,90,.15);}
 .n-icon.warn{background:rgba(201,97,42,.15);}
+.n-icon.bad{background:rgba(201,97,42,.22);}
 .n-icon svg{width:16px;height:16px;}
 .n-info{flex:1;}
 .n-title{font-size:13.5px;color:var(--cream);}
 .n-time{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.empty-state{text-align:center;color:var(--text-muted);font-size:13px;padding:50px 0;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
   <div class="top-row"><a href="06-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">الإشعارات</div><div style="width:38px"></div></div>
 
-  <div class="notif"><div class="n-icon ok"><svg viewBox="0 0 24 24" fill="none" stroke="#8FC98D" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
-    <div class="n-info"><div class="n-title">تم إيداع 1000 USDT بنجاح</div><div class="n-time">منذ 5 دقائق</div></div></div>
-  <div class="notif"><div class="n-icon ok"><svg viewBox="0 0 24 24" fill="none" stroke="#8FC98D" stroke-width="2"><path d="M12 3l9 4v5c0 5-3.5 8-9 9-5.5-1-9-4-9-9V7z"/></svg></div>
-    <div class="n-info"><div class="n-title">تمت مشاركتك في قطيع أبقار — الدفعة ٤</div><div class="n-time">منذ ساعة</div></div></div>
-  <div class="notif"><div class="n-icon warn"><svg viewBox="0 0 24 24" fill="none" stroke="#E0916A" stroke-width="2"><path d="M12 19V5M5 12l7 7 7-7"/></svg></div>
-    <div class="n-info"><div class="n-title">طلب سحب 500 USDT قيد المراجعة</div><div class="n-time">منذ 3 ساعات</div></div></div>
-  <div class="notif"><div class="n-icon ok"><svg viewBox="0 0 24 24" fill="none" stroke="#8FC98D" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 12l2 2 4-4"/></svg></div>
-    <div class="n-info"><div class="n-title">تم قبول تحديث سياسة الخصوصية</div><div class="n-time">منذ يوم</div></div></div>
-</div></div></body></html>
+  <div id="notifList"><div class="empty-state">جاري التحميل...</div></div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+// أيقونة لكل نوع عملية (نفس منطق شاشة سجل العمليات)
+const TYPE_ICON = {
+  deposit:        '<path d="M12 5v14M5 12l7-7 7 7"/>',
+  withdraw:       '<path d="M12 19V5M5 12l7 7 7-7"/>',
+  investment:     '<path d="M12 3l9 4v5c0 5-3.5 8-9 9-5.5-1-9-4-9-9V7z"/>',
+  profit:         '<path d="M12 5v14M5 12l7-7 7 7"/>',
+  referral_bonus: '<circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/>'
+};
+
+// نص الإشعار حسب النوع والحالة
+function buildTitle(t){
+  const amt = formatMoney(t.amount, false);
+  if (t.type === 'deposit') {
+    return t.status === 'completed' ? `تم إيداع ${amt}$ بنجاح` : `طلب إيداع ${amt}$ قيد المراجعة`;
+  }
+  if (t.type === 'withdraw') {
+    if (t.status === 'completed') return `تم تنفيذ سحب ${amt}$ بنجاح`;
+    if (t.status === 'rejected') return `تم رفض طلب سحب ${amt}$`;
+    if (t.status === 'cancelled') return `تم إلغاء طلب سحب ${amt}$`;
+    return `طلب سحب ${amt}$ قيد المراجعة`;
+  }
+  if (t.type === 'investment') return `تمت مشاركتك الاستثمارية بمبلغ ${amt}$`;
+  if (t.type === 'profit') return `استلمت عائد استثماري ${amt}$`;
+  if (t.type === 'referral_bonus') return `استلمت مكافأة إحالة ${amt}$`;
+  return `عملية بمبلغ ${amt}$`;
+}
+
+// لون/حالة الأيقونة
+function statusClass(status){
+  if (status === 'completed') return 'ok';
+  if (status === 'rejected' || status === 'cancelled') return 'bad';
+  return 'warn'; // pending
+}
+function statusColor(status){
+  if (status === 'completed') return '#8FC98D';
+  if (status === 'rejected' || status === 'cancelled') return '#E0916A';
+  return '#E0916A';
+}
+
+function timeAgo(iso){
+  const diffSec = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diffSec < 60) return 'الآن';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `منذ ${toArabicDigits(diffMin)} دقيقة`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `منذ ${toArabicDigits(diffHour)} ساعة`;
+  const diffDay = Math.floor(diffHour / 24);
+  if (diffDay < 30) return `منذ ${toArabicDigits(diffDay)} يوم`;
+  const diffMonth = Math.floor(diffDay / 30);
+  return `منذ ${toArabicDigits(diffMonth)} شهر`;
+}
+
+async function loadNotifications(){
+  const user = await requireAuth();
+  if(!user) return;
+
+  const { data, error } = await supabaseClient
+    .from('transactions')
+    .select('id, type, amount, status, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  const list = document.getElementById('notifList');
+
+  if (error) {
+    list.innerHTML = `<div class="empty-state">تعذر تحميل الإشعارات: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    list.innerHTML = `<div class="empty-state">ماكو إشعارات حالياً</div>`;
+    return;
+  }
+
+  list.innerHTML = data.map(t => `
+    <div class="notif">
+      <div class="n-icon ${statusClass(t.status)}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="${statusColor(t.status)}" stroke-width="2">${TYPE_ICON[t.type] || TYPE_ICON.deposit}</svg>
+      </div>
+      <div class="n-info">
+        <div class="n-title">${escapeHtml(buildTitle(t))}</div>
+        <div class="n-time">${timeAgo(t.created_at)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+loadNotifications();
+</script>
+</body></html>

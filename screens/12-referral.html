@@ -3,7 +3,9 @@
 <title>12 — الإحالة</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
 .link-box{background:var(--bg-surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;
-  display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--gold-soft);direction:ltr;margin-bottom:14px;}
+  display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--gold-soft);direction:ltr;margin-bottom:14px;gap:8px;}
+.link-box span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.link-box svg{flex-shrink:0;cursor:pointer;}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
 .stat-box{background:var(--bg-surface);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;}
 .stat-num{font-family:var(--font-display);font-weight:900;font-size:19px;color:var(--gold-soft);}
@@ -13,23 +15,124 @@
 .p-date{font-size:11px;color:var(--text-muted);}
 .p-amount{font-family:var(--font-display);font-weight:700;font-size:13px;color:#8FC98D;direction:ltr;}
 .terms-note{font-size:11.5px;color:var(--text-muted);text-align:center;line-height:1.8;padding:14px 0 30px;}
+.copied-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--gold);color:#1C1500;
+  padding:9px 18px;border-radius:var(--radius-pill);font-size:12.5px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;}
+.copied-toast.show{opacity:1;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
   <div class="top-row"><a href="06-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">برنامج الإحالة</div><div style="width:38px"></div></div>
   <div class="card" style="text-align:center;">
     <div class="card-sub" style="margin-bottom:10px;">شارك رابطك واحصل على عمولة من رسوم إدارة حصص من تدعوهم — وليس نسبة من رأس مالهم</div>
-    <div class="link-box"><span>finvest.app/ref/ahmed</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></div>
+    <div class="link-box"><span id="refLink">...</span><svg id="copyBtn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></div>
   </div>
   <div class="stat-grid">
-    <div class="stat-box"><div class="stat-num">124</div><div class="stat-label">عدد الإحالات</div></div>
-    <div class="stat-box"><div class="stat-num">1,245.50$</div><div class="stat-label">إجمالي العمولات</div></div>
+    <div class="stat-box"><div class="stat-num" id="totalReferrals">٠</div><div class="stat-label">عدد الإحالات</div></div>
+    <div class="stat-box"><div class="stat-num" id="totalCommissions">٠.٠٠$</div><div class="stat-label">إجمالي العمولات</div></div>
   </div>
   <div class="section-title" style="margin-bottom:10px;">آخر الإحالات</div>
   <div class="card">
-    <div class="person-row"><div><div class="p-name">Ahmed Ali</div><div class="p-date">2026-07-18 · مباشر</div></div><div class="p-amount">+10.00$</div></div>
-    <div class="person-row"><div><div class="p-name">Mohammed</div><div class="p-date">2026-07-17 · مباشر</div></div><div class="p-amount">+15.00$</div></div>
-    <div class="person-row" style="border:none;"><div><div class="p-name">Sara Ahmed</div><div class="p-date">2026-07-16 · غير مباشر</div></div><div class="p-amount">+8.00$</div></div>
+    <div id="referralsList">
+      <div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">جاري التحميل...</div>
+    </div>
   </div>
   <div class="terms-note">العمولة ثابتة كنسبة من رسوم المنصة الإدارية فقط، ولا ترتبط بعوائد استثمار من تدعوهم</div>
-</div></div></body></html>
+</div>
+<div class="copied-toast" id="copiedToast">تم نسخ الرابط</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+
+async function loadReferral(){
+  const user = await requireAuth();
+  if(!user) return;
+
+  const { data: profile } = await supabaseClient
+    .from('profiles')
+    .select('referral_code')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  const code = profile && profile.referral_code ? profile.referral_code : '';
+  const link = location.origin + location.pathname.replace('12-referral.html', '03-register.html') + '?ref=' + encodeURIComponent(code);
+  document.getElementById('refLink').textContent = link.replace(/^https?:\/\//, '');
+
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(link).then(() => {
+      const toast = document.getElementById('copiedToast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    });
+  });
+
+  // ===== المستوى الأول: إحالات مباشرة =====
+  const { data: directRefs } = await supabaseClient
+    .from('profiles')
+    .select('id, full_name, created_at')
+    .eq('referred_by', user.id)
+    .order('created_at', { ascending: false });
+
+  const direct = directRefs || [];
+  const directIds = direct.map(r => r.id);
+
+  // ===== المستوى الثاني: إحالات غير مباشرة =====
+  let indirectCount = 0;
+  if(directIds.length > 0){
+    const { count } = await supabaseClient
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .in('referred_by', directIds);
+    indirectCount = count || 0;
+  }
+
+  document.getElementById('totalReferrals').textContent = toArabicDigits(direct.length + indirectCount);
+
+  // ===== العمولات الحقيقية =====
+  const { data: commissions } = await supabaseClient
+    .from('referral_commissions')
+    .select('from_user_id, commission_amount')
+    .eq('beneficiary_id', user.id);
+
+  const rows = commissions || [];
+  const totalCommissions = rows.reduce((sum, c) => sum + Number(c.commission_amount), 0);
+  document.getElementById('totalCommissions').textContent = formatMoney(totalCommissions) + '$';
+
+  const amountByPerson = {};
+  rows.forEach(c => {
+    amountByPerson[c.from_user_id] = (amountByPerson[c.from_user_id] || 0) + Number(c.commission_amount);
+  });
+
+  const list = document.getElementById('referralsList');
+  if(direct.length === 0){
+    list.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">ما عندك إحالات لسع — شارك رابطك أعلاه</div>';
+    return;
+  }
+
+  const shown = direct.slice(0, 5);
+  list.innerHTML = shown.map((r, idx) => {
+    const border = idx === shown.length - 1 ? 'style="border:none;"' : '';
+    const personAmount = amountByPerson[r.id] || 0;
+    return `
+      <div class="person-row" ${border}>
+        <div><div class="p-name">${escapeHtml(r.full_name || 'مستخدم')}</div><div class="p-date">${fmtDate(r.created_at)} · مباشر</div></div>
+        <div class="p-amount">${personAmount > 0 ? '+' + formatMoney(personAmount) + '$' : '—'}</div>
+      </div>`;
+  }).join('');
+}
+
+loadReferral();
+</script>
+</body></html>

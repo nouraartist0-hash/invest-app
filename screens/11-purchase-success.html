@@ -16,6 +16,7 @@
   <div class="title">تمت المشاركة بنجاح</div>
   <div class="subtitle">حصتك موثقة الآن ووثيقة الملكية بحسابك</div>
   <div class="card receipt">
+    <div class="r-row" id="rDeedRow" style="display:none;"><span>رقم الوثيقة</span><b id="rDeed">—</b></div>
     <div class="r-row"><span>اسم العرض</span><b id="rTitle">—</b></div>
     <div class="r-row"><span>المبلغ</span><b id="rAmount">—</b></div>
     <div class="r-row"><span>تاريخ المشاركة</span><b id="rDate">—</b></div>
@@ -36,11 +37,18 @@ function fmtDate(iso){
 }
 const purchase = JSON.parse(sessionStorage.getItem('last_purchase') || 'null');
 if(purchase){
+  if(purchase.deedNumber){
+    document.getElementById('rDeed').textContent = purchase.deedNumber;
+    document.getElementById('rDeedRow').style.display = 'flex';
+  }
   document.getElementById('rTitle').textContent = purchase.title;
   document.getElementById('rAmount').textContent = formatMoney(purchase.amount, false) + ' $';
   document.getElementById('rDate').textContent = fmtDate(purchase.purchasedAt);
   document.getElementById('rEnd').textContent = fmtDate(purchase.endsAt);
   sessionStorage.removeItem('last_purchase');
+} else {
+  // ما فيه عملية شراء بالجلسة (مثلاً المستخدم دخل الرابط مباشرة) — نرجعه للدشبورد
+  location.href = '06-dashboard.html';
 }
 </script>
 </body></html>

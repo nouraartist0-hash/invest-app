@@ -2,26 +2,263 @@
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>18 — الدعم</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
-.msg{max-width:75%;padding:12px 14px;border-radius:16px;font-size:13.5px;line-height:1.7;margin-bottom:10px;}
-.msg.in{background:var(--bg-surface);border:1px solid var(--line);color:var(--cream);align-self:flex-start;border-bottom-right-radius:4px;}
-.msg.out{background:var(--gold);color:#1C1500;align-self:flex-end;margin-right:auto;border-bottom-left-radius:4px;}
-.msg-time{font-size:10px;color:var(--text-muted);margin-top:3px;}
+.msg-row{display:flex;flex-direction:column;margin-bottom:10px;}
+.msg-row.out{align-items:flex-end;}
+.msg-row.in{align-items:flex-start;}
+.msg{max-width:78%;padding:12px 14px;border-radius:16px;font-size:13.5px;line-height:1.7;word-break:break-word;}
+.msg.in{background:var(--bg-surface);border:1px solid var(--line);color:var(--cream);border-bottom-right-radius:4px;}
+.msg.out{background:var(--gold);color:#1C1500;border-bottom-left-radius:4px;}
+.msg-meta{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-muted);margin-top:3px;padding:0 2px;}
+.msg-meta svg{width:14px;height:14px;}
+.msg-img{max-width:100%;border-radius:12px;display:block;margin-bottom:6px;cursor:pointer;}
+.msg-file{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.15);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:12px;}
 .chat-area{display:flex;flex-direction:column;flex:1;overflow-y:auto;padding-bottom:10px;}
+.empty-state{text-align:center;color:var(--text-muted);font-size:13px;padding:50px 0;}
+.day-sep{text-align:center;font-size:11px;color:var(--text-muted);margin:14px 0 10px;}
 .input-bar{display:flex;gap:10px;align-items:center;padding:12px 0 26px;}
 .input-bar input{flex:1;background:var(--bg-surface);border:1px solid var(--line);border-radius:var(--radius-pill);
   padding:12px 16px;color:var(--cream);font-family:var(--font-body);outline:none;}
-.send-btn{width:44px;height:44px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.attach-btn,.send-btn{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:none;cursor:pointer;}
+.attach-btn{background:var(--bg-surface);border:1px solid var(--line);}
+.send-btn{background:var(--gold);}
+.send-btn:disabled{opacity:.5;}
+.attach-preview{display:flex;align-items:center;gap:8px;background:var(--bg-surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:8px;font-size:12px;color:var(--cream);}
+.attach-preview img{width:34px;height:34px;border-radius:8px;object-fit:cover;}
+.attach-preview .rm{margin-right:auto;color:var(--danger);cursor:pointer;font-size:16px;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
   <div class="top-row"><a href="14-profile.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">الدعم والمراسلة</div><div style="width:38px"></div></div>
-  <div class="chat-area">
-    <div class="msg in">مرحباً! كيف يمكننا مساعدتك؟<div class="msg-time">08:30</div></div>
-    <div class="msg out">أريد أعرف عن السحب<div class="msg-time">08:31</div></div>
-    <div class="msg in">يتم مراجعة طلبات السحب خلال 24 ساعة، وتصل مباشرة لمحفظتك بعد الموافقة<div class="msg-time">08:32</div></div>
-  </div>
+
+  <div class="chat-area" id="chatArea"><div class="empty-state">جاري التحميل...</div></div>
+
+  <div id="attachPreview"></div>
   <div class="input-bar">
-    <div class="send-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1500" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></div>
-    <input type="text" placeholder="اكتب رسالتك..."/>
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
+    <button class="attach-btn" id="attachBtn" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a5 5 0 01-7.07-7.07l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+    </button>
+    <input type="text" id="msgInput" placeholder="اكتب رسالتك..."/>
+    <button class="send-btn" id="sendBtn" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1500" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+    </button>
   </div>
-</div></div></body></html>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+const ATTACH_BUCKET = 'support-attachments';
+let currentUser = null;
+let pendingFile = null;
+const renderedIds = new Set();
+let lastDayLabel = null;
+
+function formatTime(iso){
+  const d = new Date(iso);
+  const h = String(d.getHours()).padStart(2,'0');
+  const m = String(d.getMinutes()).padStart(2,'0');
+  return toArabicDigits(h) + ':' + toArabicDigits(m);
+}
+
+function dayLabel(iso){
+  const d = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date(); yesterday.setDate(today.getDate()-1);
+  const sameDay = (a,b)=>a.toDateString()===b.toDateString();
+  if (sameDay(d, today)) return 'اليوم';
+  if (sameDay(d, yesterday)) return 'أمس';
+  return d.toLocaleDateString('ar-EG', { day:'numeric', month:'long' });
+}
+
+function isImageUrl(url){
+  return /\.(png|jpe?g|gif|webp)$/i.test(url || '');
+}
+
+function checkIcon(read){
+  const color = read ? '#7FB2E8' : 'var(--text-muted)';
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.4"><path d="M2 12l5 5L22 4"/>${read ? '<path d="M9 12l5 5L27 4" transform="translate(-4,0)"/>' : ''}</svg>`;
+}
+
+function renderMessage(m){
+  if (renderedIds.has(m.id)) return;
+  renderedIds.add(m.id);
+
+  const chatArea = document.getElementById('chatArea');
+  const empty = chatArea.querySelector('.empty-state');
+  if (empty) empty.remove();
+
+  const dl = dayLabel(m.created_at);
+  if (dl !== lastDayLabel) {
+    lastDayLabel = dl;
+    const sep = document.createElement('div');
+    sep.className = 'day-sep';
+    sep.textContent = dl;
+    chatArea.appendChild(sep);
+  }
+
+  const isOut = m.sender === 'user';
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + (isOut ? 'out' : 'in');
+
+  let attachHtml = '';
+  if (m.attachment_url) {
+    if (isImageUrl(m.attachment_url)) {
+      attachHtml = `<img class="msg-img" src="${escapeHtml(m.attachment_url)}" onclick="window.open('${escapeHtml(m.attachment_url)}','_blank')">`;
+    } else {
+      attachHtml = `<div class="msg-file"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg><a href="${escapeHtml(m.attachment_url)}" target="_blank" style="color:inherit">مرفق</a></div>`;
+    }
+  }
+
+  row.innerHTML = `
+    <div class="msg ${isOut ? 'out':'in'}">${attachHtml}${m.message ? escapeHtml(m.message) : ''}</div>
+    <div class="msg-meta">${isOut ? checkIcon(m.is_read) : ''}<span>${formatTime(m.created_at)}</span></div>
+  `;
+  chatArea.appendChild(row);
+}
+
+function scrollToBottom(){
+  const chatArea = document.getElementById('chatArea');
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+async function markAdminMessagesRead(){
+  await supabaseClient
+    .from('support_messages')
+    .update({ is_read: true })
+    .eq('user_id', currentUser.id)
+    .eq('sender', 'admin')
+    .eq('is_read', false);
+}
+
+async function loadMessages(){
+  const { data, error } = await supabaseClient
+    .from('support_messages')
+    .select('id, sender, message, attachment_url, is_read, created_at')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: true });
+
+  const chatArea = document.getElementById('chatArea');
+
+  if (error) {
+    chatArea.innerHTML = `<div class="empty-state">تعذر تحميل الرسائل: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    chatArea.innerHTML = `<div class="empty-state">لا توجد رسائل بعد. اكتب رسالتك وفريق الدعم راح يرد عليك قريباً</div>`;
+  } else {
+    chatArea.innerHTML = '';
+    data.forEach(renderMessage);
+    scrollToBottom();
+  }
+
+  markAdminMessagesRead();
+}
+
+async function uploadAttachment(file){
+  const ext = file.name.split('.').pop();
+  const path = `${currentUser.id}/${Date.now()}.${ext}`;
+  const { error } = await supabaseClient.storage.from(ATTACH_BUCKET).upload(path, file);
+  if (error) throw error;
+  const { data } = supabaseClient.storage.from(ATTACH_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+function showAttachPreview(file){
+  const box = document.getElementById('attachPreview');
+  const url = URL.createObjectURL(file);
+  box.innerHTML = `
+    <div class="attach-preview">
+      <img src="${url}">
+      <span>${escapeHtml(file.name)}</span>
+      <span class="rm" id="removeAttach">✕</span>
+    </div>`;
+  document.getElementById('removeAttach').onclick = () => {
+    pendingFile = null;
+    box.innerHTML = '';
+  };
+}
+
+async function sendMessage(){
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text && !pendingFile) return;
+
+  const sendBtn = document.getElementById('sendBtn');
+  sendBtn.disabled = true;
+
+  try {
+    let attachmentUrl = null;
+    if (pendingFile) {
+      attachmentUrl = await uploadAttachment(pendingFile);
+    }
+
+    const { data, error } = await supabaseClient
+      .from('support_messages')
+      .insert({ user_id: currentUser.id, sender: 'user', message: text || null, attachment_url: attachmentUrl })
+      .select()
+      .single();
+
+    if (error) {
+      alert('تعذر إرسال الرسالة: ' + error.message);
+      return;
+    }
+
+    renderMessage(data);
+    scrollToBottom();
+    input.value = '';
+    pendingFile = null;
+    document.getElementById('attachPreview').innerHTML = '';
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+function subscribeRealtime(){
+  supabaseClient
+    .channel('support_messages_' + currentUser.id)
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'support_messages',
+      filter: `user_id=eq.${currentUser.id}`
+    }, (payload) => {
+      if (payload.eventType === 'INSERT') {
+        renderMessage(payload.new);
+        scrollToBottom();
+        if (payload.new.sender === 'admin') markAdminMessagesRead();
+      }
+    })
+    .subscribe();
+}
+
+async function init(){
+  currentUser = await requireAuth();
+  if (!currentUser) return;
+
+  await loadMessages();
+  subscribeRealtime();
+
+  document.getElementById('sendBtn').addEventListener('click', sendMessage);
+  document.getElementById('msgInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+  document.getElementById('attachBtn').addEventListener('click', () => {
+    document.getElementById('fileInput').click();
+  });
+  document.getElementById('fileInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      pendingFile = file;
+      showAttachPreview(file);
+    }
+  });
+}
+
+init();
+</script>
+</body></html>

@@ -47,6 +47,26 @@ let adminUser = null;
 let allDocs = [];
 let currentFilter = 'pending';
 
+const KYC_BUCKET = 'kyc-documents';
+
+function extractStoragePath(fileUrl){
+  // الرابط المخزّن مبني كـ getPublicUrl، شكله: .../storage/v1/object/public/kyc-documents/<path>
+  // نستخرج منه <path> بس عشان نولّد رابط موقّع مؤقت بدله (البكت خاص مو عام)
+  const marker = `/${KYC_BUCKET}/`;
+  const idx = fileUrl.indexOf(marker);
+  if (idx === -1) return null;
+  return fileUrl.slice(idx + marker.length);
+}
+
+async function attachSignedUrls(docs){
+  await Promise.all(docs.map(async d => {
+    const path = extractStoragePath(d.file_url);
+    if (!path) { d.signed_url = null; return; }
+    const { data, error } = await supabaseClient.storage.from(KYC_BUCKET).createSignedUrl(path, 3600);
+    d.signed_url = error ? null : data.signedUrl;
+  }));
+}
+
 function escapeHtml(str){
   const div = document.createElement('div');
   div.textContent = str == null ? '' : String(str);
@@ -95,7 +115,7 @@ function render(){
             <div class="doc-label">${DOC_LABELS[type]}</div>
             <div class="doc-status-chip ${statusCls}">${STATUS_LABELS[d.status] || d.status}</div>
           </div>
-          <img class="doc-img" src="${escapeHtml(d.file_url)}" loading="lazy" alt="${DOC_LABELS[type]}"/>
+          ${d.signed_url ? `<img class="doc-img" src="${escapeHtml(d.signed_url)}" loading="lazy" alt="${DOC_LABELS[type]}"/>` : `<div class="empty-state" style="padding:16px 0;">تعذر تحميل الصورة</div>`}
           ${actions}
         </div>`;
     }).join('');
@@ -133,6 +153,7 @@ async function loadDocs(){
     return;
   }
   allDocs = data || [];
+  await attachSignedUrls(allDocs);
   render();
 }
 

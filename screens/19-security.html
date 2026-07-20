@@ -16,9 +16,62 @@
 
   <div class="set-row"><span>المصادقة الثنائية (2FA)</span><div class="switch"><div class="knob"></div></div></div>
   <div class="set-row"><span>تسجيل الدخول ببصمة الإصبع</span><div class="switch"><div class="knob"></div></div></div>
-  <div class="set-row"><span>تغيير كلمة المرور</span><span style="color:var(--gold-soft);font-size:13px;">تعديل ›</span></div>
+  <div class="set-row" id="pwRow" onclick="togglePwForm()" style="cursor:pointer;"><span>تغيير كلمة المرور</span><span style="color:var(--gold-soft);font-size:13px;">تعديل ›</span></div>
+  <div id="pwForm" style="display:none;padding:14px 4px;border-bottom:1px solid var(--line);">
+    <div class="field-group"><label class="label">كلمة المرور الجديدة</label>
+      <div class="field"><input id="newPassword" type="password" placeholder="••••••••"/></div></div>
+    <div class="field-group" style="margin-top:10px;"><label class="label">تأكيد كلمة المرور الجديدة</label>
+      <div class="field"><input id="confirmNewPassword" type="password" placeholder="••••••••"/></div></div>
+    <div id="pwMsg" class="form-msg"></div>
+    <button id="pwSubmitBtn" class="cta" style="margin-top:12px;" onclick="handleChangePassword()">حفظ كلمة المرور</button>
+  </div>
 
   <div class="section-title" style="margin:22px 0 10px;">الجلسات النشطة</div>
   <div class="session-card"><div class="s-info"><b>iPhone 15 — بغداد</b>نشط الآن</div><div class="chip success">هذا الجهاز</div></div>
   <div class="session-card"><div class="s-info"><b>Chrome — أربيل</b>آخر دخول قبل يومين</div><span style="color:var(--terracotta);font-size:12px;">إنهاء</span></div>
-</div></div></body></html>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+(async function(){
+  const user = await requireAuth();
+  if (!user) return;
+})();
+
+function togglePwForm(){
+  const form = document.getElementById('pwForm');
+  form.style.display = (form.style.display === 'none') ? 'block' : 'none';
+}
+
+async function handleChangePassword(){
+  const newPassword = document.getElementById('newPassword').value;
+  const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+  const btn = document.getElementById('pwSubmitBtn');
+
+  if(!newPassword || newPassword.length < 8){
+    showFormMessage('pwMsg','كلمة المرور يجب أن تكون ٨ أحرف على الأقل',true); return;
+  }
+  if(newPassword !== confirmNewPassword){
+    showFormMessage('pwMsg','كلمتا المرور غير متطابقتين',true); return;
+  }
+
+  btn.disabled = true; btn.textContent = 'جاري الحفظ...';
+
+  try{
+    const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+    if(error){
+      showFormMessage('pwMsg','تعذر تغيير كلمة المرور: ' + error.message,true);
+      btn.disabled = false; btn.textContent = 'حفظ كلمة المرور';
+      return;
+    }
+    showFormMessage('pwMsg','تم تغيير كلمة المرور بنجاح',false);
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmNewPassword').value = '';
+    btn.disabled = false; btn.textContent = 'حفظ كلمة المرور';
+  } catch(err){
+    showFormMessage('pwMsg','حدث خطأ غير متوقع: ' + err.message,true);
+    btn.disabled = false; btn.textContent = 'حفظ كلمة المرور';
+  }
+}
+</script>
+</body></html>

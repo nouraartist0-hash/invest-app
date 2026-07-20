@@ -8,14 +8,17 @@
 .msg{max-width:78%;padding:12px 14px;border-radius:16px;font-size:13.5px;line-height:1.7;word-break:break-word;}
 .msg.in{background:var(--bg-surface);border:1px solid var(--line);color:var(--cream);border-bottom-right-radius:4px;}
 .msg.out{background:var(--gold);color:#1C1500;border-bottom-left-radius:4px;}
-.msg-meta{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-muted);margin-top:3px;padding:0 2px;}
+.msg-meta{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-muted);margin-top:3px;padding:0 2px;}
 .msg-meta svg{width:14px;height:14px;}
+.msg-action{cursor:pointer;font-size:12px;opacity:.75;}
 .msg-img{max-width:100%;border-radius:12px;display:block;margin-bottom:6px;cursor:pointer;}
 .msg-file{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.15);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:12px;}
-.chat-area{display:flex;flex-direction:column;flex:1;overflow-y:auto;padding-bottom:10px;}
+.chat-area{display:flex;flex-direction:column;flex:1;overflow-y:auto;padding-bottom:4px;}
 .empty-state{text-align:center;color:var(--text-muted);font-size:13px;padding:50px 0;}
 .day-sep{text-align:center;font-size:11px;color:var(--text-muted);margin:14px 0 10px;}
-.input-bar{display:flex;gap:10px;align-items:center;padding:12px 0 26px;}
+.closed-banner{background:rgba(201,97,42,.12);border:1px solid var(--terracotta);color:#E0916A;font-size:11.5px;text-align:center;padding:8px;border-radius:10px;margin-bottom:10px;}
+.typing-note{font-size:11px;color:var(--text-muted);min-height:16px;padding:2px 4px;}
+.input-bar{display:flex;gap:10px;align-items:center;padding:6px 0 26px;}
 .input-bar input{flex:1;background:var(--bg-surface);border:1px solid var(--line);border-radius:var(--radius-pill);
   padding:12px 16px;color:var(--cream);font-family:var(--font-body);outline:none;}
 .attach-btn,.send-btn{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:none;cursor:pointer;}
@@ -30,7 +33,9 @@
 <div class="screen">
   <div class="top-row"><a href="14-profile.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">الدعم والمراسلة</div><div style="width:38px"></div></div>
 
+  <div id="closedBanner"></div>
   <div class="chat-area" id="chatArea"><div class="empty-state">جاري التحميل...</div></div>
+  <div class="typing-note" id="typingNote"></div>
 
   <div id="attachPreview"></div>
   <div class="input-bar">
@@ -57,7 +62,11 @@ const ATTACH_BUCKET = 'support-attachments';
 let currentUser = null;
 let pendingFile = null;
 const renderedIds = new Set();
+const messagesById = new Map();
 let lastDayLabel = null;
+let typingChannel = null;
+let lastTypingSent = 0;
+let typingHideTimer = null;
 
 function formatTime(iso){
   const d = new Date(iso);
@@ -86,7 +95,8 @@ function checkIcon(read){
 }
 
 function renderMessage(m){
-  if (renderedIds.has(m.id)) return;
+  messagesById.set(m.id, m);
+  if (renderedIds.has(m.id)) { updateMessageDom(m); return; }
   renderedIds.add(m.id);
 
   const chatArea = document.getElementById('chatArea');
@@ -102,9 +112,17 @@ function renderMessage(m){
     chatArea.appendChild(sep);
   }
 
-  const isOut = m.sender === 'user';
   const row = document.createElement('div');
-  row.className = 'msg-row ' + (isOut ? 'out' : 'in');
+  row.id = 'row-' + m.id;
+  row.className = 'msg-row ' + (m.sender === 'user' ? 'out' : 'in');
+  chatArea.appendChild(row);
+  updateMessageDom(m);
+}
+
+function updateMessageDom(m){
+  const row = document.getElementById('row-' + m.id);
+  if (!row) return;
+  const isOut = m.sender === 'user';
 
   let attachHtml = '';
   if (m.attachment_url) {
@@ -115,11 +133,16 @@ function renderMessage(m){
     }
   }
 
+  let actions = '';
+  if (isOut) {
+    if (!m.attachment_url) actions += `<span class="msg-action" data-act="edit" data-id="${m.id}">✏️</span>`;
+    actions += `<span class="msg-action" data-act="del" data-id="${m.id}">🗑️</span>`;
+  }
+
   row.innerHTML = `
     <div class="msg ${isOut ? 'out':'in'}">${attachHtml}${m.message ? escapeHtml(m.message) : ''}</div>
-    <div class="msg-meta">${isOut ? checkIcon(m.is_read) : ''}<span>${formatTime(m.created_at)}</span></div>
+    <div class="msg-meta">${actions}${isOut ? checkIcon(m.is_read) : ''}<span>${formatTime(m.created_at)}</span></div>
   `;
-  chatArea.appendChild(row);
 }
 
 function scrollToBottom(){
@@ -134,6 +157,17 @@ async function markAdminMessagesRead(){
     .eq('user_id', currentUser.id)
     .eq('sender', 'admin')
     .eq('is_read', false);
+}
+
+async function loadClosedStatus(){
+  const { data } = await supabaseClient.from('support_conversations').select('is_closed').eq('user_id', currentUser.id).maybeSingle();
+  renderClosedBanner(data ? data.is_closed : false);
+}
+
+function renderClosedBanner(isClosed){
+  document.getElementById('closedBanner').innerHTML = isClosed
+    ? '<div class="closed-banner">تم إغلاق هذه المحادثة من قبل فريق الدعم. اكتب رسالة جديدة وراح تنفتح تلقائياً</div>'
+    : '';
 }
 
 async function loadMessages(){
@@ -185,6 +219,14 @@ function showAttachPreview(file){
   };
 }
 
+async function reopenConversationIfClosed(){
+  const { data } = await supabaseClient.from('support_conversations').select('is_closed').eq('user_id', currentUser.id).maybeSingle();
+  if (data && data.is_closed) {
+    await supabaseClient.from('support_conversations').upsert({ user_id: currentUser.id, is_closed: false, updated_at: new Date().toISOString() });
+    renderClosedBanner(false);
+  }
+}
+
 async function sendMessage(){
   const input = document.getElementById('msgInput');
   const text = input.value.trim();
@@ -215,9 +257,62 @@ async function sendMessage(){
     input.value = '';
     pendingFile = null;
     document.getElementById('attachPreview').innerHTML = '';
+    reopenConversationIfClosed();
   } finally {
     sendBtn.disabled = false;
   }
+}
+
+async function deleteMessage(id){
+  if (!confirm('حذف هذي الرسالة؟')) return;
+  const { error } = await supabaseClient.from('support_messages').delete().eq('id', id);
+  if (error) { alert('تعذر الحذف: ' + error.message); return; }
+  const row = document.getElementById('row-' + id);
+  if (row) row.remove();
+  renderedIds.delete(id);
+  messagesById.delete(id);
+}
+
+async function editMessage(id){
+  const m = messagesById.get(id);
+  if (!m) return;
+  const newText = prompt('عدّل رسالتك:', m.message || '');
+  if (newText === null || newText.trim() === '') return;
+  const { error } = await supabaseClient.from('support_messages').update({ message: newText.trim() }).eq('id', id);
+  if (error) { alert('تعذر التعديل: ' + error.message); return; }
+  m.message = newText.trim();
+  updateMessageDom(m);
+}
+
+document.getElementById('chatArea').addEventListener('click', (e) => {
+  const target = e.target.closest('.msg-action');
+  if (!target) return;
+  const id = target.dataset.id;
+  if (target.dataset.act === 'del') deleteMessage(id);
+  if (target.dataset.act === 'edit') editMessage(id);
+});
+
+function showTypingNote(){
+  document.getElementById('typingNote').textContent = 'فريق الدعم يكتب الآن...';
+  clearTimeout(typingHideTimer);
+  typingHideTimer = setTimeout(() => { document.getElementById('typingNote').textContent = ''; }, 3000);
+}
+
+function subscribeTyping(){
+  typingChannel = supabaseClient.channel('support_typing_' + currentUser.id, { config: { broadcast: { self: false } } });
+  typingChannel
+    .on('broadcast', { event: 'typing' }, (payload) => {
+      if (payload.payload && payload.payload.from === 'admin') showTypingNote();
+    })
+    .subscribe();
+
+  document.getElementById('msgInput').addEventListener('input', () => {
+    const now = Date.now();
+    if (now - lastTypingSent > 2000) {
+      lastTypingSent = now;
+      typingChannel.send({ type: 'broadcast', event: 'typing', payload: { from: 'user' } });
+    }
+  });
 }
 
 function subscribeRealtime(){
@@ -231,7 +326,25 @@ function subscribeRealtime(){
         renderMessage(payload.new);
         scrollToBottom();
         if (payload.new.sender === 'admin') markAdminMessagesRead();
+      } else if (payload.eventType === 'UPDATE') {
+        renderMessage(payload.new);
+      } else if (payload.eventType === 'DELETE') {
+        const id = payload.old.id;
+        const row = document.getElementById('row-' + id);
+        if (row) row.remove();
+        renderedIds.delete(id);
+        messagesById.delete(id);
       }
+    })
+    .subscribe();
+
+  supabaseClient
+    .channel('support_conv_' + currentUser.id)
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'support_conversations',
+      filter: `user_id=eq.${currentUser.id}`
+    }, (payload) => {
+      if (payload.new) renderClosedBanner(payload.new.is_closed);
     })
     .subscribe();
 }
@@ -240,8 +353,10 @@ async function init(){
   currentUser = await requireAuth();
   if (!currentUser) return;
 
+  await loadClosedStatus();
   await loadMessages();
   subscribeRealtime();
+  subscribeTyping();
 
   document.getElementById('sendBtn').addEventListener('click', sendMessage);
   document.getElementById('msgInput').addEventListener('keydown', (e) => {

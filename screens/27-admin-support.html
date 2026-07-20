@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>27 — الدعم (إدارة)</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.search-box{margin-bottom:14px;}
+.conv-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);}
+.c-avatar{width:40px;height:40px;border-radius:50%;background:var(--bg-surface-2);border:1px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--gold-soft);flex-shrink:0;}
+.c-info{flex:1;min-width:0;}
+.c-name{font-size:13.5px;color:var(--cream);display:flex;align-items:center;gap:6px;}
+.c-last{font-size:11.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;max-width:220px;}
+.c-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+.c-time{font-size:10.5px;color:var(--text-muted);}
+.badge{background:var(--gold);color:#1C1500;font-size:10.5px;font-weight:700;border-radius:999px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;padding:0 5px;}
+.empty-note{text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><a href="22-admin-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">محادثات الدعم</div><div style="width:38px"></div></div>
+  <div class="field-group search-box">
+    <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="searchInput" type="text" placeholder="بحث بالاسم أو الهاتف..."/></div>
+  </div>
+  <div id="convList"><div class="empty-note">جاري التحميل...</div></div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+let allConvs = [];
+
+function timeAgo(iso){
+  const diffSec = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diffSec < 60) return 'الآن';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `منذ ${toArabicDigits(diffMin)} د`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `منذ ${toArabicDigits(diffHour)} س`;
+  const diffDay = Math.floor(diffHour / 24);
+  return `منذ ${toArabicDigits(diffDay)} يوم`;
+}
+
+function renderConvs(list){
+  const el = document.getElementById('convList');
+  if(list.length === 0){
+    el.innerHTML = '<div class="empty-note">ما فيه محادثات مطابقة</div>';
+    return;
+  }
+  el.innerHTML = list.map(c => {
+    const initial = (c.name || '?').trim().charAt(0);
+    const preview = c.attachment_url && !c.message ? '📎 مرفق' : (c.message || '');
+    return `<a class="conv-row" href="28-admin-support-chat.html?uid=${encodeURIComponent(c.user_id)}">
+      <div class="c-avatar">${escapeHtml(initial)}</div>
+      <div class="c-info">
+        <div class="c-name">${escapeHtml(c.name || 'بدون اسم')}</div>
+        <div class="c-last">${c.last_sender === 'admin' ? 'أنت: ' : ''}${escapeHtml(preview)}</div>
+      </div>
+      <div class="c-side">
+        <div class="c-time">${timeAgo(c.last_time)}</div>
+        ${c.unread > 0 ? `<div class="badge">${toArabicDigits(c.unread)}</div>` : ''}
+      </div>
+    </a>`;
+  }).join('');
+}
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  if(!q){ renderConvs(allConvs); return; }
+  renderConvs(allConvs.filter(c =>
+    (c.name || '').toLowerCase().includes(q) || (c.phone || '').includes(q)
+  ));
+});
+
+async function loadConversations(){
+  const admin = await requireAdmin();
+  if(!admin) return;
+
+  const [{ data: messages, error }, { data: profiles }] = await Promise.all([
+    supabaseClient
+      .from('support_messages')
+      .select('id, user_id, sender, message, attachment_url, is_read, created_at')
+      .order('created_at', { ascending: true }),
+    supabaseClient.from('profiles').select('id, full_name, phone')
+  ]);
+
+  const list = document.getElementById('convList');
+  if(error){
+    list.innerHTML = '<div class="empty-note">تعذر تحميل المحادثات</div>';
+    return;
+  }
+
+  const profileMap = {};
+  (profiles || []).forEach(p => { profileMap[p.id] = p; });
+
+  const convMap = {};
+  (messages || []).forEach(m => {
+    convMap[m.user_id] = convMap[m.user_id] || { user_id: m.user_id, unread: 0 };
+    const c = convMap[m.user_id];
+    c.last_time = m.created_at;
+    c.message = m.message;
+    c.attachment_url = m.attachment_url;
+    c.last_sender = m.sender;
+    if (m.sender === 'user' && !m.is_read) c.unread += 1;
+  });
+
+  allConvs = Object.values(convMap).map(c => ({
+    ...c,
+    name: profileMap[c.user_id]?.full_name || null,
+    phone: profileMap[c.user_id]?.phone || null
+  })).sort((a,b) => new Date(b.last_time) - new Date(a.last_time));
+
+  if (allConvs.length === 0) {
+    list.innerHTML = '<div class="empty-note">ما فيه محادثات دعم بعد</div>';
+    return;
+  }
+
+  renderConvs(allConvs);
+}
+
+loadConversations();
+</script>
+</body></html>

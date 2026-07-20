@@ -50,6 +50,12 @@ function formatDate(iso){
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
 function render(){
   const list = document.getElementById('txList');
   const filtered = currentFilter === 'all' ? allTx
@@ -62,7 +68,7 @@ function render(){
   }
 
   list.innerHTML = filtered.map((t, idx) => {
-    const name = (t.profiles && t.profiles.full_name) || 'مستخدم';
+    const name = escapeHtml((t.profiles && t.profiles.full_name) || 'مستخدم');
     const isLast = idx === filtered.length - 1;
     const isPending = t.status === 'pending';
     const actions = isPending

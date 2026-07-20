@@ -177,7 +177,8 @@ async function refreshUserOverallStatus(userId){
   if (statuses.some(s => s === 'rejected')) overall = 'rejected';
   else if (statuses.length === types.length && statuses.every(s => s === 'approved')) overall = 'approved';
 
-  await supabaseClient.from('profiles').update({ kyc_status: overall }).eq('id', userId);
+  const { error } = await supabaseClient.rpc('admin_set_kyc_status', { p_user_id: userId, p_status: overall });
+  if (error) { alert('تعذر تحديث حالة التوثيق: ' + error.message); }
 }
 
 async function reviewDoc(docId, newStatus, userId){

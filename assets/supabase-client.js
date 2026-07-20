@@ -65,12 +65,27 @@ function formatPercent(num, withArabicDigits) {
 }
 
 // ====== حارس الجلسة: يتأكد إن المستخدم مسجل دخول، وإلا يرجعه لصفحة الدخول ======
+// كذلك يتأكد إن الحساب مو مجمّد من طرف الإدمن (is_frozen) - إذا مجمّد يسجّل خروج تلقائي
 async function requireAuth() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (!session) {
     location.href = '02-login.html';
     return null;
   }
+
+  const { data: profile } = await supabaseClient
+    .from('profiles')
+    .select('is_frozen')
+    .eq('id', session.user.id)
+    .maybeSingle();
+
+  if (profile && profile.is_frozen === true) {
+    await supabaseClient.auth.signOut();
+    alert('حسابك مجمّد حالياً. تواصل مع الدعم لمزيد من التفاصيل.');
+    location.href = '02-login.html';
+    return null;
+  }
+
   return session.user;
 }
 

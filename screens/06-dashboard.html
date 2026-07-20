@@ -132,7 +132,6 @@ async function loadDashboard(){
     document.getElementById('totalEarned').textContent = formatMoney(totalEarned) + ' $';
     document.getElementById('availableBalance').textContent = formatMoney(availableBalance) + ' $';
   } catch(balErr){
-    // وضع تشخيص مؤقت: نطلع رسالة الخطأ الحقيقية بالبطاقة حتى نعرف السبب
     console.error('balance section error:', balErr);
     document.getElementById('totalValue').textContent = 'DEBUG: ' + (balErr && balErr.message ? balErr.message : JSON.stringify(balErr));
   }
@@ -188,7 +187,7 @@ async function loadDashboard(){
 }
 
 loadDashboard().catch(err => {
-  document.getElementById('totalValue').textContent = '٠.٠٠ $';
+  document.getElementById('totalValue').textContent = 'DEBUG-OUTER: ' + (err && err.message ? err.message : String(err));
   console.error(err);
 });
 </script>

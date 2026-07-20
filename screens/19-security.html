@@ -18,6 +18,22 @@
     <div id="pwMsg" class="form-msg"></div>
     <button id="pwSubmitBtn" class="cta" style="margin-top:12px;" onclick="handleChangePassword()">حفظ كلمة المرور</button>
   </div>
+
+  <div class="set-row" id="sessionsRow" onclick="toggleSessionsSection()" style="cursor:pointer;"><span>الجلسات النشطة</span><span style="color:var(--gold-soft);font-size:13px;">عرض ›</span></div>
+  <div id="sessionsSection" style="display:none;padding:14px 4px;border-bottom:1px solid var(--line);">
+    <div style="background:var(--bg-surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13.5px;color:var(--cream);font-weight:500;" id="sessionDevice">هذا الجهاز</span>
+        <span style="font-size:10.5px;color:var(--success);border:1px solid var(--success);border-radius:var(--radius-pill);padding:2px 10px;">نشطة الآن</span>
+      </div>
+      <div style="font-size:11.5px;color:var(--text-muted);" id="sessionMeta">—</div>
+    </div>
+    <div style="font-size:11.5px;color:var(--text-muted);line-height:1.8;margin-bottom:12px;">
+      لأسباب أمنية، ما نقدر نعرض قائمة تفصيلية بكل الأجهزة الثانية المسجلة دخول بحسابك من هذا التطبيق. بس تقدر تسجّل خروج كل الجلسات الثانية دفعة وحدة (غير هذا الجهاز) بضغطة وحدة.
+    </div>
+    <button id="signOutOthersBtn" class="cta outline" onclick="handleSignOutOthers()">تسجيل الخروج من كل الأجهزة الأخرى</button>
+    <div id="sessionsMsg" class="form-msg" style="margin-top:10px;"></div>
+  </div>
 </div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/supabase-client.js?v=1784451053"></script>
@@ -25,11 +41,70 @@
 (async function(){
   const user = await requireAuth();
   if (!user) return;
+  if (location.hash === '#sessions') {
+    document.getElementById('sessionsSection').style.display = 'block';
+    loadCurrentSessionInfo();
+    document.getElementById('sessionsRow').scrollIntoView({ block: 'center' });
+  }
 })();
 
 function togglePwForm(){
   const form = document.getElementById('pwForm');
   form.style.display = (form.style.display === 'none') ? 'block' : 'none';
+}
+
+function toggleSessionsSection(){
+  const section = document.getElementById('sessionsSection');
+  const opening = section.style.display === 'none';
+  section.style.display = opening ? 'block' : 'none';
+  if (opening) loadCurrentSessionInfo();
+}
+
+function detectDeviceLabel(){
+  const ua = navigator.userAgent || '';
+  let device = 'جهاز غير معروف';
+  if (/android/i.test(ua)) device = 'أندرويد';
+  else if (/iphone|ipad|ipod/i.test(ua)) device = 'آيفون / آيباد';
+  else if (/windows/i.test(ua)) device = 'ويندوز';
+  else if (/mac/i.test(ua)) device = 'ماك';
+
+  let browser = 'متصفح';
+  if (/chrome/i.test(ua) && !/edg/i.test(ua)) browser = 'كروم';
+  else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'سفاري';
+  else if (/firefox/i.test(ua)) browser = 'فايرفوكس';
+  else if (/edg/i.test(ua)) browser = 'إيدج';
+
+  return `${device} · ${browser} (هذا الجهاز)`;
+}
+
+async function loadCurrentSessionInfo(){
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  document.getElementById('sessionDevice').textContent = detectDeviceLabel();
+  if (session && session.user && session.user.last_sign_in_at) {
+    const d = new Date(session.user.last_sign_in_at);
+    const pad = n => String(n).padStart(2,'0');
+    const formatted = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    document.getElementById('sessionMeta').textContent = 'آخر تسجيل دخول: ' + formatted;
+  }
+}
+
+async function handleSignOutOthers(){
+  if (!confirm('تأكيد تسجيل الخروج من كل الأجهزة الأخرى؟ هذا الجهاز بيضل مسجل دخول.')) return;
+  const btn = document.getElementById('signOutOthersBtn');
+  btn.disabled = true; btn.textContent = 'جاري التنفيذ...';
+
+  try {
+    const { error } = await supabaseClient.auth.signOut({ scope: 'others' });
+    if (error) {
+      showFormMessage('sessionsMsg', 'تعذر تنفيذ العملية: ' + error.message, true);
+    } else {
+      showFormMessage('sessionsMsg', 'تم تسجيل الخروج من كل الأجهزة الأخرى بنجاح', false);
+    }
+  } catch (err) {
+    showFormMessage('sessionsMsg', 'حدث خطأ غير متوقع: ' + err.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = 'تسجيل الخروج من كل الأجهزة الأخرى';
+  }
 }
 
 async function handleChangePassword(){
@@ -59,7 +134,7 @@ async function handleChangePassword(){
     btn.disabled = false; btn.textContent = 'حفظ كلمة المرور';
   } catch(err){
     showFormMessage('pwMsg','حدث خطأ غير متوقع: ' + err.message,true);
-    btn.disabled = false; btن.textContent = 'حفظ كلمة المرور';
+    btn.disabled = false; btn.textContent = 'حفظ كلمة المرور';
   }
 }
 </script>

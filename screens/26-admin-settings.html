@@ -2,21 +2,177 @@
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>إعدادات النظام</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
-.set-row{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line);}
+.set-row{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line);cursor:pointer;}
 .set-row span{font-size:14px;color:var(--cream);}
 .set-val{font-size:13px;color:var(--text-muted);}
+.set-row.disabled{cursor:default;opacity:.55;}
+.saved-badge{font-size:10.5px;color:#8FC98D;margin-right:6px;}
+
+.panel-overlay{position:absolute;inset:0;background:rgba(12,15,9,.82);display:none;align-items:flex-end;z-index:20;}
+.panel-overlay.open{display:flex;}
+.panel-sheet{width:100%;overflow-y:auto;background:var(--bg-deep);border-top:1px solid var(--gold);
+  border-radius:20px 20px 0 0;padding:20px 22px 26px;}
+.panel-title{font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--cream);margin-bottom:16px;}
+.panel-msg{font-size:12.5px;text-align:center;margin-bottom:10px;display:none;}
+.seg{display:flex;background:var(--bg-surface);border:1px solid var(--line);border-radius:var(--radius-pill);padding:4px;margin-bottom:16px;}
+.seg-opt{flex:1;text-align:center;padding:8px 0;font-size:13px;color:var(--text-muted);border-radius:var(--radius-pill);cursor:pointer;}
+.seg-opt.active{background:var(--gold);color:#1C1500;font-weight:700;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
   <div class="top-row"><a href="22-admin-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">إعدادات النظام</div><div style="width:38px"></div></div>
 
-  <div class="set-row"><span>الحد الأدنى للسحب</span><div class="set-val">50 USDT ›</div></div>
-  <div class="set-row"><span>رسوم شبكة السحب</span><div class="set-val">1 USDT ›</div></div>
-  <div class="set-row"><span>عمولة الإحالة (مباشر)</span><div class="set-val">5٪ من الرسوم ›</div></div>
-  <div class="set-row"><span>عمولة الإحالة (غير مباشر)</span><div class="set-val">2٪ من الرسوم ›</div></div>
-  <div class="set-row"><span>موافقة السحب التلقائية</span><div class="set-val">معطّلة ›</div></div>
-  <div class="set-row"><span>صلاحيات المشرفين</span><div class="set-val">إدارة ›</div></div>
-  <div class="set-row"><span>نسخة احتياطية لقاعدة البيانات</span><div class="set-val">آخر نسخة: اليوم ›</div></div>
+  <div id="settingsList">
+    <div class="set-row"><span>جاري التحميل...</span><div class="set-val"></div></div>
+  </div>
 
   <div class="card-sub" style="text-align:center;line-height:1.9;margin-top:18px;">تعطيل الموافقة التلقائية على السحب يقلل مخاطر استنزاف السيولة، وننصح إبقاءه معطّلاً لحد ما يثبت استقرار التدفق النقدي</div>
-</div></div></body></html>
+
+  <div class="card-sub" style="text-align:center;line-height:1.9;margin-top:10px;padding-bottom:16px;">صلاحيات المشرفين والنسخ الاحتياطي غير مربوطة بعد بهذي الصفحة — تحتاج بنية منفصلة (جدول أدوار + نظام نسخ احتياطي) نضيفها بخطوة لاحقة.</div>
+
+  <!-- لوحة تعديل قيمة رقمية -->
+  <div class="panel-overlay" id="numOverlay">
+    <div class="panel-sheet">
+      <div class="panel-title" id="numTitle">تعديل القيمة</div>
+      <div id="numMsg" class="panel-msg"></div>
+      <div class="field-group"><label class="label" id="numLabel">القيمة</label>
+        <div class="field"><input id="numInput" type="number" step="0.01" min="0"/></div></div>
+      <button class="cta" id="numSaveBtn">حفظ</button>
+      <button class="cta outline" id="numCancelBtn">إلغاء</button>
+    </div>
+  </div>
+
+  <!-- لوحة تفعيل/تعطيل -->
+  <div class="panel-overlay" id="boolOverlay">
+    <div class="panel-sheet">
+      <div class="panel-title" id="boolTitle">تعديل الإعداد</div>
+      <div id="boolMsg" class="panel-msg"></div>
+      <div class="seg" id="boolSeg">
+        <div class="seg-opt" data-val="true">مفعّلة</div>
+        <div class="seg-opt" data-val="false">معطّلة</div>
+      </div>
+      <button class="cta" id="boolSaveBtn">حفظ</button>
+      <button class="cta outline" id="boolCancelBtn">إلغاء</button>
+    </div>
+  </div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+// تعريف الإعدادات المعروضة بهذي الصفحة: المفتاح بقاعدة البيانات، التسمية، النوع، الوحدة
+const SETTINGS_DEF = [
+  { key:'min_withdraw', label:'الحد الأدنى للسحب', type:'number', unit:'USDT' },
+  { key:'withdraw_network_fee', label:'رسوم شبكة السحب', type:'number', unit:'USDT' },
+  { key:'referral_commission_direct', label:'عمولة الإحالة (مباشر)', type:'number', unit:'٪ من الرسوم' },
+  { key:'referral_commission_indirect', label:'عمولة الإحالة (غير مباشر)', type:'number', unit:'٪ من الرسوم' },
+  { key:'auto_approve_withdrawal', label:'موافقة السحب التلقائية', type:'bool' }
+];
+
+let settingsMap = {}; // key -> value (string)
+let editingDef = null;
+let adminUser = null;
+
+function displayValue(def){
+  const raw = settingsMap[def.key];
+  if(def.type === 'bool'){
+    return raw === 'true' ? 'مفعّلة' : 'معطّلة';
+  }
+  return `${raw ?? '—'} ${def.unit || ''}`.trim();
+}
+
+function renderSettings(){
+  const el = document.getElementById('settingsList');
+  el.innerHTML = SETTINGS_DEF.map(def => `
+    <div class="set-row" data-key="${def.key}">
+      <span>${def.label}</span>
+      <div class="set-val">${displayValue(def)} ›</div>
+    </div>`).join('');
+}
+
+async function loadSettings(){
+  adminUser = await requireAdmin();
+  if(!adminUser) return;
+
+  const { data, error } = await supabaseClient.from('system_settings').select('key, value');
+  if(error){
+    document.getElementById('settingsList').innerHTML = '<div class="set-row"><span>تعذر تحميل الإعدادات: ' + error.message + '</span></div>';
+    return;
+  }
+  (data || []).forEach(row => { settingsMap[row.key] = row.value; });
+  renderSettings();
+}
+
+document.getElementById('settingsList').addEventListener('click', (e) => {
+  const row = e.target.closest('.set-row');
+  if(!row || !row.dataset.key) return;
+  const def = SETTINGS_DEF.find(d => d.key === row.dataset.key);
+  if(!def) return;
+  editingDef = def;
+
+  if(def.type === 'bool'){
+    document.getElementById('boolTitle').textContent = def.label;
+    document.getElementById('boolMsg').style.display = 'none';
+    const current = settingsMap[def.key] === 'true' ? 'true' : 'false';
+    document.querySelectorAll('#boolSeg .seg-opt').forEach(o => o.classList.toggle('active', o.dataset.val === current));
+    document.getElementById('boolOverlay').classList.add('open');
+  } else {
+    document.getElementById('numTitle').textContent = def.label;
+    document.getElementById('numLabel').textContent = def.label + (def.unit ? ' (' + def.unit + ')' : '');
+    document.getElementById('numInput').value = settingsMap[def.key] ?? '';
+    document.getElementById('numMsg').style.display = 'none';
+    document.getElementById('numOverlay').classList.add('open');
+  }
+});
+
+document.getElementById('numCancelBtn').addEventListener('click', () => document.getElementById('numOverlay').classList.remove('open'));
+document.getElementById('boolCancelBtn').addEventListener('click', () => document.getElementById('boolOverlay').classList.remove('open'));
+document.getElementById('numOverlay').addEventListener('click', (e) => { if(e.target.id === 'numOverlay') document.getElementById('numOverlay').classList.remove('open'); });
+document.getElementById('boolOverlay').addEventListener('click', (e) => { if(e.target.id === 'boolOverlay') document.getElementById('boolOverlay').classList.remove('open'); });
+
+document.getElementById('boolSeg').addEventListener('click', (e) => {
+  const opt = e.target.closest('.seg-opt');
+  if(!opt) return;
+  document.querySelectorAll('#boolSeg .seg-opt').forEach(o => o.classList.remove('active'));
+  opt.classList.add('active');
+});
+
+async function saveSetting(key, value, msgElId, overlayId, btnEl){
+  btnEl.disabled = true;
+  const originalText = btnEl.textContent;
+  btnEl.textContent = 'جاري الحفظ...';
+
+  const { error } = await supabaseClient.from('system_settings')
+    .update({ value: String(value), updated_at: new Date().toISOString(), updated_by: adminUser.id })
+    .eq('key', key);
+
+  btnEl.disabled = false; btnEl.textContent = originalText;
+
+  if(error){
+    const el = document.getElementById(msgElId);
+    el.textContent = 'خطأ: ' + error.message; el.style.display = 'block'; el.style.color = '#E5675A';
+    return;
+  }
+  settingsMap[key] = String(value);
+  document.getElementById(overlayId).classList.remove('open');
+  renderSettings();
+}
+
+document.getElementById('numSaveBtn').addEventListener('click', () => {
+  const val = document.getElementById('numInput').value;
+  if(val === '' || isNaN(Number(val)) || Number(val) < 0){
+    const el = document.getElementById('numMsg');
+    el.textContent = 'أدخل رقم صحيح غير سالب'; el.style.display = 'block'; el.style.color = '#E5675A';
+    return;
+  }
+  saveSetting(editingDef.key, Number(val), 'numMsg', 'numOverlay', document.getElementById('numSaveBtn'));
+});
+
+document.getElementById('boolSaveBtn').addEventListener('click', () => {
+  const active = document.querySelector('#boolSeg .seg-opt.active');
+  if(!active) return;
+  saveSetting(editingDef.key, active.dataset.val, 'boolMsg', 'boolOverlay', document.getElementById('boolSaveBtn'));
+});
+
+loadSettings();
+</script>
+</body></html>

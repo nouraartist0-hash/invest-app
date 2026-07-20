@@ -24,18 +24,22 @@
     <div class="chip kyc-chip" id="kycChip" style="display:none;"></div>
   </div>
 
-  <div class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg><span>الملف الشخصي</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#A9B4C3" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></div>
   <a class="menu-item" href="19-security.html"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span>الأمان</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#A9B4C3" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></a>
   <a class="menu-item" href="20-kyc.html"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 12l2 2 4-4"/></svg><span>توثيق الهوية (KYC)</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#A9B4C3" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></a>
   <a class="menu-item" href="13-history.html"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg><span>التقارير والإحصائيات</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#A9B4C3" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></a>
   <a class="menu-item" href="18-support.html"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><path d="M21 11.5a8.5 8.5 0 01-12.4 7.5L3 20l1-5.4A8.5 8.5 0 1121 11.5z"/></svg><span>الدعم والمراسلة</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#A9B4C3" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></a>
   <a class="menu-item" href="15-settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg><span>إعدادات الحساب</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#A9B4C3" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></a>
 
-  <button class="cta outline logout" onclick="location.href='02-login.html'" style="margin-top:24px;">تسجيل الخروج</button>
+  <button class="cta outline logout" onclick="handleLogout()" style="margin-top:24px;">تسجيل الخروج</button>
 </div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/supabase-client.js?v=1784451053"></script>
 <script>
+async function handleLogout(){
+  await supabaseClient.auth.signOut();
+  location.href = '02-login.html';
+}
+
 (async function(){
   const user = await requireAuth();
   if (!user) return;

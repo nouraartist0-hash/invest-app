@@ -26,16 +26,25 @@
   <div class="subtitle" style="margin-bottom:10px;">التوثيق مطلوب لرفع حدود السحب وحماية حسابك</div>
 
   <div class="step-row"><div class="step-num done">✓</div><div class="step-info"><div class="step-title">المعلومات الشخصية</div><div class="step-sub">مكتمل</div></div></div>
-  <div class="step-row"><div class="step-num" id="step2Num">2</div><div class="step-info"><div class="step-title">رفع المستندات</div><div class="step-sub">صورة الهوية + صورة شخصية</div></div></div>
+  <div class="step-row"><div class="step-num" id="step2Num">2</div><div class="step-info"><div class="step-title">رفع المستندات</div><div class="step-sub">صورة الهوية (وجهين) + صورة شخصية</div></div></div>
   <div class="step-row"><div class="step-num" id="step3Num">3</div><div class="step-info"><div class="step-title">التحقق</div><div class="step-sub">مراجعة خلال 24–48 ساعة</div></div></div>
 
   <div class="doc-row">
     <div class="doc-info">
-      <div class="doc-title">صورة الهوية</div>
-      <div class="doc-status none" id="idDocStatus">لم تُرفع بعد</div>
+      <div class="doc-title">صورة الهوية (الوجه الأمامي)</div>
+      <div class="doc-status none" id="idDocFrontStatus">لم تُرفع بعد</div>
     </div>
-    <button class="doc-btn" onclick="document.getElementById('idDocInput').click()">رفع</button>
-    <input type="file" id="idDocInput" accept="image/*" style="display:none;" onchange="handleDocUpload(this,'id_document','idDocStatus')"/>
+    <button class="doc-btn" onclick="document.getElementById('idDocFrontInput').click()">رفع</button>
+    <input type="file" id="idDocFrontInput" accept="image/*" style="display:none;" onchange="handleDocUpload(this,'id_document_front','idDocFrontStatus')"/>
+  </div>
+
+  <div class="doc-row">
+    <div class="doc-info">
+      <div class="doc-title">صورة الهوية (الوجه الخلفي)</div>
+      <div class="doc-status none" id="idDocBackStatus">لم تُرفع بعد</div>
+    </div>
+    <button class="doc-btn" onclick="document.getElementById('idDocBackInput').click()">رفع</button>
+    <input type="file" id="idDocBackInput" accept="image/*" style="display:none;" onchange="handleDocUpload(this,'id_document_back','idDocBackStatus')"/>
   </div>
 
   <div class="doc-row">
@@ -131,10 +140,11 @@ async function refreshOverallStatus(){
     if (!latestByType[d.document_type]) latestByType[d.document_type] = d.status;
   });
 
-  renderDocStatus('idDocStatus', latestByType['id_document'] || null);
+  renderDocStatus('idDocFrontStatus', latestByType['id_document_front'] || null);
+  renderDocStatus('idDocBackStatus', latestByType['id_document_back'] || null);
   renderDocStatus('selfieDocStatus', latestByType['selfie'] || null);
 
-  const bothSubmitted = latestByType['id_document'] && latestByType['selfie'];
+  const bothSubmitted = latestByType['id_document_front'] && latestByType['id_document_back'] && latestByType['selfie'];
   const step2 = document.getElementById('step2Num');
   const step3 = document.getElementById('step3Num');
 

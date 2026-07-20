@@ -2,17 +2,18 @@
 
 html{color-scheme:dark;}
 :root{
-  --bg-deep:#161D12;
-  --bg-surface:#212B1B;
-  --bg-surface-2:#2A3622;
-  --gold:#C9A227;
-  --gold-soft:#E4C766;
-  --cream:#F3EEDD;
-  --terracotta:#B5652D;
-  --text-muted:#A9AF9B;
-  --line:#3A4531;
-  --success:#5B8C5A;
-  --danger:#C9612A;
+  --bg-deep:#0D1623;
+  --bg-surface:#162233;
+  --bg-surface-2:#1C2B40;
+  --gold:#D9A63A;
+  --gold-soft:#E8C170;
+  --secondary:#18C7C0;
+  --cream:#F5F7FA;
+  --terracotta:#D97A3A;
+  --text-muted:#A9B4C3;
+  --line:#2B394C;
+  --success:#18C7C0;
+  --danger:#E15A5A;
 
   --font-display:'Cairo',sans-serif;
   --font-body:'Tajawal',sans-serif;
@@ -23,7 +24,7 @@ html{color-scheme:dark;}
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;}
 body{
-  background:#0C0F09;
+  background:#0D1623;
   font-family:var(--font-body);
   display:flex;align-items:center;justify-content:center;min-height:100vh;
 }
@@ -31,7 +32,7 @@ a{text-decoration:none;color:inherit;}
 
 .device{
   width:390px;height:844px;background:var(--bg-deep);
-  border-radius:44px;border:10px solid #0a0d07;
+  border-radius:44px;border:10px solid #050A12;
   box-shadow:0 30px 80px rgba(0,0,0,.6);
   overflow:hidden;position:relative;
 }
@@ -82,12 +83,12 @@ a{text-decoration:none;color:inherit;}
   background:none;border:none;outline:none;color:var(--cream);
   font-family:var(--font-body);font-size:15px;width:100%;direction:rtl;
 }
-.field input::placeholder{color:#6B7360;}
+.field input::placeholder{color:#5C6B80;}
 
 /* Buttons */
 .cta{
   width:100%;background:linear-gradient(180deg,var(--gold-soft),var(--gold));
-  color:#1C1500;font-family:var(--font-display);font-weight:700;font-size:16px;
+  color:#241A05;font-family:var(--font-display);font-weight:700;font-size:16px;
   border:none;border-radius:var(--radius-pill);padding:16px 0;cursor:pointer;margin-bottom:14px;
 }
 .cta.outline{
@@ -117,7 +118,7 @@ a.card, a.deed-card{
   overflow:hidden;
 }
 .deed-card::after{
-  content:'';position:absolute;inset:6px;border:1px dashed rgba(201,162,39,.35);border-radius:14px;pointer-events:none;
+  content:'';position:absolute;inset:6px;border:1px dashed rgba(217,166,58,.35);border-radius:14px;pointer-events:none;
 }
 .seal-mini{
   width:34px;height:34px;border-radius:50%;border:1.5px solid var(--gold);
@@ -139,12 +140,12 @@ a.card, a.deed-card{
 /* Chip / pill tag */
 .chip{
   display:inline-flex;align-items:center;gap:6px;
-  background:rgba(201,162,39,.12);color:var(--gold-soft);
+  background:rgba(217,166,58,.12);color:var(--gold-soft);
   font-size:11.5px;font-family:var(--font-display);font-weight:700;
   padding:5px 12px;border-radius:var(--radius-pill);
 }
-.chip.success{background:rgba(91,140,90,.15);color:#8FC98D;}
-.chip.danger{background:rgba(201,97,42,.15);color:#E0916A;}
+.chip.success{background:rgba(24,199,192,.15);color:#6FE3DC;}
+.chip.danger{background:rgba(225,90,90,.15);color:#F2A0A0;}
 
 /* Divider row */
 .row-between{display:flex;justify-content:space-between;align-items:center;}

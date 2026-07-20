@@ -4,7 +4,13 @@
 <style>
 .profile-head{display:flex;flex-direction:column;align-items:center;gap:10px;margin:10px 0 24px;}
 .avatar-lg{width:76px;height:76px;border-radius:50%;background:var(--bg-surface-2);border:2px solid var(--gold);
-  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--gold-soft);}
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--gold-soft);
+  overflow:hidden;position:relative;cursor:pointer;}
+.avatar-lg img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.avatar-wrap{position:relative;}
+.avatar-edit-badge{position:absolute;bottom:0;left:0;width:26px;height:26px;border-radius:50%;background:var(--gold);
+  display:flex;align-items:center;justify-content:center;border:2px solid var(--bg-app,#12151c);}
+.avatar-edit-badge svg{width:13px;height:13px;}
 .p-name{font-family:var(--font-display);font-weight:900;font-size:18px;color:var(--cream);}
 .p-email{font-size:12.5px;color:var(--text-muted);}
 .kyc-chip{margin-top:4px;}
@@ -18,7 +24,15 @@
 <div class="screen">
   <div class="top-row"><div></div><div class="top-title">الملف الشخصي</div><a href="15-settings.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></a></div>
   <div class="profile-head">
-    <div class="avatar-lg" id="avatarInitial">؟</div>
+    <div class="avatar-wrap">
+      <div class="avatar-lg" id="avatarBox" onclick="document.getElementById('avatarInput').click()">
+        <span id="avatarInitial">؟</span>
+      </div>
+      <div class="avatar-edit-badge" onclick="document.getElementById('avatarInput').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1A1B22" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="handleAvatarChange(this)"/>
+    </div>
     <div class="p-name" id="profileName">...</div>
     <div class="p-email" id="profilePhone"></div>
     <div class="chip kyc-chip" id="kycChip" style="display:none;"></div>
@@ -40,19 +54,75 @@ async function handleLogout(){
   location.href = '02-login.html';
 }
 
+const AVATAR_BUCKET = 'avatars';
+let currentUser = null;
+
+function renderAvatar(url, displayName){
+  const box = document.getElementById('avatarBox');
+  if (url) {
+    box.innerHTML = `<img src="${url}" alt="">`;
+  } else {
+    box.innerHTML = `<span id="avatarInitial">${(displayName || '؟').trim().charAt(0) || '؟'}</span>`;
+  }
+}
+
+async function handleAvatarChange(input){
+  const file = input.files && input.files[0];
+  if (!file || !currentUser) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert('الرجاء اختيار ملف صورة');
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    alert('حجم الصورة كبير، الحد الأقصى ٥ ميجابايت');
+    return;
+  }
+
+  const badge = document.querySelector('.avatar-edit-badge');
+  badge.style.opacity = '0.5';
+
+  try {
+    const ext = file.name.split('.').pop();
+    const path = `${currentUser.id}/${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabaseClient.storage
+      .from(AVATAR_BUCKET)
+      .upload(path, file, { upsert: true });
+    if (uploadError) throw uploadError;
+
+    const { data: publicUrlData } = supabaseClient.storage.from(AVATAR_BUCKET).getPublicUrl(path);
+    const avatarUrl = publicUrlData.publicUrl;
+
+    const { error: updateError } = await supabaseClient
+      .from('profiles')
+      .update({ avatar_url: avatarUrl })
+      .eq('id', currentUser.id);
+    if (updateError) throw updateError;
+
+    renderAvatar(avatarUrl, document.getElementById('profileName').textContent);
+  } catch (err) {
+    alert('تعذر رفع الصورة: ' + err.message);
+  } finally {
+    badge.style.opacity = '';
+    input.value = '';
+  }
+}
+
 (async function(){
   const user = await requireAuth();
   if (!user) return;
+  currentUser = user;
 
   const { data: profile } = await supabaseClient
     .from('profiles')
-    .select('full_name, phone, kyc_status')
+    .select('full_name, phone, kyc_status, avatar_url')
     .eq('id', user.id)
     .maybeSingle();
 
   const displayName = (profile && profile.full_name) ? profile.full_name : 'مستخدم';
   document.getElementById('profileName').textContent = displayName;
-  document.getElementById('avatarInitial').textContent = displayName.trim().charAt(0) || '؟';
+  renderAvatar(profile && profile.avatar_url, displayName);
   document.getElementById('profilePhone').textContent = (profile && profile.phone) ? profile.phone : (user.email || '');
 
   const kycChip = document.getElementById('kycChip');

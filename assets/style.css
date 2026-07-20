@@ -47,6 +47,12 @@ a{text-decoration:none;color:inherit;}
   overflow-y:auto;
 }
 .screen::-webkit-scrollbar{display:none;}
+/* منع أي عنصر مباشر داخل .screen من الانضغاط (flex-shrink) لما المحتوى يطول
+   (مثلاً قوائم طويلة كالمعاملات/العروض/الإشعارات) - كانت هذي سبب مشكلة
+   انضغاط بطاقة الرصيد بالداشبورد. الصفحات اللي تحتاج قسم يتمدد ويتمرر لحاله
+   (متل .chat-area بصفحة الدعم) تعرّف flex-shrink الخاص فيها محلياً وتتغلب
+   على هذي القاعدة تلقائياً لأنها تجي بعدها بالكود. */
+.screen > *{flex-shrink:0;}
 
 /* Top bar */
 .top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
@@ -145,3 +151,4 @@ a.card, a.deed-card{
 
 /* Screen list index page */
 .index-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(390px,1fr));gap:28px;}
+  

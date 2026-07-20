@@ -4,14 +4,11 @@
 <style>
 .set-row{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line);}
 .set-row span{font-size:14px;color:var(--cream);}
-.switch{width:42px;height:24px;border-radius:14px;background:var(--gold);position:relative;}
-.knob{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
   <div class="top-row"><a href="14-profile.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">الأمان</div><div style="width:38px"></div></div>
 
-  <div class="set-row"><span>المصادقة الثنائية (2FA)</span><div class="switch"><div class="knob"></div></div></div>
   <div class="set-row" id="pwRow" onclick="togglePwForm()" style="cursor:pointer;"><span>تغيير كلمة المرور</span><span style="color:var(--gold-soft);font-size:13px;">تعديل ›</span></div>
   <div id="pwForm" style="display:none;padding:14px 4px;border-bottom:1px solid var(--line);">
     <div class="field-group"><label class="label">كلمة المرور الجديدة</label>
@@ -62,7 +59,7 @@ async function handleChangePassword(){
     btn.disabled = false; btn.textContent = 'حفظ كلمة المرور';
   } catch(err){
     showFormMessage('pwMsg','حدث خطأ غير متوقع: ' + err.message,true);
-    btn.disabled = false; btn.textContent = 'حفظ كلمة المرور';
+    btn.disabled = false; btن.textContent = 'حفظ كلمة المرور';
   }
 }
 </script>

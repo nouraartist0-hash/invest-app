@@ -27,14 +27,14 @@
 
   <div class="step-row"><div class="step-num done">✓</div><div class="step-info"><div class="step-title">المعلومات الشخصية</div><div class="step-sub">مكتمل</div></div></div>
   <div class="step-row"><div class="step-num" id="step2Num">2</div><div class="step-info"><div class="step-title">رفع المستندات</div><div class="step-sub">صورة الهوية (وجهين) + صورة شخصية</div></div></div>
-  <div class="step-row"><div class="step-num" id="step3Num">3</div><div class="step-info"><div class="step-title">التحقق</div><div class="step-sub">مراجعة خلال 24–48 ساعة</div></div></div>
+  <div class="step-row"><div class="step-num" id="step3Num">3</div><div class="step-info"><div class="step-title">التحقق</div><div class="step-sub" id="step3Sub">مراجعة خلال 24–48 ساعة</div></div></div>
 
   <div class="doc-row">
     <div class="doc-info">
       <div class="doc-title">صورة الهوية (الوجه الأمامي)</div>
       <div class="doc-status none" id="idDocFrontStatus">لم تُرفع بعد</div>
     </div>
-    <button class="doc-btn" onclick="document.getElementById('idDocFrontInput').click()">رفع</button>
+    <button class="doc-btn" id="idDocFrontBtn" onclick="document.getElementById('idDocFrontInput').click()">رفع</button>
     <input type="file" id="idDocFrontInput" accept="image/*" style="display:none;" onchange="handleDocUpload(this,'id_document_front','idDocFrontStatus')"/>
   </div>
 
@@ -43,7 +43,7 @@
       <div class="doc-title">صورة الهوية (الوجه الخلفي)</div>
       <div class="doc-status none" id="idDocBackStatus">لم تُرفع بعد</div>
     </div>
-    <button class="doc-btn" onclick="document.getElementById('idDocBackInput').click()">رفع</button>
+    <button class="doc-btn" id="idDocBackBtn" onclick="document.getElementById('idDocBackInput').click()">رفع</button>
     <input type="file" id="idDocBackInput" accept="image/*" style="display:none;" onchange="handleDocUpload(this,'id_document_back','idDocBackStatus')"/>
   </div>
 
@@ -52,7 +52,7 @@
       <div class="doc-title">صورة شخصية (سيلفي)</div>
       <div class="doc-status none" id="selfieDocStatus">لم تُرفع بعد</div>
     </div>
-    <button class="doc-btn" onclick="document.getElementById('selfieDocInput').click()">رفع</button>
+    <button class="doc-btn" id="selfieDocBtn" onclick="document.getElementById('selfieDocInput').click()">رفع</button>
     <input type="file" id="selfieDocInput" accept="image/*" capture="user" style="display:none;" onchange="handleDocUpload(this,'selfie','selfieDocStatus')"/>
   </div>
 
@@ -144,13 +144,20 @@ async function refreshOverallStatus(){
   renderDocStatus('idDocBackStatus', latestByType['id_document_back'] || null);
   renderDocStatus('selfieDocStatus', latestByType['selfie'] || null);
 
+  // نخفي زر "رفع" لأي مستند صار موثّق (approved) عشان ما يعيد رفعه بلا داعي
+  const BTN_BY_TYPE = { id_document_front: 'idDocFrontBtn', id_document_back: 'idDocBackBtn', selfie: 'selfieDocBtn' };
+  Object.keys(BTN_BY_TYPE).forEach(type => {
+    const btn = document.getElementById(BTN_BY_TYPE[type]);
+    if (btn) btn.style.display = (latestByType[type] === 'approved') ? 'none' : '';
+  });
+
   const bothSubmitted = latestByType['id_document_front'] && latestByType['id_document_back'] && latestByType['selfie'];
   const step2 = document.getElementById('step2Num');
   const step3 = document.getElementById('step3Num');
+  const step3Sub = document.getElementById('step3Sub');
 
   if (bothSubmitted) {
     step2.textContent = '✓'; step2.className = 'step-num done';
-    step3.className = 'step-num current';
 
     const { data: profile } = await supabaseClient
       .from('profiles')
@@ -158,12 +165,23 @@ async function refreshOverallStatus(){
       .eq('id', currentUser.id)
       .maybeSingle();
 
-    if (!profile || profile.kyc_status !== 'approved') {
-      await supabaseClient.from('profiles').update({ kyc_status: 'pending' }).eq('id', currentUser.id);
+    if (profile && profile.kyc_status === 'approved') {
+      step3.textContent = '✓'; step3.className = 'step-num done';
+      if (step3Sub) step3Sub.textContent = 'تم التوثيق بنجاح';
+    } else if (profile && profile.kyc_status === 'rejected') {
+      step3.textContent = '!'; step3.className = 'step-num current';
+      if (step3Sub) step3Sub.textContent = 'تم رفض أحد المستندات، أعد الرفع';
+    } else {
+      step3.className = 'step-num current';
+      if (step3Sub) step3Sub.textContent = 'مراجعة خلال 24–48 ساعة';
+      if (!profile || profile.kyc_status !== 'approved') {
+        await supabaseClient.from('profiles').update({ kyc_status: 'pending' }).eq('id', currentUser.id);
+      }
     }
   } else {
     step2.textContent = '2'; step2.className = 'step-num current';
     step3.className = 'step-num';
+    if (step3Sub) step3Sub.textContent = 'مراجعة خلال 24–48 ساعة';
   }
 }
 

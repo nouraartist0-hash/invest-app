@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>تفاصيل المستخدم</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.u-head{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+.u-avatar-lg{width:56px;height:56px;border-radius:50%;background:var(--bg-surface-2);border:1.5px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--gold-soft);flex-shrink:0;}
+.u-head-name{font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--cream);}
+.u-head-meta{font-size:12px;color:var(--text-muted);margin-top:3px;}
+
+.balance-mini{display:flex;gap:10px;margin-bottom:14px;}
+.balance-mini .box{flex:1;background:var(--bg-surface);border:1px solid var(--line);border-radius:var(--radius-field);padding:12px;text-align:center;}
+.balance-mini .box .lbl{font-size:10.5px;color:var(--text-muted);margin-bottom:6px;}
+.balance-mini .box .val{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--cream);direction:ltr;}
+
+.section-title{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--cream);margin:18px 0 10px;}
+.frozen-banner{background:rgba(201,97,42,.12);border:1px solid var(--danger);border-radius:var(--radius-field);
+  padding:12px 14px;font-size:12.5px;color:#E0916A;margin-bottom:14px;line-height:1.8;display:none;}
+.frozen-banner.show{display:block;}
+
+.action-row{display:flex;gap:10px;margin-bottom:8px;}
+.action-row .cta{margin-bottom:0;}
+
+.tx-mini{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);}
+.tx-mini:last-child{border:none;}
+.tx-mini .t{font-size:12.5px;color:var(--cream);}
+.tx-mini .d{font-size:10.5px;color:var(--text-muted);margin-top:2px;}
+.tx-mini .a{font-family:var(--font-display);font-weight:700;font-size:12.5px;direction:ltr;}
+.empty-note{text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;}
+
+.panel-overlay{position:absolute;inset:0;background:rgba(12,15,9,.82);display:none;align-items:flex-end;z-index:20;}
+.panel-overlay.open{display:flex;}
+.panel-sheet{width:100%;max-height:88%;overflow-y:auto;background:var(--bg-deep);border-top:1px solid var(--gold);
+  border-radius:20px 20px 0 0;padding:20px 22px 26px;}
+.panel-title{font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--cream);margin-bottom:16px;}
+.panel-msg{font-size:12.5px;text-align:center;margin-bottom:10px;display:none;}
+.seg{display:flex;background:var(--bg-surface);border:1px solid var(--line);border-radius:var(--radius-pill);padding:4px;margin-bottom:16px;}
+.seg-opt{flex:1;text-align:center;padding:8px 0;font-size:13px;color:var(--text-muted);border-radius:var(--radius-pill);cursor:pointer;}
+.seg-opt.active{background:var(--gold);color:#1C1500;font-weight:700;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><a href="23-admin-users.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">تفاصيل المستخدم</div><div style="width:38px"></div></div>
+
+  <div id="loadingNote" class="empty-note">جاري التحميل...</div>
+
+  <div id="content" style="display:none;">
+    <div class="frozen-banner" id="frozenBanner">هذا الحساب مجمّد حالياً — المستخدم ما يقدر يسجّل دخول أو يسوي عمليات جديدة.</div>
+
+    <div class="u-head">
+      <div class="u-avatar-lg" id="uAvatar">؟</div>
+      <div>
+        <div class="u-head-name" id="uName">—</div>
+        <div class="u-head-meta" id="uMeta">—</div>
+      </div>
+    </div>
+
+    <div class="balance-mini">
+      <div class="box"><div class="lbl">الرصيد المتاح</div><div class="val" id="bAvailable">٠.٠٠</div></div>
+      <div class="box"><div class="lbl">مقفول (سحب معلّق)</div><div class="val" id="bLocked">٠.٠٠</div></div>
+      <div class="box"><div class="lbl">إجمالي الأرباح</div><div class="val" id="bEarned">٠.٠٠</div></div>
+    </div>
+
+    <div class="action-row">
+      <button class="cta outline small" id="adjustBtn" style="flex:1;">تعديل الرصيد يدوياً</button>
+      <button class="cta small" id="freezeBtn" style="flex:1;">تجميد الحساب</button>
+    </div>
+
+    <div class="section-title">آخر المعاملات</div>
+    <div id="txList"><div class="empty-note">لا يوجد</div></div>
+  </div>
+
+  <!-- لوحة تعديل الرصيد اليدوي -->
+  <div class="panel-overlay" id="adjustOverlay">
+    <div class="panel-sheet">
+      <div class="panel-title">تعديل الرصيد يدوياً</div>
+      <div id="adjustMsg" class="panel-msg"></div>
+
+      <div class="seg" id="dirSeg">
+        <div class="seg-opt active" data-dir="add">إضافة للرصيد</div>
+        <div class="seg-opt" data-dir="sub">خصم من الرصيد</div>
+      </div>
+
+      <div class="field-group"><label class="label">المبلغ (USDT)</label>
+        <div class="field"><input id="fAmount" type="number" min="0.01" step="0.01" placeholder="0.00"/></div></div>
+
+      <div class="field-group"><label class="label">سبب التعديل (يُسجَّل بالسجل)</label>
+        <div class="field"><input id="fReason" type="text" placeholder="مثال: تصحيح خطأ إيداع يدوي"/></div></div>
+
+      <button class="cta" id="saveAdjustBtn">تأكيد التعديل</button>
+      <button class="cta outline" id="cancelAdjustBtn">إلغاء</button>
+    </div>
+  </div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const userId = params.get('id');
+let profile = null;
+let balance = null;
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+
+function renderFrozenState(){
+  document.getElementById('frozenBanner').classList.toggle('show', profile.is_frozen === true);
+  const btn = document.getElementById('freezeBtn');
+  if(profile.is_frozen){
+    btn.textContent = 'إلغاء تجميد الحساب';
+    btn.classList.remove('cta'); btn.className = 'cta outline small'; btn.style.borderColor = 'var(--success)'; btn.style.color = '#8FC98D';
+  } else {
+    btn.textContent = 'تجميد الحساب';
+    btn.className = 'cta small'; btn.style.borderColor = ''; btn.style.color = '';
+    btn.style.background = 'linear-gradient(180deg,#E0916A,var(--danger))'; btn.style.color = '#2A1200';
+  }
+}
+
+async function loadData(){
+  if(!userId){
+    document.getElementById('loadingNote').textContent = 'لا يوجد معرّف مستخدم بالرابط';
+    return;
+  }
+  const admin = await requireAdmin();
+  if(!admin) return;
+
+  const [{ data: p, error: pErr }, { data: b }, { data: tx }] = await Promise.all([
+    supabaseClient.from('profiles').select('id, full_name, phone, created_at, kyc_status, is_frozen').eq('id', userId).maybeSingle(),
+    supabaseClient.from('balances').select('available_balance, locked_balance, total_earned').eq('user_id', userId).maybeSingle(),
+    supabaseClient.from('transactions').select('id, type, amount, status, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(10)
+  ]);
+
+  if(pErr || !p){
+    document.getElementById('loadingNote').textContent = 'تعذر إيجاد هذا المستخدم';
+    return;
+  }
+  profile = p;
+  balance = b || { available_balance: 0, locked_balance: 0, total_earned: 0 };
+
+  document.getElementById('loadingNote').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+
+  document.getElementById('uAvatar').textContent = (p.full_name || '؟').trim().charAt(0);
+  document.getElementById('uName').textContent = p.full_name || 'بدون اسم';
+  document.getElementById('uMeta').textContent = `${p.phone || ''} · انضم ${fmtDate(p.created_at)}`;
+  document.getElementById('bAvailable').textContent = formatMoney(balance.available_balance, false);
+  document.getElementById('bLocked').textContent = formatMoney(balance.locked_balance, false);
+  document.getElementById('bEarned').textContent = formatMoney(balance.total_earned, false);
+
+  renderFrozenState();
+
+  const TYPE_LABEL = { deposit:'إيداع', withdraw:'سحب', investment:'مشاركة', profit:'عائد', referral_bonus:'مكافأة إحالة', admin_adjustment:'تعديل إداري' };
+  const txList = document.getElementById('txList');
+  if(!tx || tx.length === 0){
+    txList.innerHTML = '<div class="empty-note">لا يوجد معاملات بعد</div>';
+  } else {
+    txList.innerHTML = tx.map(t => `
+      <div class="tx-mini">
+        <div><div class="t">${escapeHtml(TYPE_LABEL[t.type] || t.type)}</div><div class="d">${fmtDate(t.created_at)}</div></div>
+        <div class="a">${formatMoney(t.amount, false)}$</div>
+      </div>`).join('');
+  }
+}
+
+document.getElementById('freezeBtn').addEventListener('click', async () => {
+  const next = !profile.is_frozen;
+  const msg = next
+    ? 'تأكيد تجميد هذا الحساب؟ المستخدم راح ينمنع من الدخول وأي عمليات جديدة.'
+    : 'تأكيد إلغاء تجميد هذا الحساب؟';
+  if(!confirm(msg)) return;
+
+  const { error } = await supabaseClient.rpc('admin_set_frozen', { p_user_id: userId, p_frozen: next });
+  if(error){ alert('خطأ: ' + error.message); return; }
+  profile.is_frozen = next;
+  renderFrozenState();
+});
+
+document.getElementById('dirSeg').addEventListener('click', (e) => {
+  const opt = e.target.closest('.seg-opt');
+  if(!opt) return;
+  document.querySelectorAll('#dirSeg .seg-opt').forEach(o => o.classList.remove('active'));
+  opt.classList.add('active');
+});
+
+document.getElementById('adjustBtn').addEventListener('click', () => {
+  document.getElementById('fAmount').value = '';
+  document.getElementById('fReason').value = '';
+  document.getElementById('adjustMsg').style.display = 'none';
+  document.querySelectorAll('#dirSeg .seg-opt').forEach(o => o.classList.remove('active'));
+  document.querySelector('#dirSeg .seg-opt[data-dir="add"]').classList.add('active');
+  document.getElementById('adjustOverlay').classList.add('open');
+});
+document.getElementById('cancelAdjustBtn').addEventListener('click', () => {
+  document.getElementById('adjustOverlay').classList.remove('open');
+});
+document.getElementById('adjustOverlay').addEventListener('click', (e) => {
+  if(e.target.id === 'adjustOverlay') document.getElementById('adjustOverlay').classList.remove('open');
+});
+
+function showAdjustMsg(text, isError){
+  const el = document.getElementById('adjustMsg');
+  el.textContent = text; el.style.display = 'block';
+  el.style.color = isError ? '#E5675A' : '#8FC98D';
+}
+
+document.getElementById('saveAdjustBtn').addEventListener('click', async () => {
+  const dir = document.querySelector('#dirSeg .seg-opt.active').dataset.dir;
+  const rawAmount = Number(document.getElementById('fAmount').value);
+  const reason = document.getElementById('fReason').value.trim();
+
+  if(!rawAmount || rawAmount <= 0){ showAdjustMsg('أدخل مبلغ صحيح أكبر من صفر', true); return; }
+  if(!reason){ showAdjustMsg('لازم تكتب سبب التعديل', true); return; }
+
+  const signedAmount = dir === 'add' ? rawAmount : -rawAmount;
+  if(!confirm(`تأكيد ${dir === 'add' ? 'إضافة' : 'خصم'} ${rawAmount} USDT ${dir === 'add' ? 'إلى' : 'من'} رصيد هذا المستخدم؟`)) return;
+
+  const btn = document.getElementById('saveAdjustBtn');
+  btn.disabled = true; btn.textContent = 'جاري التنفيذ...';
+
+  const { error } = await supabaseClient.rpc('admin_adjust_balance', {
+    p_user_id: userId, p_amount: signedAmount, p_reason: reason
+  });
+
+  btn.disabled = false; btn.textContent = 'تأكيد التعديل';
+
+  if(error){ showAdjustMsg('خطأ: ' + error.message, true); return; }
+  document.getElementById('adjustOverlay').classList.remove('open');
+  loadData();
+});
+
+loadData();
+</script>
+</body></html>

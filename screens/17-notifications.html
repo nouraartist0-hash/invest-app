@@ -33,6 +33,7 @@ const TYPE_ICON = {
   deposit:        '<path d="M12 5v14M5 12l7-7 7 7"/>',
   withdraw:       '<path d="M12 19V5M5 12l7 7 7-7"/>',
   investment:     '<path d="M12 3l9 4v5c0 5-3.5 8-9 9-5.5-1-9-4-9-9V7z"/>',
+  investment_return: '<path d="M12 3l9 4v5c0 5-3.5 8-9 9-5.5-1-9-4-9-9V7z"/>',
   profit:         '<path d="M12 5v14M5 12l7-7 7 7"/>',
   referral_bonus: '<circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/>'
 };
@@ -50,6 +51,7 @@ function buildTitle(t){
     return `طلب سحب ${amt}$ قيد المراجعة`;
   }
   if (t.type === 'investment') return `تمت مشاركتك الاستثمارية بمبلغ ${amt}$`;
+  if (t.type === 'investment_return') return `تم استرجاع رأس مال دورة مغلقة بمبلغ ${amt}$`;
   if (t.type === 'profit') return `استلمت عائد استثماري ${amt}$`;
   if (t.type === 'referral_bonus') return `استلمت مكافأة إحالة ${amt}$`;
   return `عملية بمبلغ ${amt}$`;

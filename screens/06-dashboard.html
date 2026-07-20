@@ -136,25 +136,6 @@ async function loadDashboard(){
     document.getElementById('totalValue').textContent = '—';
   }
 
-  // ===== تشخيص مؤقت (بدون alert) - يطبع معلومات فوق الشاشة =====
-  const dbgEl = document.getElementById('totalValue');
-  const dbgCard = document.querySelector('.balance-card');
-  const dbgBox = document.createElement('div');
-  dbgBox.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#000;color:#7CFC7C;font-size:11px;line-height:1.5;padding:10px;white-space:pre-wrap;direction:ltr;text-align:left;border-bottom:2px solid #7CFC7C;font-family:monospace;';
-  dbgBox.textContent =
-    'DEBUG\n' +
-    'text=[' + dbgEl.textContent + ']\n' +
-    'innerHTML=[' + dbgEl.innerHTML + ']\n' +
-    'amount.offsetHeight=' + dbgEl.offsetHeight + 'px\n' +
-    'amount.color=' + getComputedStyle(dbgEl).color + '\n' +
-    'amount.display=' + getComputedStyle(dbgEl).display + '\n' +
-    'amount.visibility=' + getComputedStyle(dbgEl).visibility + '\n' +
-    'amount.opacity=' + getComputedStyle(dbgEl).opacity + '\n' +
-    'card.offsetHeight=' + dbgCard.offsetHeight + 'px\n' +
-    'card.scrollHeight=' + dbgCard.scrollHeight + 'px\n' +
-    'card.overflow=' + getComputedStyle(dbgCard).overflow;
-  document.body.appendChild(dbgBox);
-
   // ===== الحصص الحالية (الاستثمارات النشطة) =====
   const { data: investments, error: invError } = await supabaseClient
     .from('investments')

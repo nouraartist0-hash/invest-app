@@ -136,6 +136,30 @@ async function loadDashboard(){
     document.getElementById('totalValue').textContent = '—';
   }
 
+  // ===== تشخيص مؤقت: يسجل لقطات متتالية بعد التحميل =====
+  const dbgLog = document.createElement('div');
+  dbgLog.id = 'dbgLog';
+  dbgLog.style.cssText = 'background:#000;color:#7CFC7C;font-size:10px;line-height:1.4;padding:10px;white-space:pre-wrap;direction:ltr;text-align:left;font-family:monospace;margin:10px 0;border:2px solid #7CFC7C;';
+  document.querySelector('.balance-card').insertAdjacentElement('afterend', dbgLog);
+
+  function snapshot(label){
+    const el = document.getElementById('totalValue');
+    const card = document.querySelector('.balance-card');
+    if(!el || !card) return;
+    const cs = getComputedStyle(el);
+    dbgLog.textContent +=
+      '[' + label + ']  t=[' + el.textContent + ']  h=' + el.offsetHeight +
+      'px  card.h=' + card.offsetHeight + 'px  disp=' + cs.display +
+      '  vis=' + cs.visibility + '  op=' + cs.opacity + '\n';
+  }
+
+  snapshot('0ms (فوري)');
+  setTimeout(() => snapshot('300ms'), 300);
+  setTimeout(() => snapshot('800ms'), 800);
+  setTimeout(() => snapshot('1500ms'), 1500);
+  setTimeout(() => snapshot('3000ms'), 3000);
+  setTimeout(() => snapshot('5000ms'), 5000);
+
   // ===== الحصص الحالية (الاستثمارات النشطة) =====
   const { data: investments, error: invError } = await supabaseClient
     .from('investments')

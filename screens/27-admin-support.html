@@ -14,10 +14,13 @@
 .c-time{font-size:10.5px;color:var(--text-muted);}
 .badge{background:var(--gold);color:#1C1500;font-size:10.5px;font-weight:700;border-radius:999px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;padding:0 5px;}
 .empty-note{text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;}
+.notif-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(201,162,39,.12);border:1px solid var(--gold);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:11.5px;color:var(--gold-soft);}
+.notif-banner button{background:var(--gold);color:#1C1500;border:none;border-radius:999px;font-size:11px;font-weight:700;padding:6px 14px;cursor:pointer;flex-shrink:0;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
   <div class="top-row"><a href="22-admin-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">محادثات الدعم</div><div style="width:38px"></div></div>
+  <div id="notifBanner"></div>
   <div class="field-group search-box">
     <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="searchInput" type="text" placeholder="بحث بالاسم أو الهاتف..."/></div>
   </div>
@@ -47,18 +50,72 @@ function timeAgo(iso){
   return `منذ ${toArabicDigits(diffDay)} يوم`;
 }
 
+// ====== نظام الصوت: نستخدم AudioContext واحد ثابت ونفتحه بأول لمسة من الأدمن ======
+// المتصفحات (خصوصاً بالجوال) تمنع تشغيل أي صوت قبل أول تفاعل حقيقي من المستخدم بالصفحة.
+// قبل هذا التصحيح كان يتكوّن AudioContext جديد بكل رسالة ويضل بحالة "معلّق" بدون صوت فعلي.
+let sharedAudioCtx = null;
+let audioUnlocked = false;
+
+function getAudioCtx(){
+  if (!sharedAudioCtx) {
+    sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return sharedAudioCtx;
+}
+
+function unlockAudio(){
+  if (audioUnlocked) return;
+  const ctx = getAudioCtx();
+  if (ctx.state === 'suspended') ctx.resume();
+  audioUnlocked = true;
+}
+document.addEventListener('pointerdown', unlockAudio, { once: true });
+document.addEventListener('touchstart', unlockAudio, { once: true });
+
 // نغمة تنبيه بسيطة بدون ملف صوتي خارجي
 function playPing(){
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.frequency.value = 880;
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-    osc.start(); osc.stop(ctx.currentTime + 0.35);
+    const ctx = getAudioCtx();
+    const startTone = () => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.start(); osc.stop(ctx.currentTime + 0.35);
+    };
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(startTone);
+    } else {
+      startTone();
+    }
   } catch(e) {}
+}
+
+// ====== إشعار حقيقي من المتصفح (يظهر حتى لو التطبيق مو مفتوح قدامها) ======
+function renderNotifBanner(){
+  const box = document.getElementById('notifBanner');
+  if (!('Notification' in window)) { box.innerHTML = ''; return; }
+  if (Notification.permission === 'granted') { box.innerHTML = ''; return; }
+  if (Notification.permission === 'denied') {
+    box.innerHTML = '<div class="notif-banner"><span>التنبيهات موقوفة من إعدادات المتصفح لهذا الموقع</span></div>';
+    return;
+  }
+  box.innerHTML = '<div class="notif-banner"><span>فعّلي التنبيهات عشان توصلك رسايل الدعم الجديدة حتى وانتي بشاشة ثانية</span><button id="enableNotifBtn">تفعيل</button></div>';
+  document.getElementById('enableNotifBtn').onclick = async () => {
+    await Notification.requestPermission();
+    renderNotifBanner();
+  };
+}
+
+function notifyNewMessage(conv){
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const n = new Notification('رسالة دعم جديدة', {
+    body: (conv && conv.name ? conv.name : 'مستخدم') + ': ' + (conv && conv.message ? conv.message : '📎 مرفق'),
+    tag: 'support-msg'
+  });
+  n.onclick = () => { window.focus(); n.close(); };
 }
 
 function flashTitle(){
@@ -165,7 +222,10 @@ function subscribeRealtime(){
       loadConversations();
       if (payload.eventType === 'INSERT' && payload.new.sender === 'user') {
         playPing();
-        if (document.hidden) flashTitle();
+        if (document.hidden || !document.hasFocus()) {
+          flashTitle();
+          notifyNewMessage({ message: payload.new.message });
+        }
       }
     })
     .subscribe();
@@ -181,6 +241,7 @@ function subscribeRealtime(){
 async function init(){
   const admin = await requireAdmin();
   if(!admin) return;
+  renderNotifBanner();
   await loadConversations();
   subscribeRealtime();
 }

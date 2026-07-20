@@ -8,6 +8,7 @@
   display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--gold-soft);flex-shrink:0;}
 .c-info{flex:1;min-width:0;}
 .c-name{font-size:13.5px;color:var(--cream);display:flex;align-items:center;gap:6px;}
+.c-closed-tag{font-size:9.5px;background:rgba(201,97,42,.18);color:#E0916A;border-radius:999px;padding:1px 7px;}
 .c-last{font-size:11.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;max-width:220px;}
 .c-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
 .c-time{font-size:10.5px;color:var(--text-muted);}
@@ -32,6 +33,8 @@ function escapeHtml(str){
 }
 
 let allConvs = [];
+const originalTitle = document.title;
+let flashInterval = null;
 
 function timeAgo(iso){
   const diffSec = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -43,6 +46,38 @@ function timeAgo(iso){
   const diffDay = Math.floor(diffHour / 24);
   return `منذ ${toArabicDigits(diffDay)} يوم`;
 }
+
+// نغمة تنبيه بسيطة بدون ملف صوتي خارجي
+function playPing(){
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.start(); osc.stop(ctx.currentTime + 0.35);
+  } catch(e) {}
+}
+
+function flashTitle(){
+  if (flashInterval) return;
+  let toggle = false;
+  flashInterval = setInterval(() => {
+    document.title = toggle ? originalTitle : '💬 رسالة جديدة';
+    toggle = !toggle;
+  }, 1200);
+}
+
+function stopFlash(){
+  if (flashInterval) { clearInterval(flashInterval); flashInterval = null; }
+  document.title = originalTitle;
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) stopFlash();
+});
 
 function renderConvs(list){
   const el = document.getElementById('convList');
@@ -56,7 +91,7 @@ function renderConvs(list){
     return `<a class="conv-row" href="28-admin-support-chat.html?uid=${encodeURIComponent(c.user_id)}">
       <div class="c-avatar">${escapeHtml(initial)}</div>
       <div class="c-info">
-        <div class="c-name">${escapeHtml(c.name || 'بدون اسم')}</div>
+        <div class="c-name">${escapeHtml(c.name || 'بدون اسم')}${c.is_closed ? '<span class="c-closed-tag">مغلقة</span>' : ''}</div>
         <div class="c-last">${c.last_sender === 'admin' ? 'أنت: ' : ''}${escapeHtml(preview)}</div>
       </div>
       <div class="c-side">
@@ -76,15 +111,13 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
 });
 
 async function loadConversations(){
-  const admin = await requireAdmin();
-  if(!admin) return;
-
-  const [{ data: messages, error }, { data: profiles }] = await Promise.all([
+  const [{ data: messages, error }, { data: profiles }, { data: convStatus }] = await Promise.all([
     supabaseClient
       .from('support_messages')
       .select('id, user_id, sender, message, attachment_url, is_read, created_at')
       .order('created_at', { ascending: true }),
-    supabaseClient.from('profiles').select('id, full_name, phone')
+    supabaseClient.from('profiles').select('id, full_name, phone'),
+    supabaseClient.from('support_conversations').select('user_id, is_closed')
   ]);
 
   const list = document.getElementById('convList');
@@ -95,6 +128,9 @@ async function loadConversations(){
 
   const profileMap = {};
   (profiles || []).forEach(p => { profileMap[p.id] = p; });
+
+  const closedMap = {};
+  (convStatus || []).forEach(c => { closedMap[c.user_id] = c.is_closed; });
 
   const convMap = {};
   (messages || []).forEach(m => {
@@ -110,7 +146,8 @@ async function loadConversations(){
   allConvs = Object.values(convMap).map(c => ({
     ...c,
     name: profileMap[c.user_id]?.full_name || null,
-    phone: profileMap[c.user_id]?.phone || null
+    phone: profileMap[c.user_id]?.phone || null,
+    is_closed: closedMap[c.user_id] || false
   })).sort((a,b) => new Date(b.last_time) - new Date(a.last_time));
 
   if (allConvs.length === 0) {
@@ -121,6 +158,33 @@ async function loadConversations(){
   renderConvs(allConvs);
 }
 
-loadConversations();
+function subscribeRealtime(){
+  supabaseClient
+    .channel('admin_support_list')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'support_messages' }, (payload) => {
+      loadConversations();
+      if (payload.eventType === 'INSERT' && payload.new.sender === 'user') {
+        playPing();
+        if (document.hidden) flashTitle();
+      }
+    })
+    .subscribe();
+
+  supabaseClient
+    .channel('admin_support_conv_list')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'support_conversations' }, () => {
+      loadConversations();
+    })
+    .subscribe();
+}
+
+async function init(){
+  const admin = await requireAdmin();
+  if(!admin) return;
+  await loadConversations();
+  subscribeRealtime();
+}
+
+init();
 </script>
 </body></html>

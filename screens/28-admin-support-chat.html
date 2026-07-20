@@ -1,574 +1,415 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>دعم الأدمن — GoldenFarm</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>28 — رد الأدمن</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
-  :root{
-    --bg:#0f1115;
-    --panel:#161a21;
-    --panel-2:#1d222b;
-    --border:#262c37;
-    --text:#e7e9ee;
-    --muted:#8a92a3;
-    --accent:#3fae6a;
-    --accent-dim:#2b7a4b;
-    --danger:#d9534f;
-    --bubble-admin:#22303f;
-    --bubble-user:#242a33;
-    --radius:14px;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    font-family:"Segoe UI", Tahoma, Arial, sans-serif;
-    background:var(--bg);
-    color:var(--text);
-    height:100vh;
-    overflow:hidden;
-  }
-  .layout{display:flex;height:100vh;}
-
-  /* ===== Sidebar ===== */
-  .sidebar{
-    width:300px;
-    min-width:300px;
-    background:var(--panel);
-    border-left:1px solid var(--border);
-    display:flex;
-    flex-direction:column;
-  }
-  .sidebar-header{
-    padding:16px;
-    border-bottom:1px solid var(--border);
-    font-weight:700;
-    font-size:15px;
-  }
-  .sidebar-header span{color:var(--muted); font-weight:400; font-size:12px; display:block; margin-top:2px;}
-  .conv-list{flex:1; overflow-y:auto;}
-  .conv-item{
-    padding:12px 16px;
-    border-bottom:1px solid var(--border);
-    cursor:pointer;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:8px;
-  }
-  .conv-item:hover{background:var(--panel-2);}
-  .conv-item.active{background:var(--panel-2); border-right:3px solid var(--accent);}
-  .conv-name{font-size:14px; font-weight:600;}
-  .conv-preview{font-size:12px; color:var(--muted); margin-top:3px; max-width:190px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .conv-meta{display:flex; flex-direction:column; align-items:flex-end; gap:4px;}
-  .badge{background:var(--accent); color:#0b0f13; font-size:11px; font-weight:700; padding:1px 7px; border-radius:20px;}
-  .status-dot{width:8px; height:8px; border-radius:50%;}
-  .status-open{background:var(--accent);}
-  .status-closed{background:var(--muted);}
-
-  /* ===== Chat area ===== */
-  .chat{flex:1; display:flex; flex-direction:column; min-width:0;}
-  .chat-header{
-    padding:14px 20px;
-    background:var(--panel);
-    border-bottom:1px solid var(--border);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-  }
-  .chat-title{font-weight:700; font-size:15px;}
-  .chat-sub{font-size:12px; color:var(--muted); margin-top:2px;}
-  .typing-indicator{font-size:12px; color:var(--accent); margin-top:2px; height:14px;}
-  .btn{
-    border:none;
-    border-radius:8px;
-    padding:8px 14px;
-    font-size:13px;
-    font-weight:600;
-    cursor:pointer;
-  }
-  .btn-close-conv{background:var(--danger); color:#fff;}
-  .btn-open-conv{background:var(--accent); color:#0b0f13;}
-
-  .messages{
-    flex:1;
-    overflow-y:auto;
-    padding:20px;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-  }
-  .msg-row{display:flex; max-width:70%;}
-  .msg-row.from-admin{align-self:flex-start; flex-direction:row;}
-  .msg-row.from-user{align-self:flex-end; flex-direction:row-reverse;}
-  .bubble{
-    padding:10px 14px;
-    border-radius:var(--radius);
-    position:relative;
-    font-size:14px;
-    line-height:1.5;
-  }
-  .from-admin .bubble{background:var(--bubble-admin); border-bottom-left-radius:4px;}
-  .from-user .bubble{background:var(--bubble-user); border-bottom-right-radius:4px;}
-  .bubble img{max-width:220px; border-radius:10px; display:block; margin-top:6px; cursor:pointer;}
-  .bubble .edited-tag{font-size:10px; color:var(--muted); margin-right:6px;}
-  .msg-meta{font-size:11px; color:var(--muted); margin-top:4px;}
-  .msg-actions{
-    display:none;
-    gap:6px;
-    margin-top:6px;
-  }
-  .msg-row:hover .msg-actions{display:flex;}
-  .msg-actions button{
-    background:none;
-    border:none;
-    color:var(--muted);
-    font-size:11px;
-    cursor:pointer;
-    padding:0;
-  }
-  .msg-actions button:hover{color:var(--text);}
-  .msg-deleted{font-style:italic; color:var(--muted);}
-
-  .composer{
-    border-top:1px solid var(--border);
-    background:var(--panel);
-    padding:12px 16px;
-    display:flex;
-    align-items:flex-end;
-    gap:10px;
-  }
-  .composer textarea{
-    flex:1;
-    resize:none;
-    background:var(--panel-2);
-    border:1px solid var(--border);
-    border-radius:10px;
-    color:var(--text);
-    padding:10px 12px;
-    font-size:14px;
-    font-family:inherit;
-    max-height:120px;
-    min-height:42px;
-  }
-  .composer textarea:focus{outline:1px solid var(--accent);}
-  .icon-btn{
-    background:var(--panel-2);
-    border:1px solid var(--border);
-    color:var(--text);
-    width:42px;
-    height:42px;
-    border-radius:10px;
-    cursor:pointer;
-    font-size:18px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-  .icon-btn:hover{background:var(--border);}
-  .send-btn{background:var(--accent); color:#0b0f13; font-weight:700;}
-  .send-btn:disabled{opacity:.5; cursor:default;}
-  .image-preview-wrap{position:relative; display:inline-block; margin-bottom:8px;}
-  .image-preview-wrap img{max-height:70px; border-radius:8px;}
-  .image-preview-wrap button{
-    position:absolute; top:-6px; left:-6px;
-    background:var(--danger); color:#fff; border:none;
-    border-radius:50%; width:18px; height:18px; font-size:11px; cursor:pointer;
-  }
-
-  .empty-state{
-    flex:1; display:flex; align-items:center; justify-content:center;
-    color:var(--muted); font-size:14px;
-  }
-
-  /* edit mode */
-  .edit-box{display:flex; gap:6px; align-items:center; margin-top:4px;}
-  .edit-box textarea{
-    background:var(--panel-2); border:1px solid var(--accent); border-radius:8px;
-    color:var(--text); padding:6px 8px; font-size:13px; font-family:inherit; width:220px;
-  }
-  .edit-box button{font-size:11px; padding:4px 8px; border-radius:6px; border:none; cursor:pointer;}
-  .edit-save{background:var(--accent); color:#0b0f13;}
-  .edit-cancel{background:var(--panel); color:var(--muted); border:1px solid var(--border) !important;}
-
-  ::-webkit-scrollbar{width:8px;}
-  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:10px;}
-</style>
-</head>
-<body>
-
-<div class="layout">
-  <!-- Sidebar: conversation list -->
-  <div class="sidebar">
-    <div class="sidebar-header">
-      المحادثات
-      <span>GoldenFarm — دعم الأدمن</span>
+.msg-row{display:flex;flex-direction:column;margin-bottom:10px;}
+.msg-row.out{align-items:flex-end;}
+.msg-row.in{align-items:flex-start;}
+.msg{max-width:78%;padding:12px 14px;border-radius:16px;font-size:13.5px;line-height:1.7;word-break:break-word;}
+.msg.in{background:var(--bg-surface);border:1px solid var(--line);color:var(--cream);border-bottom-right-radius:4px;}
+.msg.out{background:var(--gold);color:#1C1500;border-bottom-left-radius:4px;}
+.msg-meta{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-muted);margin-top:3px;padding:0 2px;}
+.msg-meta svg{width:14px;height:14px;}
+.msg-action{cursor:pointer;font-size:12px;opacity:.75;}
+.msg-img{max-width:100%;border-radius:12px;display:block;margin-bottom:6px;cursor:pointer;}
+.msg-file{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.15);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:12px;}
+.chat-area{display:flex;flex-direction:column;flex:1;overflow-y:auto;padding-bottom:4px;}
+.empty-state{text-align:center;color:var(--text-muted);font-size:13px;padding:50px 0;}
+.day-sep{text-align:center;font-size:11px;color:var(--text-muted);margin:14px 0 10px;}
+.closed-banner{background:rgba(201,97,42,.12);border:1px solid var(--terracotta);color:#E0916A;font-size:11.5px;text-align:center;padding:8px;border-radius:10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.closed-banner button{background:var(--gold);color:#1C1500;border:none;border-radius:999px;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;flex-shrink:0;}
+.typing-note{font-size:11px;color:var(--text-muted);min-height:16px;padding:2px 4px;}
+.input-bar{display:flex;gap:10px;align-items:center;padding:6px 0 26px;}
+.input-bar input{flex:1;background:var(--bg-surface);border:1px solid var(--line);border-radius:var(--radius-pill);
+  padding:12px 16px;color:var(--cream);font-family:var(--font-body);outline:none;}
+.attach-btn,.send-btn{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:none;cursor:pointer;}
+.attach-btn{background:var(--bg-surface);border:1px solid var(--line);}
+.send-btn{background:var(--gold);}
+.send-btn:disabled{opacity:.5;}
+.attach-preview{display:flex;align-items:center;gap:8px;background:var(--bg-surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:8px;font-size:12px;color:var(--cream);}
+.attach-preview img{width:34px;height:34px;border-radius:8px;object-fit:cover;}
+.attach-preview .rm{margin-right:auto;color:var(--danger);cursor:pointer;font-size:16px;}
+.top-sub{font-size:10.5px;color:var(--text-muted);margin-top:1px;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row">
+    <a href="27-admin-support.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    <div style="text-align:center">
+      <div class="top-title" id="userNameTitle">—</div>
+      <div class="top-sub" id="userPhoneSub"></div>
     </div>
-    <div class="conv-list" id="convList"></div>
+    <div style="width:38px"></div>
   </div>
 
-  <!-- Chat -->
-  <div class="chat" id="chatPanel">
-    <div class="empty-state" id="emptyState">اختر محادثة من القائمة</div>
+  <div id="closedBanner"></div>
+  <div class="chat-area" id="chatArea"><div class="empty-state">جاري التحميل...</div></div>
+  <div class="typing-note" id="typingNote"></div>
 
-    <div id="chatContent" style="display:none; flex:1; display:none; flex-direction:column;">
-      <div class="chat-header">
-        <div>
-          <div class="chat-title" id="chatTitle">—</div>
-          <div class="chat-sub" id="chatSub">—</div>
-          <div class="typing-indicator" id="typingIndicator"></div>
-        </div>
-        <button class="btn" id="toggleConvBtn">—</button>
-      </div>
-
-      <div class="messages" id="messagesEl"></div>
-
-      <div class="composer">
-        <input type="file" id="imageInput" accept="image/*" style="display:none">
-        <button class="icon-btn" id="attachBtn" title="إرفاق صورة">📎</button>
-        <div style="flex:1; display:flex; flex-direction:column;">
-          <div id="imagePreviewArea"></div>
-          <textarea id="msgInput" placeholder="اكتب ردك..." rows="1"></textarea>
-        </div>
-        <button class="icon-btn send-btn" id="sendBtn" title="إرسال">➤</button>
-      </div>
-    </div>
+  <div id="attachPreview"></div>
+  <div class="input-bar">
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
+    <button class="attach-btn" id="attachBtn" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a5 5 0 01-7.07-7.07l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+    </button>
+    <input type="text" id="msgInput" placeholder="اكتب ردك..."/>
+    <button class="send-btn" id="sendBtn" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1500" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+    </button>
   </div>
-</div>
-
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
 <script>
-/* ================= CONFIG — عدّل هذا القسم حسب مشروعك ================= */
-const SUPABASE_URL = "YOUR_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
 
-const TABLE_CONVERSATIONS = "conversations";   // id, user_name, status(open/closed), updated_at
-const TABLE_MESSAGES = "messages";             // id, conversation_id, sender(admin/user), text, image_url, created_at, edited, deleted
-const STORAGE_BUCKET = "chat-images";
-const ADMIN_SENDER = "admin";
-/* ======================================================================= */
+const ATTACH_BUCKET = 'support-attachments';
+const params = new URLSearchParams(location.search);
+const targetUserId = params.get('uid');
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-let currentConvId = null;
-let currentConvStatus = "open";
-let pendingImageFile = null;
+let adminUser = null;
+let pendingFile = null;
+let isClosed = false;
+const renderedIds = new Set();
+const messagesById = new Map();
+let lastDayLabel = null;
 let typingChannel = null;
-let typingTimeout = null;
+let lastTypingSent = 0;
+let typingHideTimer = null;
 
-const convListEl = document.getElementById("convList");
-const emptyStateEl = document.getElementById("emptyState");
-const chatContentEl = document.getElementById("chatContent");
-const chatTitleEl = document.getElementById("chatTitle");
-const chatSubEl = document.getElementById("chatSub");
-const typingIndicatorEl = document.getElementById("typingIndicator");
-const toggleConvBtn = document.getElementById("toggleConvBtn");
-const messagesEl = document.getElementById("messagesEl");
-const msgInput = document.getElementById("msgInput");
-const sendBtn = document.getElementById("sendBtn");
-const attachBtn = document.getElementById("attachBtn");
-const imageInput = document.getElementById("imageInput");
-const imagePreviewArea = document.getElementById("imagePreviewArea");
-
-/* ---------------- Conversations list ---------------- */
-async function loadConversations() {
-  const { data, error } = await supabase
-    .from(TABLE_CONVERSATIONS)
-    .select("*")
-    .order("updated_at", { ascending: false });
-
-  if (error) { console.error(error); return; }
-  renderConversations(data || []);
+if (!targetUserId) {
+  document.getElementById('chatArea').innerHTML = '<div class="empty-state">ما فيه محادثة محددة</div>';
 }
 
-function renderConversations(convs) {
-  convListEl.innerHTML = "";
-  convs.forEach(conv => {
-    const item = document.createElement("div");
-    item.className = "conv-item" + (conv.id === currentConvId ? " active" : "");
-    item.innerHTML = `
-      <div>
-        <div class="conv-name">${escapeHtml(conv.user_name || ("محادثة #" + conv.id))}</div>
-        <div class="conv-preview">${escapeHtml(conv.last_message_preview || "")}</div>
-      </div>
-      <div class="conv-meta">
-        <span class="status-dot ${conv.status === 'closed' ? 'status-closed' : 'status-open'}"></span>
-        ${conv.unread_count ? `<span class="badge">${conv.unread_count}</span>` : ""}
-      </div>
-    `;
-    item.addEventListener("click", () => openConversation(conv));
-    convListEl.appendChild(item);
-  });
+function formatTime(iso){
+  const d = new Date(iso);
+  const h = String(d.getHours()).padStart(2,'0');
+  const m = String(d.getMinutes()).padStart(2,'0');
+  return toArabicDigits(h) + ':' + toArabicDigits(m);
 }
 
-/* ---------------- Open a conversation ---------------- */
-async function openConversation(conv) {
-  currentConvId = conv.id;
-  currentConvStatus = conv.status || "open";
-
-  emptyStateEl.style.display = "none";
-  chatContentEl.style.display = "flex";
-
-  chatTitleEl.textContent = conv.user_name || ("محادثة #" + conv.id);
-  chatSubEl.textContent = "الحالة: " + (currentConvStatus === "closed" ? "مغلقة" : "مفتوحة");
-  updateToggleButton();
-
-  await loadConversations(); // refresh active highlight
-  await loadMessages();
-  subscribeToMessages();
-  subscribeToTyping();
+function dayLabel(iso){
+  const d = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date(); yesterday.setDate(today.getDate()-1);
+  const sameDay = (a,b)=>a.toDateString()===b.toDateString();
+  if (sameDay(d, today)) return 'اليوم';
+  if (sameDay(d, yesterday)) return 'أمس';
+  return d.toLocaleDateString('ar-EG', { day:'numeric', month:'long' });
 }
 
-function updateToggleButton() {
-  if (currentConvStatus === "closed") {
-    toggleConvBtn.textContent = "فتح المحادثة";
-    toggleConvBtn.className = "btn btn-open-conv";
-  } else {
-    toggleConvBtn.textContent = "إغلاق المحادثة";
-    toggleConvBtn.className = "btn btn-close-conv";
+function isImageUrl(url){
+  return /\.(png|jpe?g|gif|webp)$/i.test(url || '');
+}
+
+function checkIcon(read){
+  const color = read ? '#7FB2E8' : 'var(--text-muted)';
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.4"><path d="M2 12l5 5L22 4"/>${read ? '<path d="M9 12l5 5L27 4" transform="translate(-4,0)"/>' : ''}</svg>`;
+}
+
+// من منظور الأدمن: رسائل الأدمن نفسه تطلع "out" (يمين/ذهبي)، ورسائل المستخدم "in"
+function renderMessage(m){
+  messagesById.set(m.id, m);
+  if (renderedIds.has(m.id)) { updateMessageDom(m); return; }
+  renderedIds.add(m.id);
+
+  const chatArea = document.getElementById('chatArea');
+  const empty = chatArea.querySelector('.empty-state');
+  if (empty) empty.remove();
+
+  const dl = dayLabel(m.created_at);
+  if (dl !== lastDayLabel) {
+    lastDayLabel = dl;
+    const sep = document.createElement('div');
+    sep.className = 'day-sep';
+    sep.textContent = dl;
+    chatArea.appendChild(sep);
   }
+
+  const row = document.createElement('div');
+  row.id = 'row-' + m.id;
+  row.className = 'msg-row ' + (m.sender === 'admin' ? 'out' : 'in');
+  chatArea.appendChild(row);
+  updateMessageDom(m);
 }
 
-toggleConvBtn.addEventListener("click", async () => {
-  if (!currentConvId) return;
-  const newStatus = currentConvStatus === "closed" ? "open" : "closed";
-  const { error } = await supabase
-    .from(TABLE_CONVERSATIONS)
-    .update({ status: newStatus })
-    .eq("id", currentConvId);
-  if (error) { console.error(error); return; }
-  currentConvStatus = newStatus;
-  chatSubEl.textContent = "الحالة: " + (newStatus === "closed" ? "مغلقة" : "مفتوحة");
-  updateToggleButton();
-  loadConversations();
-});
+function updateMessageDom(m){
+  const row = document.getElementById('row-' + m.id);
+  if (!row) return;
+  const isOut = m.sender === 'admin';
 
-/* ---------------- Messages ---------------- */
-async function loadMessages() {
-  const { data, error } = await supabase
-    .from(TABLE_MESSAGES)
-    .select("*")
-    .eq("conversation_id", currentConvId)
-    .order("created_at", { ascending: true });
+  let attachHtml = '';
+  if (m.attachment_url) {
+    if (isImageUrl(m.attachment_url)) {
+      attachHtml = `<img class="msg-img" src="${escapeHtml(m.attachment_url)}" onclick="window.open('${escapeHtml(m.attachment_url)}','_blank')">`;
+    } else {
+      attachHtml = `<div class="msg-file"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg><a href="${escapeHtml(m.attachment_url)}" target="_blank" style="color:inherit">مرفق</a></div>`;
+    }
+  }
 
-  if (error) { console.error(error); return; }
-  messagesEl.innerHTML = "";
-  (data || []).forEach(renderMessage);
-  scrollToBottom();
+  let actions = '';
+  if (isOut) {
+    if (!m.attachment_url) actions += `<span class="msg-action" data-act="edit" data-id="${m.id}">✏️</span>`;
+    actions += `<span class="msg-action" data-act="del" data-id="${m.id}">🗑️</span>`;
+  }
+
+  row.innerHTML = `
+    <div class="msg ${isOut ? 'out':'in'}">${attachHtml}${m.message ? escapeHtml(m.message) : ''}</div>
+    <div class="msg-meta">${actions}${isOut ? checkIcon(m.is_read) : ''}<span>${formatTime(m.created_at)}</span></div>
+  `;
 }
 
-function renderMessage(msg) {
-  const row = document.createElement("div");
-  row.className = "msg-row " + (msg.sender === ADMIN_SENDER ? "from-admin" : "from-user");
-  row.dataset.id = msg.id;
+function scrollToBottom(){
+  const chatArea = document.getElementById('chatArea');
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
 
-  if (msg.deleted) {
-    row.innerHTML = `<div class="bubble msg-deleted">تم حذف هذه الرسالة</div>`;
-    messagesEl.appendChild(row);
+async function markUserMessagesRead(){
+  await supabaseClient
+    .from('support_messages')
+    .update({ is_read: true })
+    .eq('user_id', targetUserId)
+    .eq('sender', 'user')
+    .eq('is_read', false);
+}
+
+async function loadUserInfo(){
+  const { data } = await supabaseClient.from('profiles').select('full_name, phone').eq('id', targetUserId).maybeSingle();
+  document.getElementById('userNameTitle').textContent = (data && data.full_name) || 'بدون اسم';
+  document.getElementById('userPhoneSub').textContent = (data && data.phone) || '';
+}
+
+async function loadClosedStatus(){
+  const { data } = await supabaseClient.from('support_conversations').select('is_closed').eq('user_id', targetUserId).maybeSingle();
+  isClosed = data ? !!data.is_closed : false;
+  renderClosedBanner(isClosed);
+}
+
+function renderClosedBanner(closed){
+  isClosed = closed;
+  document.getElementById('closedBanner').innerHTML = closed
+    ? '<div class="closed-banner"><span>هذي المحادثة مغلقة حالياً</span><button id="reopenBtn">فتح المحادثة</button></div>'
+    : '<div class="closed-banner" style="background:rgba(91,140,90,.12);border-color:var(--success);color:#8FC98D"><span>المحادثة مفتوحة</span><button id="closeBtn" style="background:var(--danger);color:#fff">إغلاق المحادثة</button></div>';
+
+  const reopenBtn = document.getElementById('reopenBtn');
+  if (reopenBtn) reopenBtn.onclick = () => setClosedStatus(false);
+  const closeBtn = document.getElementById('closeBtn');
+  if (closeBtn) closeBtn.onclick = () => setClosedStatus(true);
+}
+
+async function setClosedStatus(closed){
+  const { error } = await supabaseClient.from('support_conversations').upsert({
+    user_id: targetUserId, is_closed: closed, updated_at: new Date().toISOString()
+  });
+  if (error) { alert('تعذر تحديث حالة المحادثة: ' + error.message); return; }
+  renderClosedBanner(closed);
+}
+
+async function loadMessages(){
+  const { data, error } = await supabaseClient
+    .from('support_messages')
+    .select('id, sender, message, attachment_url, is_read, created_at')
+    .eq('user_id', targetUserId)
+    .order('created_at', { ascending: true });
+
+  const chatArea = document.getElementById('chatArea');
+
+  if (error) {
+    chatArea.innerHTML = `<div class="empty-state">تعذر تحميل الرسائل: ${escapeHtml(error.message)}</div>`;
     return;
   }
 
-  const bubble = document.createElement("div");
-  bubble.className = "bubble";
-
-  let inner = "";
-  if (msg.text) {
-    inner += `<span class="msg-text">${escapeHtml(msg.text)}</span>`;
-    if (msg.edited) inner += `<span class="edited-tag">(تم التعديل)</span>`;
-  }
-  if (msg.image_url) {
-    inner += `<img src="${msg.image_url}" onclick="window.open('${msg.image_url}','_blank')">`;
-  }
-  bubble.innerHTML = inner;
-
-  const meta = document.createElement("div");
-  meta.className = "msg-meta";
-  meta.textContent = formatTime(msg.created_at);
-  bubble.appendChild(meta);
-
-  // actions only for admin's own messages
-  if (msg.sender === ADMIN_SENDER) {
-    const actions = document.createElement("div");
-    actions.className = "msg-actions";
-    if (msg.text) {
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "تعديل";
-      editBtn.onclick = () => startEdit(row, msg);
-      actions.appendChild(editBtn);
-    }
-    const delBtn = document.createElement("button");
-    delBtn.textContent = "حذف";
-    delBtn.onclick = () => deleteMessage(msg.id);
-    actions.appendChild(delBtn);
-    bubble.appendChild(actions);
+  if (!data || data.length === 0) {
+    chatArea.innerHTML = `<div class="empty-state">لا توجد رسائل بعد</div>`;
+  } else {
+    chatArea.innerHTML = '';
+    data.forEach(renderMessage);
+    scrollToBottom();
   }
 
-  row.appendChild(bubble);
-  messagesEl.appendChild(row);
+  markUserMessagesRead();
 }
 
-function startEdit(row, msg) {
-  const bubble = row.querySelector(".bubble");
-  const box = document.createElement("div");
-  box.className = "edit-box";
-  box.innerHTML = `
-    <textarea>${escapeHtml(msg.text || "")}</textarea>
-    <button class="edit-save">حفظ</button>
-    <button class="edit-cancel">إلغاء</button>
-  `;
-  bubble.appendChild(box);
-  const textarea = box.querySelector("textarea");
-  textarea.focus();
-
-  box.querySelector(".edit-save").onclick = async () => {
-    const newText = textarea.value.trim();
-    if (!newText) return;
-    const { error } = await supabase
-      .from(TABLE_MESSAGES)
-      .update({ text: newText, edited: true })
-      .eq("id", msg.id);
-    if (error) console.error(error);
-    box.remove();
-  };
-  box.querySelector(".edit-cancel").onclick = () => box.remove();
+async function uploadAttachment(file){
+  const ext = file.name.split('.').pop();
+  const path = `${targetUserId}/admin_${Date.now()}.${ext}`;
+  const { error } = await supabaseClient.storage.from(ATTACH_BUCKET).upload(path, file);
+  if (error) throw error;
+  const { data } = supabaseClient.storage.from(ATTACH_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
 }
 
-async function deleteMessage(id) {
-  if (!confirm("حذف هذه الرسالة؟")) return;
-  const { error } = await supabase
-    .from(TABLE_MESSAGES)
-    .update({ deleted: true })
-    .eq("id", id);
-  if (error) console.error(error);
-}
-
-/* ---------------- Sending ---------------- */
-attachBtn.addEventListener("click", () => imageInput.click());
-
-imageInput.addEventListener("change", () => {
-  const file = imageInput.files[0];
-  if (!file) return;
-  pendingImageFile = file;
+function showAttachPreview(file){
+  const box = document.getElementById('attachPreview');
   const url = URL.createObjectURL(file);
-  imagePreviewArea.innerHTML = `
-    <div class="image-preview-wrap">
+  box.innerHTML = `
+    <div class="attach-preview">
       <img src="${url}">
-      <button id="removeImgBtn">×</button>
-    </div>
-  `;
-  document.getElementById("removeImgBtn").onclick = () => {
-    pendingImageFile = null;
-    imagePreviewArea.innerHTML = "";
-    imageInput.value = "";
+      <span>${escapeHtml(file.name)}</span>
+      <span class="rm" id="removeAttach">✕</span>
+    </div>`;
+  document.getElementById('removeAttach').onclick = () => {
+    pendingFile = null;
+    box.innerHTML = '';
   };
-});
-
-sendBtn.addEventListener("click", sendMessage);
-msgInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-});
-msgInput.addEventListener("input", broadcastTyping);
-
-async function sendMessage() {
-  const text = msgInput.value.trim();
-  if (!text && !pendingImageFile) return;
-  if (!currentConvId) return;
-
-  let imageUrl = null;
-  if (pendingImageFile) {
-    const fileName = `${currentConvId}/${Date.now()}_${pendingImageFile.name}`;
-    const { data: uploadData, error: uploadError } = await supabase
-      .storage.from(STORAGE_BUCKET)
-      .upload(fileName, pendingImageFile);
-    if (uploadError) { console.error(uploadError); return; }
-    const { data: publicUrlData } = supabase
-      .storage.from(STORAGE_BUCKET)
-      .getPublicUrl(uploadData.path);
-    imageUrl = publicUrlData.publicUrl;
-  }
-
-  const { error } = await supabase.from(TABLE_MESSAGES).insert({
-    conversation_id: currentConvId,
-    sender: ADMIN_SENDER,
-    text: text || null,
-    image_url: imageUrl,
-    edited: false,
-    deleted: false,
-  });
-  if (error) { console.error(error); return; }
-
-  await supabase.from(TABLE_CONVERSATIONS)
-    .update({ last_message_preview: text || "📷 صورة", updated_at: new Date().toISOString() })
-    .eq("id", currentConvId);
-
-  msgInput.value = "";
-  pendingImageFile = null;
-  imagePreviewArea.innerHTML = "";
-  imageInput.value = "";
-  loadConversations();
 }
 
-/* ---------------- Realtime: messages ---------------- */
-let messagesSubscription = null;
-function subscribeToMessages() {
-  if (messagesSubscription) supabase.removeChannel(messagesSubscription);
-  messagesSubscription = supabase
-    .channel("messages-" + currentConvId)
-    .on("postgres_changes",
-      { event: "*", schema: "public", table: TABLE_MESSAGES, filter: `conversation_id=eq.${currentConvId}` },
-      () => loadMessages()
-    )
-    .subscribe();
+async function sendMessage(){
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text && !pendingFile) return;
+
+  const sendBtn = document.getElementById('sendBtn');
+  sendBtn.disabled = true;
+
+  try {
+    let attachmentUrl = null;
+    if (pendingFile) {
+      attachmentUrl = await uploadAttachment(pendingFile);
+    }
+
+    const { data, error } = await supabaseClient
+      .from('support_messages')
+      .insert({ user_id: targetUserId, sender: 'admin', message: text || null, attachment_url: attachmentUrl })
+      .select()
+      .single();
+
+    if (error) {
+      alert('تعذر إرسال الرسالة: ' + error.message);
+      return;
+    }
+
+    renderMessage(data);
+    scrollToBottom();
+    input.value = '';
+    pendingFile = null;
+    document.getElementById('attachPreview').innerHTML = '';
+
+    // إرسال رد الأدمن يفتح المحادثة تلقائياً إذا كانت مغلقة
+    if (isClosed) await setClosedStatus(false);
+  } finally {
+    sendBtn.disabled = false;
+  }
 }
 
-/* ---------------- Realtime: typing indicator ---------------- */
-function subscribeToTyping() {
-  if (typingChannel) supabase.removeChannel(typingChannel);
-  typingChannel = supabase.channel("typing-" + currentConvId);
+async function deleteMessage(id){
+  if (!confirm('حذف هذي الرسالة؟')) return;
+  const { error } = await supabaseClient.from('support_messages').delete().eq('id', id);
+  if (error) { alert('تعذر الحذف: ' + error.message); return; }
+  const row = document.getElementById('row-' + id);
+  if (row) row.remove();
+  renderedIds.delete(id);
+  messagesById.delete(id);
+}
+
+async function editMessage(id){
+  const m = messagesById.get(id);
+  if (!m) return;
+  const newText = prompt('عدّل الرسالة:', m.message || '');
+  if (newText === null || newText.trim() === '') return;
+  const { error } = await supabaseClient.from('support_messages').update({ message: newText.trim() }).eq('id', id);
+  if (error) { alert('تعذر التعديل: ' + error.message); return; }
+  m.message = newText.trim();
+  updateMessageDom(m);
+}
+
+document.getElementById('chatArea').addEventListener('click', (e) => {
+  const target = e.target.closest('.msg-action');
+  if (!target) return;
+  const id = target.dataset.id;
+  if (target.dataset.act === 'del') deleteMessage(id);
+  if (target.dataset.act === 'edit') editMessage(id);
+});
+
+function showTypingNote(){
+  document.getElementById('typingNote').textContent = 'العميل يكتب الآن...';
+  clearTimeout(typingHideTimer);
+  typingHideTimer = setTimeout(() => { document.getElementById('typingNote').textContent = ''; }, 3000);
+}
+
+function subscribeTyping(){
+  typingChannel = supabaseClient.channel('support_typing_' + targetUserId, { config: { broadcast: { self: false } } });
   typingChannel
-    .on("broadcast", { event: "typing" }, (payload) => {
-      if (payload.payload.sender === "user") {
-        typingIndicatorEl.textContent = "العميل يكتب الآن...";
-        clearTimeout(window._typingClearTimer);
-        window._typingClearTimer = setTimeout(() => {
-          typingIndicatorEl.textContent = "";
-        }, 2500);
+    .on('broadcast', { event: 'typing' }, (payload) => {
+      if (payload.payload && payload.payload.from === 'user') showTypingNote();
+    })
+    .subscribe();
+
+  document.getElementById('msgInput').addEventListener('input', () => {
+    const now = Date.now();
+    if (now - lastTypingSent > 2000) {
+      lastTypingSent = now;
+      typingChannel.send({ type: 'broadcast', event: 'typing', payload: { from: 'admin' } });
+    }
+  });
+}
+
+function subscribeRealtime(){
+  supabaseClient
+    .channel('admin_support_messages_' + targetUserId)
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'support_messages',
+      filter: `user_id=eq.${targetUserId}`
+    }, (payload) => {
+      if (payload.eventType === 'INSERT') {
+        renderMessage(payload.new);
+        scrollToBottom();
+        if (payload.new.sender === 'user') markUserMessagesRead();
+      } else if (payload.eventType === 'UPDATE') {
+        renderMessage(payload.new);
+      } else if (payload.eventType === 'DELETE') {
+        const id = payload.old.id;
+        const row = document.getElementById('row-' + id);
+        if (row) row.remove();
+        renderedIds.delete(id);
+        messagesById.delete(id);
       }
+    })
+    .subscribe();
+
+  supabaseClient
+    .channel('admin_support_conv_' + targetUserId)
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'support_conversations',
+      filter: `user_id=eq.${targetUserId}`
+    }, (payload) => {
+      if (payload.new) renderClosedBanner(payload.new.is_closed);
     })
     .subscribe();
 }
 
-function broadcastTyping() {
-  if (!typingChannel || !currentConvId) return;
-  clearTimeout(typingTimeout);
-  typingChannel.send({
-    type: "broadcast",
-    event: "typing",
-    payload: { sender: ADMIN_SENDER }
+async function init(){
+  if (!targetUserId) return;
+  adminUser = await requireAdmin();
+  if (!adminUser) return;
+
+  await loadUserInfo();
+  await loadClosedStatus();
+  await loadMessages();
+  subscribeRealtime();
+  subscribeTyping();
+
+  document.getElementById('sendBtn').addEventListener('click', sendMessage);
+  document.getElementById('msgInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+  document.getElementById('attachBtn').addEventListener('click', () => {
+    document.getElementById('fileInput').click();
+  });
+  document.getElementById('fileInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      pendingFile = file;
+      showAttachPreview(file);
+    }
   });
 }
 
-/* ---------------- Helpers ---------------- */
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
-}
-function formatTime(ts) {
-  if (!ts) return "";
-  const d = new Date(ts);
-  return d.toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" });
-}
-function scrollToBottom() {
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-/* ---------------- Init ---------------- */
-loadConversations();
-setInterval(loadConversations, 15000); // fallback refresh
+init();
 </script>
-</body>
-</html>
+</body></html>
+  

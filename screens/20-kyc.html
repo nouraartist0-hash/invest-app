@@ -44,7 +44,7 @@
       <div class="doc-status none" id="selfieDocStatus">لم تُرفع بعد</div>
     </div>
     <button class="doc-btn" onclick="document.getElementById('selfieDocInput').click()">رفع</button>
-    <input type="file" id="selfieDocInput" accept="image/*" style="display:none;" onchange="handleDocUpload(this,'selfie','selfieDocStatus')"/>
+    <input type="file" id="selfieDocInput" accept="image/*" capture="user" style="display:none;" onchange="handleDocUpload(this,'selfie','selfieDocStatus')"/>
   </div>
 
   <div id="kycMsg" class="form-msg" style="margin-top:14px;"></div>

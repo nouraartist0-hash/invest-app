@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>مراجعة طلبات KYC</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.tabs{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;}
+.tab{padding:8px 16px;border-radius:var(--radius-pill);font-size:12.5px;border:1px solid var(--line);color:var(--text-muted);white-space:nowrap;}
+.tab.active{background:var(--gold);color:#241A05;border-color:var(--gold);font-weight:700;}
+.kyc-card{background:var(--bg-surface);border:1px solid var(--line);border-radius:var(--radius-card);padding:16px;margin-bottom:14px;}
+.kyc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.kyc-name{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--cream);}
+.kyc-phone{font-size:11.5px;color:var(--text-muted);margin-top:2px;direction:ltr;text-align:right;}
+.doc-block{border-top:1px solid var(--line);padding-top:10px;margin-top:10px;}
+.doc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.doc-label{font-size:12.5px;color:var(--cream);font-weight:500;}
+.doc-status-chip{font-size:10.5px;padding:3px 10px;border-radius:var(--radius-pill);border:1px solid var(--line);}
+.doc-status-chip.pending{color:var(--gold-soft);border-color:var(--gold);}
+.doc-status-chip.approved{color:var(--success);border-color:var(--success);}
+.doc-status-chip.rejected{color:var(--danger);border-color:var(--danger);}
+.doc-img{width:100%;max-height:280px;object-fit:contain;background:#0B121E;border-radius:12px;border:1px solid var(--line);margin-bottom:8px;}
+.action-btns{display:flex;gap:8px;}
+.mini-btn{flex:1;text-align:center;font-size:12px;padding:9px 0;border-radius:10px;border:1px solid var(--line);color:var(--text-muted);}
+.mini-btn.approve{border-color:var(--success);color:#6FE3DC;}
+.mini-btn.reject{border-color:var(--danger);color:#F2A0A0;}
+.empty-state{text-align:center;color:var(--text-muted);font-size:13px;padding:40px 0;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><a href="22-admin-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">مراجعة طلبات KYC</div><div style="width:38px"></div></div>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-filter="pending">قيد المراجعة</div>
+    <div class="tab" data-filter="all">الكل</div>
+  </div>
+
+  <div id="kycList"><div class="empty-state">جاري التحميل...</div></div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+const DOC_LABELS = {
+  id_document_front: 'صورة الهوية (الوجه الأمامي)',
+  id_document_back: 'صورة الهوية (الوجه الخلفي)',
+  selfie: 'صورة شخصية (سيلفي)'
+};
+const STATUS_LABELS = { pending: 'قيد المراجعة', approved: 'مقبولة', rejected: 'مرفوضة' };
+
+let adminUser = null;
+let allDocs = [];
+let currentFilter = 'pending';
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+function groupByUser(docs){
+  const map = {};
+  docs.forEach(d => {
+    if (!map[d.user_id]) map[d.user_id] = { user_id: d.user_id, name: (d.profiles && d.profiles.full_name) || 'مستخدم', phone: (d.profiles && d.profiles.phone) || '', docs: {} };
+    // نحتفظ فقط بأحدث نسخة من كل نوع مستند
+    if (!map[d.user_id].docs[d.document_type] || new Date(d.submitted_at) > new Date(map[d.user_id].docs[d.document_type].submitted_at)) {
+      map[d.user_id].docs[d.document_type] = d;
+    }
+  });
+  return Object.values(map);
+}
+
+function render(){
+  const list = document.getElementById('kycList');
+  const filtered = currentFilter === 'pending'
+    ? allDocs.filter(d => d.status === 'pending')
+    : allDocs;
+
+  const users = groupByUser(filtered);
+
+  if (users.length === 0){
+    list.innerHTML = '<div class="empty-state">ماكو طلبات بهذا القسم</div>';
+    return;
+  }
+
+  list.innerHTML = users.map(u => {
+    const docsHtml = Object.keys(DOC_LABELS).map(type => {
+      const d = u.docs[type];
+      if (!d) return '';
+      const statusCls = d.status === 'approved' ? 'approved' : d.status === 'rejected' ? 'rejected' : 'pending';
+      const actions = d.status === 'pending'
+        ? `<div class="action-btns">
+             <div class="mini-btn approve" onclick="reviewDoc('${d.id}','approved','${u.user_id}')">قبول</div>
+             <div class="mini-btn reject" onclick="reviewDoc('${d.id}','rejected','${u.user_id}')">رفض</div>
+           </div>`
+        : '';
+      return `
+        <div class="doc-block">
+          <div class="doc-head">
+            <div class="doc-label">${DOC_LABELS[type]}</div>
+            <div class="doc-status-chip ${statusCls}">${STATUS_LABELS[d.status] || d.status}</div>
+          </div>
+          <img class="doc-img" src="${escapeHtml(d.file_url)}" loading="lazy" alt="${DOC_LABELS[type]}"/>
+          ${actions}
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="kyc-card">
+        <div class="kyc-head">
+          <div>
+            <div class="kyc-name">${escapeHtml(u.name)}</div>
+            <div class="kyc-phone">${escapeHtml(u.phone)}</div>
+          </div>
+        </div>
+        ${docsHtml}
+      </div>`;
+  }).join('');
+}
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if(!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  currentFilter = tab.dataset.filter;
+  render();
+});
+
+async function loadDocs(){
+  const { data, error } = await supabaseClient
+    .from('kyc_documents')
+    .select('id, user_id, document_type, file_url, status, submitted_at, profiles(full_name, phone)')
+    .order('submitted_at', { ascending: false });
+
+  if (error){
+    document.getElementById('kycList').innerHTML = '<div class="empty-state">تعذر تحميل الطلبات: ' + error.message + '</div>';
+    return;
+  }
+  allDocs = data || [];
+  render();
+}
+
+// بعد مراجعة أي مستند، نتحقق من حالة الثلاثة مستندات تبع نفس المستخدم:
+// لو الكل مقبول -> profiles.kyc_status = approved
+// لو فيه وحد مرفوض -> profiles.kyc_status = rejected
+async function refreshUserOverallStatus(userId){
+  const { data: docs } = await supabaseClient
+    .from('kyc_documents')
+    .select('document_type, status, submitted_at')
+    .eq('user_id', userId)
+    .order('submitted_at', { ascending: false });
+
+  const latestByType = {};
+  (docs || []).forEach(d => { if (!latestByType[d.document_type]) latestByType[d.document_type] = d.status; });
+
+  const types = ['id_document_front', 'id_document_back', 'selfie'];
+  const statuses = types.map(t => latestByType[t]).filter(Boolean);
+
+  let overall = 'pending';
+  if (statuses.some(s => s === 'rejected')) overall = 'rejected';
+  else if (statuses.length === types.length && statuses.every(s => s === 'approved')) overall = 'approved';
+
+  await supabaseClient.from('profiles').update({ kyc_status: overall }).eq('id', userId);
+}
+
+async function reviewDoc(docId, newStatus, userId){
+  const confirmMsg = newStatus === 'approved' ? 'تأكيد قبول هذا المستند؟' : 'تأكيد رفض هذا المستند؟';
+  if (!confirm(confirmMsg)) return;
+
+  const { error } = await supabaseClient
+    .from('kyc_documents')
+    .update({ status: newStatus, reviewed_at: new Date().toISOString(), reviewed_by: adminUser.id })
+    .eq('id', docId);
+
+  if (error){ alert('خطأ: ' + error.message); return; }
+
+  await refreshUserOverallStatus(userId);
+  await loadDocs();
+}
+
+async function init(){
+  adminUser = await requireAdmin();
+  if (!adminUser) return;
+  loadDocs();
+}
+init();
+</script>
+</body></html>
+

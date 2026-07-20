@@ -6,16 +6,12 @@
 .set-row span{font-size:14px;color:var(--cream);}
 .switch{width:42px;height:24px;border-radius:14px;background:var(--gold);position:relative;}
 .knob{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;}
-.session-card{background:var(--bg-surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
-.s-info{font-size:12.5px;color:var(--text-muted);}
-.s-info b{color:var(--cream);display:block;font-size:13.5px;margin-bottom:3px;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
   <div class="top-row"><a href="14-profile.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">الأمان</div><div style="width:38px"></div></div>
 
   <div class="set-row"><span>المصادقة الثنائية (2FA)</span><div class="switch"><div class="knob"></div></div></div>
-  <div class="set-row"><span>تسجيل الدخول ببصمة الإصبع</span><div class="switch"><div class="knob"></div></div></div>
   <div class="set-row" id="pwRow" onclick="togglePwForm()" style="cursor:pointer;"><span>تغيير كلمة المرور</span><span style="color:var(--gold-soft);font-size:13px;">تعديل ›</span></div>
   <div id="pwForm" style="display:none;padding:14px 4px;border-bottom:1px solid var(--line);">
     <div class="field-group"><label class="label">كلمة المرور الجديدة</label>
@@ -25,10 +21,6 @@
     <div id="pwMsg" class="form-msg"></div>
     <button id="pwSubmitBtn" class="cta" style="margin-top:12px;" onclick="handleChangePassword()">حفظ كلمة المرور</button>
   </div>
-
-  <div class="section-title" style="margin:22px 0 10px;">الجلسات النشطة</div>
-  <div class="session-card"><div class="s-info"><b>iPhone 15 — بغداد</b>نشط الآن</div><div class="chip success">هذا الجهاز</div></div>
-  <div class="session-card"><div class="s-info"><b>Chrome — أربيل</b>آخر دخول قبل يومين</div><span style="color:var(--terracotta);font-size:12px;">إنهاء</span></div>
 </div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/supabase-client.js?v=1784451053"></script>

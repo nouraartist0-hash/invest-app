@@ -3,6 +3,8 @@
 <title>06 — لوحة الحساب</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
 .screen{padding:22px 22px 0;}
+.top-row{flex-shrink:0;}
+#holdingsList{flex-shrink:1;overflow-y:auto;}
 .avatar{width:40px;height:40px;border-radius:50%;background:var(--bg-surface-2);border:1.5px solid var(--gold);
   display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;color:var(--gold-soft);}
 .hello{font-size:12px;color:var(--text-muted);}
@@ -13,6 +15,7 @@
   background:linear-gradient(135deg,#2C3823,#1D2617);
   border:1px solid var(--gold);border-radius:var(--radius-card);
   padding:22px;margin:18px 0 14px;position:relative;overflow:hidden;
+  flex-shrink:0;
 }
 .balance-card::after{content:'';position:absolute;inset:6px;border:1px dashed rgba(201,162,39,.3);border-radius:14px;}
 .balance-label{font-size:12.5px;color:var(--gold-soft);font-family:var(--font-display);font-weight:700;margin-bottom:8px;}
@@ -21,12 +24,12 @@
 .balance-sub .item{font-size:12px;color:var(--text-muted);}
 .balance-sub .item b{color:#8FC98D;display:block;font-family:var(--font-display);font-size:13.5px;margin-top:2px;}
 
-.quick-actions{display:flex;justify-content:space-between;margin-bottom:22px;}
+.quick-actions{display:flex;justify-content:space-between;margin-bottom:22px;flex-shrink:0;}
 .qa{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:12px;color:var(--cream);flex:1;}
 .qa .circle{width:48px;height:48px;border-radius:50%;background:var(--bg-surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;}
 .qa .circle svg{width:20px;height:20px;}
 
-.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-shrink:0;}
 .section-title{font-family:var(--font-display);font-weight:700;font-size:15.5px;color:var(--cream);}
 .see-all{font-size:12.5px;color:var(--gold-soft);}
 
@@ -135,30 +138,6 @@ async function loadDashboard(){
     console.error('balance section error:', balErr);
     document.getElementById('totalValue').textContent = '—';
   }
-
-  // ===== تشخيص مؤقت: يسجل لقطات متتالية بعد التحميل =====
-  const dbgLog = document.createElement('div');
-  dbgLog.id = 'dbgLog';
-  dbgLog.style.cssText = 'background:#000;color:#7CFC7C;font-size:10px;line-height:1.4;padding:10px;white-space:pre-wrap;direction:ltr;text-align:left;font-family:monospace;margin:10px 0;border:2px solid #7CFC7C;';
-  document.querySelector('.balance-card').insertAdjacentElement('afterend', dbgLog);
-
-  function snapshot(label){
-    const el = document.getElementById('totalValue');
-    const card = document.querySelector('.balance-card');
-    if(!el || !card) return;
-    const cs = getComputedStyle(el);
-    dbgLog.textContent +=
-      '[' + label + ']  t=[' + el.textContent + ']  h=' + el.offsetHeight +
-      'px  card.h=' + card.offsetHeight + 'px  disp=' + cs.display +
-      '  vis=' + cs.visibility + '  op=' + cs.opacity + '\n';
-  }
-
-  snapshot('0ms (فوري)');
-  setTimeout(() => snapshot('300ms'), 300);
-  setTimeout(() => snapshot('800ms'), 800);
-  setTimeout(() => snapshot('1500ms'), 1500);
-  setTimeout(() => snapshot('3000ms'), 3000);
-  setTimeout(() => snapshot('5000ms'), 5000);
 
   // ===== الحصص الحالية (الاستثمارات النشطة) =====
   const { data: investments, error: invError } = await supabaseClient

@@ -12,17 +12,17 @@
 .who{display:flex;align-items:center;gap:10px;}
 
 .balance-card{
-  background:linear-gradient(135deg,#2C3823,#1D2617);
+  background:linear-gradient(135deg,#1C2B40,#0F1A28);
   border:1px solid var(--gold);border-radius:var(--radius-card);
   padding:22px;margin:18px 0 14px;position:relative;overflow:hidden;
   flex-shrink:0;
 }
-.balance-card::after{content:'';position:absolute;inset:6px;border:1px dashed rgba(201,162,39,.3);border-radius:14px;}
+.balance-card::after{content:'';position:absolute;inset:6px;border:1px dashed rgba(217,166,58,.3);border-radius:14px;}
 .balance-label{font-size:12.5px;color:var(--gold-soft);font-family:var(--font-display);font-weight:700;margin-bottom:8px;}
 .balance-amount{font-family:var(--font-display);font-size:32px;font-weight:900;color:var(--cream);direction:ltr;text-align:right;min-height:38px;line-height:38px;}
 .balance-sub{display:flex;gap:18px;margin-top:14px;}
 .balance-sub .item{font-size:12px;color:var(--text-muted);}
-.balance-sub .item b{color:#8FC98D;display:block;font-family:var(--font-display);font-size:13.5px;margin-top:2px;}
+.balance-sub .item b{color:#6FE3DC;display:block;font-family:var(--font-display);font-size:13.5px;margin-top:2px;}
 
 .quick-actions{display:flex;justify-content:space-between;margin-bottom:22px;flex-shrink:0;}
 .qa{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:12px;color:var(--cream);flex:1;}
@@ -39,12 +39,12 @@
 .holding-meta{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
 .holding-value{text-align:left;}
 .holding-amount{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--cream);direction:ltr;}
-.holding-change{font-size:11px;color:#8FC98D;direction:ltr;}
+.holding-change{font-size:11px;color:#6FE3DC;direction:ltr;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
   <div class="top-row">
-    <a href="17-notifications.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></a>
+    <a href="17-notifications.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></a>
     <div class="who"><div><div class="hello">مرحباً بعودتك</div><div class="name" id="userName">...</div></div><div class="avatar" id="userAvatar">؟</div></div>
   </div>
 
@@ -58,10 +58,10 @@
   </div>
 
   <div class="quick-actions">
-    <a class="qa" href="07-deposit.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><path d="M12 5v14M5 12l7-7 7 7"/></svg></div>إيداع</a>
-    <a class="qa" href="08-withdraw.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><path d="M12 19V5M5 12l7 7 7-7"/></svg></div>سحب</a>
-    <a class="qa" href="09-marketplace.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg></div>السوق</a>
-    <a class="qa" href="12-referral.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/><circle cx="18" cy="8" r="2.5"/></svg></div>الإحالة</a>
+    <a class="qa" href="07-deposit.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><path d="M12 5v14M5 12l7-7 7 7"/></svg></div>إيداع</a>
+    <a class="qa" href="08-withdraw.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><path d="M12 19V5M5 12l7 7 7-7"/></svg></div>سحب</a>
+    <a class="qa" href="09-marketplace.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg></div>السوق</a>
+    <a class="qa" href="12-referral.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/><circle cx="18" cy="8" r="2.5"/></svg></div>الإحالة</a>
   </div>
 
   <div class="section-head"><div class="section-title">حصصك الحالية</div><a class="see-all" href="09-marketplace.html">عرض الكل</a></div>
@@ -175,7 +175,7 @@ async function loadDashboard(){
     return `
       <div class="${cardClass}" style="margin-bottom:10px;">
         <div class="holding">
-          <div class="seal-mini"><svg viewBox="0 0 24 24" fill="none" stroke="#E4C766" stroke-width="1.8">${icon}</svg></div>
+          <div class="seal-mini"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8">${icon}</svg></div>
           <div class="holding-info">
             <div class="holding-name">${escapeHtml(offer.title || 'حصة استثمارية')}</div>
             <div class="holding-meta">منذ ${daysAgo(inv.started_at)} يوم · وثيقة ملكية #${inv.deed_number || '—'}</div>

@@ -14,8 +14,8 @@
 .balance-mini .box .val{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--cream);direction:ltr;}
 
 .section-title{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--cream);margin:18px 0 10px;}
-.frozen-banner{background:rgba(201,97,42,.12);border:1px solid var(--danger);border-radius:var(--radius-field);
-  padding:12px 14px;font-size:12.5px;color:#E0916A;margin-bottom:14px;line-height:1.8;display:none;}
+.frozen-banner{background:rgba(225,90,90,.12);border:1px solid var(--danger);border-radius:var(--radius-field);
+  padding:12px 14px;font-size:12.5px;color:#F2A0A0;margin-bottom:14px;line-height:1.8;display:none;}
 .frozen-banner.show{display:block;}
 
 .action-row{display:flex;gap:10px;margin-bottom:8px;}
@@ -28,7 +28,7 @@
 .tx-mini .a{font-family:var(--font-display);font-weight:700;font-size:12.5px;direction:ltr;}
 .empty-note{text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;}
 
-.panel-overlay{position:absolute;inset:0;background:rgba(12,15,9,.82);display:none;align-items:flex-end;z-index:20;}
+.panel-overlay{position:absolute;inset:0;background:rgba(13,22,35,.82);display:none;align-items:flex-end;z-index:20;}
 .panel-overlay.open{display:flex;}
 .panel-sheet{width:100%;max-height:88%;overflow-y:auto;background:var(--bg-deep);border-top:1px solid var(--gold);
   border-radius:20px 20px 0 0;padding:20px 22px 26px;}
@@ -36,11 +36,11 @@
 .panel-msg{font-size:12.5px;text-align:center;margin-bottom:10px;display:none;}
 .seg{display:flex;background:var(--bg-surface);border:1px solid var(--line);border-radius:var(--radius-pill);padding:4px;margin-bottom:16px;}
 .seg-opt{flex:1;text-align:center;padding:8px 0;font-size:13px;color:var(--text-muted);border-radius:var(--radius-pill);cursor:pointer;}
-.seg-opt.active{background:var(--gold);color:#1C1500;font-weight:700;}
+.seg-opt.active{background:var(--gold);color:#241A05;font-weight:700;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
-  <div class="top-row"><a href="23-admin-users.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">تفاصيل المستخدم</div><div style="width:38px"></div></div>
+  <div class="top-row"><a href="23-admin-users.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">تفاصيل المستخدم</div><div style="width:38px"></div></div>
 
   <div id="loadingNote" class="empty-note">جاري التحميل...</div>
 
@@ -117,11 +117,11 @@ function renderFrozenState(){
   const btn = document.getElementById('freezeBtn');
   if(profile.is_frozen){
     btn.textContent = 'إلغاء تجميد الحساب';
-    btn.classList.remove('cta'); btn.className = 'cta outline small'; btn.style.borderColor = 'var(--success)'; btn.style.color = '#8FC98D';
+    btn.classList.remove('cta'); btn.className = 'cta outline small'; btn.style.borderColor = 'var(--success)'; btn.style.color = '#6FE3DC';
   } else {
     btn.textContent = 'تجميد الحساب';
     btn.className = 'cta small'; btn.style.borderColor = ''; btn.style.color = '';
-    btn.style.background = 'linear-gradient(180deg,#E0916A,var(--danger))'; btn.style.color = '#2A1200';
+    btn.style.background = 'linear-gradient(180deg,#F2A0A0,var(--danger))'; btn.style.color = '#2A1013';
   }
 }
 
@@ -209,7 +209,7 @@ document.getElementById('adjustOverlay').addEventListener('click', (e) => {
 function showAdjustMsg(text, isError){
   const el = document.getElementById('adjustMsg');
   el.textContent = text; el.style.display = 'block';
-  el.style.color = isError ? '#E5675A' : '#8FC98D';
+  el.style.color = isError ? '#E15A5A' : '#6FE3DC';
 }
 
 document.getElementById('saveAdjustBtn').addEventListener('click', async () => {

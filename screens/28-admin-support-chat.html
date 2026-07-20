@@ -7,7 +7,7 @@
 .msg-row.in{align-items:flex-start;}
 .msg{max-width:78%;padding:12px 14px;border-radius:16px;font-size:13.5px;line-height:1.7;word-break:break-word;}
 .msg.in{background:var(--bg-surface);border:1px solid var(--line);color:var(--cream);border-bottom-right-radius:4px;}
-.msg.out{background:var(--gold);color:#1C1500;border-bottom-left-radius:4px;}
+.msg.out{background:var(--gold);color:#241A05;border-bottom-left-radius:4px;}
 .msg-meta{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-muted);margin-top:3px;padding:0 2px;}
 .msg-meta svg{width:14px;height:14px;}
 .msg-action{cursor:pointer;font-size:12px;opacity:.75;}
@@ -16,8 +16,8 @@
 .chat-area{display:flex;flex-direction:column;flex:1;overflow-y:auto;padding-bottom:4px;}
 .empty-state{text-align:center;color:var(--text-muted);font-size:13px;padding:50px 0;}
 .day-sep{text-align:center;font-size:11px;color:var(--text-muted);margin:14px 0 10px;}
-.closed-banner{background:rgba(201,97,42,.12);border:1px solid var(--terracotta);color:#E0916A;font-size:11.5px;text-align:center;padding:8px;border-radius:10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
-.closed-banner button{background:var(--gold);color:#1C1500;border:none;border-radius:999px;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;flex-shrink:0;}
+.closed-banner{background:rgba(225,90,90,.12);border:1px solid var(--terracotta);color:#F2A0A0;font-size:11.5px;text-align:center;padding:8px;border-radius:10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.closed-banner button{background:var(--gold);color:#241A05;border:none;border-radius:999px;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;flex-shrink:0;}
 .typing-note{font-size:11px;color:var(--text-muted);min-height:16px;padding:2px 4px;}
 .input-bar{display:flex;gap:10px;align-items:center;padding:6px 0 26px;}
 .input-bar input{flex:1;background:var(--bg-surface);border:1px solid var(--line);border-radius:var(--radius-pill);
@@ -34,7 +34,7 @@
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
   <div class="top-row">
-    <a href="27-admin-support.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
+    <a href="27-admin-support.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a>
     <div style="text-align:center">
       <div class="top-title" id="userNameTitle">—</div>
       <div class="top-sub" id="userPhoneSub"></div>
@@ -50,11 +50,11 @@
   <div class="input-bar">
     <input type="file" id="fileInput" accept="image/*" style="display:none">
     <button class="attach-btn" id="attachBtn" type="button">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a5 5 0 01-7.07-7.07l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a5 5 0 01-7.07-7.07l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
     </button>
     <input type="text" id="msgInput" placeholder="اكتب ردك..."/>
     <button class="send-btn" id="sendBtn" type="button">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1500" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
     </button>
   </div>
 </div></div>
@@ -107,7 +107,7 @@ function isImageUrl(url){
 }
 
 function checkIcon(read){
-  const color = read ? '#7FB2E8' : 'var(--text-muted)';
+  const color = read ? '#18C7C0' : 'var(--text-muted)';
   return `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.4"><path d="M2 12l5 5L22 4"/>${read ? '<path d="M9 12l5 5L27 4" transform="translate(-4,0)"/>' : ''}</svg>`;
 }
 
@@ -193,7 +193,7 @@ function renderClosedBanner(closed){
   isClosed = closed;
   document.getElementById('closedBanner').innerHTML = closed
     ? '<div class="closed-banner"><span>هذي المحادثة مغلقة حالياً</span><button id="reopenBtn">فتح المحادثة</button></div>'
-    : '<div class="closed-banner" style="background:rgba(91,140,90,.12);border-color:var(--success);color:#8FC98D"><span>المحادثة مفتوحة</span><button id="closeBtn" style="background:var(--danger);color:#fff">إغلاق المحادثة</button></div>';
+    : '<div class="closed-banner" style="background:rgba(24,199,192,.12);border-color:var(--success);color:#6FE3DC"><span>المحادثة مفتوحة</span><button id="closeBtn" style="background:var(--danger);color:#fff">إغلاق المحادثة</button></div>';
 
   const reopenBtn = document.getElementById('reopenBtn');
   if (reopenBtn) reopenBtn.onclick = () => setClosedStatus(false);

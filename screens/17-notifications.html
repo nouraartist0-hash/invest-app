@@ -4,9 +4,9 @@
 <style>
 .notif{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);}
 .n-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.n-icon.ok{background:rgba(91,140,90,.15);}
-.n-icon.warn{background:rgba(201,97,42,.15);}
-.n-icon.bad{background:rgba(201,97,42,.22);}
+.n-icon.ok{background:rgba(24,199,192,.15);}
+.n-icon.warn{background:rgba(225,90,90,.15);}
+.n-icon.bad{background:rgba(225,90,90,.22);}
 .n-icon svg{width:16px;height:16px;}
 .n-info{flex:1;}
 .n-title{font-size:13.5px;color:var(--cream);}
@@ -15,7 +15,7 @@
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
-  <div class="top-row"><a href="06-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F3EEDD" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">الإشعارات</div><div style="width:38px"></div></div>
+  <div class="top-row"><a href="06-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">الإشعارات</div><div style="width:38px"></div></div>
 
   <div id="notifList"><div class="empty-state">جاري التحميل...</div></div>
 </div></div>
@@ -64,9 +64,9 @@ function statusClass(status){
   return 'warn'; // pending
 }
 function statusColor(status){
-  if (status === 'completed') return '#8FC98D';
-  if (status === 'rejected' || status === 'cancelled') return '#E0916A';
-  return '#E0916A';
+  if (status === 'completed') return '#6FE3DC';
+  if (status === 'rejected' || status === 'cancelled') return '#F2A0A0';
+  return '#F2A0A0';
 }
 
 function timeAgo(iso){

@@ -158,7 +158,7 @@ async function loadData(){
 
   renderFrozenState();
 
-  const TYPE_LABEL = { deposit:'إيداع', withdraw:'سحب', investment:'مشاركة', profit:'عائد', referral_bonus:'مكافأة إحالة', admin_adjustment:'تعديل إداري' };
+  const TYPE_LABEL = { deposit:'إيداع', withdraw:'سحب', investment:'مشاركة', investment_return:'استرجاع رأس مال', profit:'عائد', referral_bonus:'مكافأة إحالة', admin_adjustment:'تعديل إداري' };
   const txList = document.getElementById('txList');
   if(!tx || tx.length === 0){
     txList.innerHTML = '<div class="empty-note">لا يوجد معاملات بعد</div>';
@@ -240,3 +240,4 @@ document.getElementById('saveAdjustBtn').addEventListener('click', async () => {
 loadData();
 </script>
 </body></html>
+  

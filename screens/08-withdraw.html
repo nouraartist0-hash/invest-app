@@ -16,6 +16,7 @@
   <div class="field-group"><label class="label">المبلغ (USDT)</label>
     <div class="field focused"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.5 1.3-2.5 3-2.5s3 1 3 2.5-1.3 2-3 2.5-3 1-3 2.5 1.3 2.5 3 2.5 3-1 3-2.5"/></svg><input id="amount" type="number" min="1" step="0.01" placeholder="0.00"/></div></div>
   <div class="avail">الرصيد المتاح: <b id="availableLabel">جاري التحميل...</b></div>
+  <div class="avail" id="minWithdrawHint" style="display:none;">الحد الأدنى للسحب: <b id="minWithdrawLabel">—</b></div>
   <div class="card">
     <div class="summary-row"><span>المبلغ المطلوب</span><b id="sumAmount">0 USDT</b></div>
     <div class="summary-row"><span>رسوم الشبكة</span><b id="sumFee">1 USDT</b></div>
@@ -27,12 +28,29 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/supabase-client.js?v=1784451053"></script>
 <script>
-const NETWORK_FEE = 1;
+let NETWORK_FEE = 1;
+let MIN_WITHDRAW = 1;
 let availableBalance = 0;
+
+async function loadWithdrawSettings(){
+  const { data } = await supabaseClient
+    .from('system_settings')
+    .select('key, value')
+    .in('key', ['withdraw_network_fee', 'min_withdraw']);
+  (data || []).forEach(row => {
+    if(row.key === 'withdraw_network_fee') NETWORK_FEE = Number(row.value);
+    if(row.key === 'min_withdraw') MIN_WITHDRAW = Number(row.value);
+  });
+  document.getElementById('sumFee').textContent = NETWORK_FEE + ' USDT';
+  document.getElementById('minWithdrawLabel').textContent = MIN_WITHDRAW + ' USDT';
+  document.getElementById('minWithdrawHint').style.display = 'block';
+}
 
 async function initWithdraw(){
   const user = await requireAuth();
   if(!user) return;
+
+  await loadWithdrawSettings();
 
   const { data: balance } = await supabaseClient
     .from('balances')
@@ -63,6 +81,9 @@ async function handleWithdraw(){
   }
   if(!amount || amount <= NETWORK_FEE){
     showFormMessage('formMsg','الرجاء إدخال مبلغ أكبر من رسوم الشبكة',true); return;
+  }
+  if(amount < MIN_WITHDRAW){
+    showFormMessage('formMsg', `الحد الأدنى للسحب هو ${MIN_WITHDRAW} USDT`, true); return;
   }
   if(amount > availableBalance){
     showFormMessage('formMsg','المبلغ المطلوب أكبر من رصيدك المتاح',true); return;

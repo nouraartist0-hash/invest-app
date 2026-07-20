@@ -132,14 +132,9 @@ async function loadDashboard(){
     document.getElementById('totalEarned').textContent = formatMoney(totalEarned) + ' $';
     document.getElementById('availableBalance').textContent = formatMoney(availableBalance) + ' $';
   } catch(balErr){
-    // وضع تشخيص مؤقت: نطلع رسالة الخطأ الحقيقية بالبطاقة حتى نعرف السبب
     console.error('balance section error:', balErr);
-    document.getElementById('totalValue').textContent = 'DEBUG: ' + (balErr && balErr.message ? balErr.message : JSON.stringify(balErr));
+    document.getElementById('totalValue').textContent = '—';
   }
-
-  // ===== تشخيص مؤقت: نطلع نافذة فيها القيمة الحقيقية بالضبط =====
-  const dbgEl = document.getElementById('totalValue');
-  alert('DEBUG\ntext=[' + dbgEl.textContent + ']\ncolor=' + getComputedStyle(dbgEl).color + '\nheight=' + dbgEl.offsetHeight + 'px\nvisibility=' + getComputedStyle(dbgEl).visibility + '\ndisplay=' + getComputedStyle(dbgEl).display);
 
   // ===== الحصص الحالية (الاستثمارات النشطة) =====
   const { data: investments, error: invError } = await supabaseClient
@@ -192,9 +187,10 @@ async function loadDashboard(){
 }
 
 loadDashboard().catch(err => {
-  document.getElementById('totalValue').textContent = 'DEBUG-OUTER: ' + (err && err.message ? err.message : String(err));
+  document.getElementById('totalValue').textContent = '—';
   console.error(err);
 });
 </script>
 </body></html>
+
   

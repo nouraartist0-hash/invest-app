@@ -47,14 +47,14 @@ function renderUsers(list){
   }
   el.innerHTML = list.map(u => {
     const initial = (u.full_name || '?').trim().charAt(0);
-    return `<div class="user-row">
+    return `<a class="user-row" href="23b-admin-user-detail.html?id=${encodeURIComponent(u.id)}" style="text-decoration:none;">
       <div class="u-avatar">${escapeHtml(initial)}</div>
       <div class="u-info">
-        <div class="u-name">${escapeHtml(u.full_name || 'بدون اسم')}</div>
+        <div class="u-name">${escapeHtml(u.full_name || 'بدون اسم')}${u.is_frozen ? ' 🔒' : ''}</div>
         <div class="u-meta">${escapeHtml(kycLabel(u.kyc_status))} · انضم ${fmtDate(u.created_at)} · ${escapeHtml(u.phone || '')}</div>
       </div>
       <div class="u-balance">${formatMoney(u.available_balance, false)}$</div>
-    </div>`;
+    </a>`;
   }).join('');
 }
 
@@ -77,7 +77,7 @@ async function loadUsers(){
   if(!admin) return;
 
   const [{ data: profiles, error: profilesError }, { data: balances }, { data: kycRows }] = await Promise.all([
-    supabaseClient.from('profiles').select('id, full_name, phone, created_at').order('created_at', { ascending: false }),
+    supabaseClient.from('profiles').select('id, full_name, phone, created_at, is_frozen').order('created_at', { ascending: false }),
     supabaseClient.from('balances').select('user_id, available_balance'),
     supabaseClient.from('kyc_documents').select('user_id, status')
   ]);

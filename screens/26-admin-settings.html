@@ -63,6 +63,7 @@
 const SETTINGS_DEF = [
   { key:'min_withdraw', label:'الحد الأدنى للسحب', type:'number', unit:'USDT' },
   { key:'withdraw_network_fee', label:'رسوم شبكة السحب', type:'number', unit:'USDT' },
+  { key:'management_fee_percent', label:'رسوم الإدارة (على الاستثمار)', type:'number', unit:'٪' },
   { key:'referral_commission_direct', label:'عمولة الإحالة (مباشر)', type:'number', unit:'٪ من الرسوم' },
   { key:'referral_commission_indirect', label:'عمولة الإحالة (غير مباشر)', type:'number', unit:'٪ من الرسوم' },
   { key:'auto_approve_withdrawal', label:'موافقة السحب التلقائية', type:'bool' }
@@ -142,8 +143,7 @@ async function saveSetting(key, value, msgElId, overlayId, btnEl){
   btnEl.textContent = 'جاري الحفظ...';
 
   const { error } = await supabaseClient.from('system_settings')
-    .update({ value: String(value), updated_at: new Date().toISOString(), updated_by: adminUser.id })
-    .eq('key', key);
+    .upsert({ key: key, value: String(value), updated_at: new Date().toISOString(), updated_by: adminUser.id }, { onConflict: 'key' });
 
   btnEl.disabled = false; btnEl.textContent = originalText;
 

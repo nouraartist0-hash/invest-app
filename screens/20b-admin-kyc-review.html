@@ -125,7 +125,7 @@ document.getElementById('tabs').addEventListener('click', (e) => {
 async function loadDocs(){
   const { data, error } = await supabaseClient
     .from('kyc_documents')
-    .select('id, user_id, document_type, file_url, status, submitted_at, profiles(full_name, phone)')
+    .select('id, user_id, document_type, file_url, status, submitted_at, profiles!kyc_documents_user_id_fkey(full_name, phone)')
     .order('submitted_at', { ascending: false });
 
   if (error){
@@ -182,4 +182,3 @@ async function init(){
 init();
 </script>
 </body></html>
-

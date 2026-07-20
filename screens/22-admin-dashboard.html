@@ -25,6 +25,7 @@
   <div class="admin-menu">
     <a class="admin-item" href="25-admin-transactions.html"><span>طلبات السحب</span><span class="pending" id="pendingWithdrawCount">... قيد المراجعة</span></a>
     <a class="admin-item" href="20-kyc.html"><span>طلبات KYC</span><span class="pending" id="pendingKycCount">... قيد المراجعة</span></a>
+    <a class="admin-item" href="27-admin-support.html"><span>محادثات الدعم</span><span class="pending" id="pendingSupportCount">... غير مقروءة</span></a>
     <a class="admin-item" href="23-admin-users.html"><span>إدارة المستخدمين</span><span>›</span></a>
     <a class="admin-item" href="24-admin-offers.html"><span>إدارة عروض الاستثمار</span><span>›</span></a>
     <a class="admin-item" href="25-admin-transactions.html"><span>سجل كل المعاملات</span><span>›</span></a>
@@ -47,6 +48,13 @@ async function loadStats(){
     supabaseClient.from('transactions').select('id', { count: 'exact', head: true }).eq('type', 'withdraw').eq('status', 'pending'),
     supabaseClient.from('kyc_documents').select('id', { count: 'exact', head: true }).eq('status', 'pending')
   ]);
+
+  const { count: pendingSupport } = await supabaseClient
+    .from('support_messages')
+    .select('id', { count: 'exact', head: true })
+    .eq('sender', 'user')
+    .eq('is_read', false);
+  document.getElementById('pendingSupportCount').textContent = (pendingSupport || 0) + ' غير مقروءة';
 
   document.getElementById('statUsers').textContent = usersCount || 0;
   document.getElementById('statDeposits').textContent = formatMoney(sumAmount(deposits), false) + '$';

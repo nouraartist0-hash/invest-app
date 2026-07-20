@@ -118,36 +118,12 @@ async function approveTx(txId){
     return;
   }
 
-  // ===== الإيداع: يضيف المبلغ مباشرة للرصيد المتاح =====
+  // ===== الإيداع: يستخدم دالة آمنة تحدّث الرصيد بخطوة ذرّية وحدة (بدون قراءة-ثم-كتابة) =====
   if(tx.type === 'deposit'){
-    const { data: balance, error: balErr } = await supabaseClient
-      .from('balances')
-      .select('available_balance')
-      .eq('user_id', tx.user_id)
-      .maybeSingle();
-
-    if(balErr || !balance){
-      alert('تعذر جلب رصيد المستخدم');
-      return;
-    }
-
-    const newBalance = Number(balance.available_balance) + Number(tx.amount);
-
-    const { error: updBalErr } = await supabaseClient
-      .from('balances')
-      .update({ available_balance: newBalance, updated_at: new Date().toISOString() })
-      .eq('user_id', tx.user_id);
-
-    if(updBalErr){ alert('خطأ بتحديث الرصيد: ' + updBalErr.message); return; }
-
-    const { error: updTxErr } = await supabaseClient
-      .from('transactions')
-      .update({ status: 'completed', reviewed_at: new Date().toISOString(), reviewed_by: adminUser.id })
-      .eq('id', txId);
-
-    if(updTxErr){ alert('خطأ بتحديث حالة المعاملة: ' + updTxErr.message); return; }
-
+    const { error } = await supabaseClient.rpc('approve_deposit', { p_tx_id: txId });
+    if(error){ alert('خطأ: ' + error.message); return; }
     loadTransactions();
+    return;
   }
 }
 

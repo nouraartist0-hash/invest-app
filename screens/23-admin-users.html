@@ -83,7 +83,7 @@ async function loadUsers(){
   ]);
 
   if(profilesError){
-    document.getElementById('usersList').innerHTML = '<div class="empty-note">تعذر تحميل المستخدمين</div>';
+    document.getElementById('usersList').innerHTML = '<div class="empty-note">تعذر تحميل المستخدمين: ' + profilesError.message + '</div>';
     return;
   }
 

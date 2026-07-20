@@ -112,22 +112,17 @@ async function loadDashboard(){
   document.getElementById('userAvatar').textContent = displayName.trim().charAt(0) || '؟';
 
   // ===== الرصيد =====
-  // نستخدم select عادي + limit(1) بدل maybeSingle() حتى ما تنكسر الصفحة
-  // إذا انصنع أكثر من صف رصيد لنفس المستخدم بالغلط (bug بدالة الشراء)
-  const { data: balanceRows, error: balError } = await supabaseClient
-    .from('balances')
-    .select('available_balance, locked_balance, total_earned')
-    .eq('user_id', user.id)
-    .order('available_balance', { ascending: false })
-    .limit(1);
+  try{
+    const { data: balanceRows, error: balError } = await supabaseClient
+      .from('balances')
+      .select('available_balance, locked_balance, total_earned')
+      .eq('user_id', user.id)
+      .order('available_balance', { ascending: false })
+      .limit(1);
 
-  const balance = balanceRows && balanceRows.length ? balanceRows[0] : null;
+    if(balError) throw balError;
 
-  // نضمن دائماً وجود نص بالبطاقة (حتى بحالة الخطأ) حتى ما ينكمش ارتفاعها
-  if(balError){
-    console.error('balance load error:', balError);
-    document.getElementById('totalValue').textContent = '٠.٠٠ $';
-  } else {
+    const balance = balanceRows && balanceRows.length ? balanceRows[0] : null;
     const availableBalance = Number(balance ? balance.available_balance : 0) || 0;
     const lockedBalance = Number(balance ? balance.locked_balance : 0) || 0;
     const totalEarned = Number(balance ? balance.total_earned : 0) || 0;
@@ -136,6 +131,10 @@ async function loadDashboard(){
     document.getElementById('totalValue').textContent = formatMoney(totalValue) + ' $';
     document.getElementById('totalEarned').textContent = formatMoney(totalEarned) + ' $';
     document.getElementById('availableBalance').textContent = formatMoney(availableBalance) + ' $';
+  } catch(balErr){
+    // وضع تشخيص مؤقت: نطلع رسالة الخطأ الحقيقية بالبطاقة حتى نعرف السبب
+    console.error('balance section error:', balErr);
+    document.getElementById('totalValue').textContent = 'DEBUG: ' + (balErr && balErr.message ? balErr.message : JSON.stringify(balErr));
   }
 
   // ===== الحصص الحالية (الاستثمارات النشطة) =====

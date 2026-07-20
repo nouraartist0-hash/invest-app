@@ -152,4 +152,38 @@ a.card, a.deed-card{
 
 /* Screen list index page */
 .index-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(390px,1fr));gap:28px;}
+
+/* Interactive press / lift feedback for buttons, cards & nav items */
+.cta,
+.icon-btn,
+.qa,
+.nav-item,
+a.card,
+a.deed-card,
+.chip,
+.mini-btn,
+.day,
+.seal-mini,
+.avatar{
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease, filter .15s ease;
+  will-change:transform;
+}
+.cta:active,
+.icon-btn:active,
+.qa:active,
+.nav-item:active,
+a.card:active,
+a.deed-card:active,
+.chip:active,
+.mini-btn:active,
+.day:active,
+.seal-mini:active,
+.avatar:active{
+  transform:translateY(-3px);
+  box-shadow:0 10px 20px rgba(0,0,0,.4);
+  filter:brightness(1.06);
+}
+.icon-btn:active svg,.seal-mini:active svg{transform:scale(1.05);}
+
   

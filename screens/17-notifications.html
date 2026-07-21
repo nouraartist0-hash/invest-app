@@ -35,7 +35,10 @@ const TYPE_ICON = {
   investment:     '<path d="M12 3l9 4v5c0 5-3.5 8-9 9-5.5-1-9-4-9-9V7z"/>',
   investment_return: '<path d="M12 3l9 4v5c0 5-3.5 8-9 9-5.5-1-9-4-9-9V7z"/>',
   profit:         '<path d="M12 5v14M5 12l7-7 7 7"/>',
-  referral_bonus: '<circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/>'
+  referral_bonus: '<circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/>',
+  kyc_approved:   '<path d="M20 6L9 17l-5-5"/>',
+  kyc_rejected:   '<path d="M18 6L6 18M6 6l12 12"/>',
+  support_message:'<path d="M21 11.5a8.38 8.38 0 01-8.5 8.5 8.5 8.5 0 01-4-1L3 20l1-4.5A8.38 8.38 0 012 12a8.5 8.5 0 018.5-8.5A8.38 8.38 0 0121 11.5z"/>'
 };
 
 // نص الإشعار حسب النوع والحالة
@@ -86,33 +89,60 @@ async function loadNotifications(){
   const user = await requireAuth();
   if(!user) return;
 
-  const { data, error } = await supabaseClient
-    .from('transactions')
-    .select('id, type, amount, status, created_at')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(30);
+  const [txRes, notifRes] = await Promise.all([
+    supabaseClient.from('transactions')
+      .select('id, type, amount, status, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(30),
+    supabaseClient.from('notifications')
+      .select('id, title, type, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(30)
+  ]);
 
   const list = document.getElementById('notifList');
 
-  if (error) {
-    list.innerHTML = `<div class="empty-state">تعذر تحميل الإشعارات: ${escapeHtml(error.message)}</div>`;
+  if (txRes.error && notifRes.error) {
+    list.innerHTML = `<div class="empty-state">تعذر تحميل الإشعارات: ${escapeHtml(txRes.error.message)}</div>`;
     return;
   }
 
-  if (!data || data.length === 0) {
+  // نوحّد الاثنين بشكل عنصر واحد: { title, type, status, created_at }
+  const txItems = (txRes.data || []).map(t => ({
+    kind: 'tx',
+    type: t.type,
+    status: t.status,
+    title: buildTitle(t),
+    created_at: t.created_at
+  }));
+
+  const notifItems = (notifRes.data || []).map(n => ({
+    kind: 'notif',
+    type: n.type,
+    status: n.type === 'kyc_rejected' ? 'rejected' : 'completed',
+    title: n.title,
+    created_at: n.created_at
+  }));
+
+  const merged = [...txItems, ...notifItems]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 40);
+
+  if (merged.length === 0) {
     list.innerHTML = `<div class="empty-state">ماكو إشعارات حالياً</div>`;
     return;
   }
 
-  list.innerHTML = data.map(t => `
+  list.innerHTML = merged.map(n => `
     <div class="notif">
-      <div class="n-icon ${statusClass(t.status)}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="${statusColor(t.status)}" stroke-width="2">${TYPE_ICON[t.type] || TYPE_ICON.deposit}</svg>
+      <div class="n-icon ${statusClass(n.status)}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="${statusColor(n.status)}" stroke-width="2">${TYPE_ICON[n.type] || TYPE_ICON.deposit}</svg>
       </div>
       <div class="n-info">
-        <div class="n-title">${escapeHtml(buildTitle(t))}</div>
-        <div class="n-time">${timeAgo(t.created_at)}</div>
+        <div class="n-title">${escapeHtml(n.title)}</div>
+        <div class="n-time">${timeAgo(n.created_at)}</div>
       </div>
     </div>
   `).join('');

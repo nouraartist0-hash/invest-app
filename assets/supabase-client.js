@@ -28,6 +28,12 @@ function toE164(rawPhone) {
   return "+" + normalizePhone(rawPhone);
 }
 
+function escapeAttr(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 function showFormMessage(elementId, text, isError) {
   const el = document.getElementById(elementId);
   if (!el) return;
@@ -127,4 +133,5 @@ async function requireAdmin() {
     return null;
   }
   return user;
-}
+         }
+      

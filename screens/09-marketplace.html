@@ -6,7 +6,8 @@
 .tab{padding:8px 16px;border-radius:var(--radius-pill);font-size:12.5px;border:1px solid var(--line);color:var(--text-muted);white-space:nowrap;}
 .tab.active{background:var(--gold);color:#241A05;border-color:var(--gold);font-weight:700;}
 .offer{margin-bottom:14px;}
-.offer-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.offer-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:10px;}
+.offer-thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;border:1px solid var(--line);}
 .range-badge{text-align:left;}
 .range-num{font-family:var(--font-display);font-weight:900;font-size:19px;color:var(--gold-soft);direction:ltr;}
 .range-label{font-size:10.5px;color:var(--text-muted);}
@@ -55,10 +56,12 @@ function renderOffers(category){
   list.innerHTML = filtered.map((o, idx) => {
     const cardClass = idx % 2 === 0 ? 'deed-card offer' : 'card offer';
     const funded = o.funding_percent != null ? o.funding_percent : 0;
+    const thumb = o.image_url ? `<img class="offer-thumb" src="${escapeAttr(o.image_url)}" alt="">` : '';
     return `
     <a class="${cardClass}" href="10-offer-details.html?id=${o.id}">
       <div class="offer-head">
-        <div><div class="chip">${escapeHtml(o.title)}</div>
+        ${thumb}
+        <div style="flex:1;min-width:0;"><div class="chip">${escapeHtml(o.title)}</div>
           <div class="card-sub" style="margin-top:8px;">مدة الدورة ${toArabicDigits(o.duration_days)} يوم · الحد الأدنى ${o.min_amount}$</div></div>
         <div class="range-badge"><div class="range-num">${o.min_return}–${o.max_return}%</div><div class="range-label">تقديري / شهرياً</div></div>
       </div>
@@ -74,7 +77,7 @@ async function loadOffers(){
 
   const { data, error } = await supabaseClient
     .from('offers')
-    .select('id, title, category, min_return, max_return, duration_days, min_amount, funding_percent')
+    .select('id, title, category, min_return, max_return, duration_days, min_amount, funding_percent, image_url')
     .eq('status', 'active')
     .order('created_at', { ascending: false });
 

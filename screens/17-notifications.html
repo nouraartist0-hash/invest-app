@@ -130,6 +130,13 @@ async function loadNotifications(){
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .slice(0, 40);
 
+  // نعلّم كل الإشعارات كمقروءة أول ما المستخدم يفتح هذي الصفحة (عشان النقطة الحمرة تختفي)
+  supabaseClient.from('notifications')
+    .update({ is_read: true })
+    .eq('user_id', user.id)
+    .eq('is_read', false)
+    .then(() => {});
+
   if (merged.length === 0) {
     list.innerHTML = `<div class="empty-state">ماكو إشعارات حالياً</div>`;
     return;

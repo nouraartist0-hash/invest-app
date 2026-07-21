@@ -5,23 +5,199 @@
 .set-row{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line);}
 .set-row span{font-size:14px;color:var(--cream);}
 .set-val{font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:6px;}
-.switch{width:42px;height:24px;border-radius:14px;background:var(--line);position:relative;}
+.switch{width:42px;height:24px;border-radius:14px;background:var(--line);position:relative;cursor:pointer;}
 .switch.on{background:var(--gold);}
-.knob{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;right:3px;}
+.knob{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;right:3px;transition:right .15s,left .15s;}
 .switch.on .knob{right:auto;left:3px;}
 .danger-row span{color:var(--terracotta);}
+.static-val{font-size:13px;color:var(--text-muted);}
+.lang-row{cursor:pointer;}
+.globe-icon{width:16px;height:16px;flex-shrink:0;}
+
+/* نافذة اختيار اللغة */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:50;}
+.overlay.open{display:flex;}
+.sheet{width:100%;max-width:390px;background:var(--bg-surface);border-radius:20px 20px 0 0;padding:20px;}
+.sheet-title{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--cream);margin-bottom:14px;}
+.lang-opt{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line);cursor:pointer;}
+.lang-opt:last-of-type{border-bottom:none;}
+.lang-opt-name{font-size:14px;color:var(--cream);}
+.lang-check{color:var(--success);font-size:16px;visibility:hidden;}
+.lang-opt.selected .lang-check{visibility:visible;}
+.sheet-close{width:100%;text-align:center;padding:12px 0;margin-top:10px;color:var(--text-muted);font-size:13px;}
+
+/* نافذة حذف الحساب */
+.delete-note{font-size:12px;color:var(--text-muted);line-height:1.8;margin-bottom:14px;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
   <div class="top-row"><a href="14-profile.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">إعدادات الحساب</div><div style="width:38px"></div></div>
 
-  <div class="set-row"><span>اللغة</span><div class="set-val">العربية ›</div></div>
-  <div class="set-row"><span>العملة المعروضة</span><div class="set-val">USD ›</div></div>
-  <div class="set-row"><span>الإشعارات</span><div class="switch on"><div class="knob"></div></div></div>
-  <div class="set-row"><span>الوضع الليلي</span><div class="switch on"><div class="knob"></div></div></div>
+  <div class="set-row lang-row" id="langRow" onclick="openLangSheet()">
+    <span>اللغة</span>
+    <div class="set-val">
+      <svg class="globe-icon" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 4 5.8 4 9s-1.5 6.4-4 9c-2.5-2.6-4-5.8-4-9s1.5-6.4 4-9z"/></svg>
+      <span id="langLabel">العربية</span> ›
+    </div>
+  </div>
+
+  <div class="set-row"><span>العملة المعروضة</span><span class="static-val">USD</span></div>
+
+  <div class="set-row"><span>الإشعارات</span><div class="switch" id="notifSwitch" onclick="toggleNotif()"><div class="knob"></div></div></div>
+  <div class="set-row"><span>الوضع الليلي</span><div class="switch" id="themeSwitch" onclick="toggleThemeSwitch()"><div class="knob"></div></div></div>
+
   <a class="set-row" href="19-security.html"><span>تغيير كلمة المرور</span><div class="set-val">›</div></a>
   <a class="set-row" href="19-security.html#sessions"><span>الجلسات النشطة</span><div class="set-val">عرض ›</div></a>
-  <a class="set-row danger-row" href="#"><span>حذف الحساب</span><div class="set-val">›</div></a>
+  <div class="set-row danger-row" id="deleteRow" onclick="openDeleteSheet()" style="cursor:pointer;"><span>حذف الحساب</span><div class="set-val">›</div></div>
 
-  <button class="cta outline" style="margin-top:26px;" onclick="location.href='02-login.html'">تسجيل الخروج</button>
-</div></div></body></html>
+  <button class="cta outline" style="margin-top:26px;" onclick="handleLogout()">تسجيل الخروج</button>
+</div></div>
+
+<!-- نافذة اختيار اللغة -->
+<div class="overlay" id="langOverlay">
+  <div class="sheet">
+    <div class="sheet-title">اختر اللغة</div>
+    <div class="lang-opt selected" id="langOptAr" onclick="selectLang('ar')">
+      <span class="lang-opt-name">العربية</span><span class="lang-check">✓</span>
+    </div>
+    <div class="lang-opt" id="langOptEn" onclick="selectLang('en')">
+      <span class="lang-opt-name">English</span><span class="lang-check">✓</span>
+    </div>
+    <div class="sheet-close" onclick="closeLangSheet()">إلغاء</div>
+  </div>
+</div>
+
+<!-- نافذة حذف الحساب -->
+<div class="overlay" id="deleteOverlay">
+  <div class="sheet">
+    <div class="sheet-title" style="color:var(--terracotta);">حذف الحساب نهائياً</div>
+    <div class="delete-note">هذا الإجراء نهائي وما يرجع. راح يُحذف حسابك وكل بياناتك (الرصيد، سجل العمليات، وثائق التوثيق) بشكل كامل. أدخل كلمة المرور تأكيد لهويتك قبل المتابعة.</div>
+    <div class="field-group"><label class="label">كلمة المرور</label>
+      <div class="field"><input id="deletePassword" type="password" placeholder="••••••••"/></div></div>
+    <div id="deleteMsg" class="form-msg" style="margin-top:6px;"></div>
+    <button id="confirmDeleteBtn" class="cta" style="margin-top:14px;background:var(--danger);" onclick="handleDeleteAccount()">تأكيد حذف الحساب</button>
+    <div class="sheet-close" onclick="closeDeleteSheet()">إلغاء</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+let currentUser = null;
+let currentPhone = null;
+
+// ====== اللغة ======
+// ملاحظة: هذا يحفظ تفضيل اللغة بس، وما يترجم نصوص الشاشات (هذا يحتاج شغل ترجمة منفصل لكل الشاشات لو تريده لاحقاً)
+function openLangSheet(){ document.getElementById('langOverlay').classList.add('open'); }
+function closeLangSheet(){ document.getElementById('langOverlay').classList.remove('open'); }
+
+function selectLang(lang){
+  localStorage.setItem('lang', lang);
+  renderLangUI(lang);
+  closeLangSheet();
+}
+
+function renderLangUI(lang){
+  document.getElementById('langLabel').textContent = lang === 'en' ? 'English' : 'العربية';
+  document.getElementById('langOptAr').classList.toggle('selected', lang !== 'en');
+  document.getElementById('langOptEn').classList.toggle('selected', lang === 'en');
+}
+
+// ====== الإشعارات (تفضيل محلي بهذا الجهاز) ======
+function renderNotifSwitch(){
+  const on = localStorage.getItem('notifications') !== 'off';
+  document.getElementById('notifSwitch').classList.toggle('on', on);
+}
+function toggleNotif(){
+  const on = localStorage.getItem('notifications') !== 'off';
+  localStorage.setItem('notifications', on ? 'off' : 'on');
+  renderNotifSwitch();
+}
+
+// ====== الوضع الليلي/النهاري (مطبّق على كل الشاشات عبر supabase-client.js) ======
+function renderThemeSwitch(){
+  const theme = localStorage.getItem('theme') || 'dark';
+  document.getElementById('themeSwitch').classList.toggle('on', theme === 'dark');
+}
+function toggleThemeSwitch(){
+  const theme = localStorage.getItem('theme') || 'dark';
+  setTheme(theme === 'dark' ? 'light' : 'dark');
+  renderThemeSwitch();
+}
+
+// ====== حذف الحساب ======
+function openDeleteSheet(){
+  document.getElementById('deletePassword').value = '';
+  document.getElementById('deleteMsg').style.display = 'none';
+  document.getElementById('deleteOverlay').classList.add('open');
+}
+function closeDeleteSheet(){ document.getElementById('deleteOverlay').classList.remove('open'); }
+
+async function handleDeleteAccount(){
+  const password = document.getElementById('deletePassword').value;
+  const btn = document.getElementById('confirmDeleteBtn');
+
+  if (!password){
+    showFormMessage('deleteMsg', 'أدخل كلمة المرور أول', true);
+    return;
+  }
+  if (!currentPhone){
+    showFormMessage('deleteMsg', 'تعذر التحقق من الحساب، حاول تسجل دخول من جديد', true);
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'جاري التحقق...';
+
+  try {
+    // نتحقق من كلمة المرور عن طريق محاولة تسجيل دخول فعلية (نفس آلية تسجيل الدخول بالتطبيق)
+    const { error: authError } = await supabaseClient.auth.signInWithPassword({
+      email: phoneToInternalEmail(currentPhone),
+      password
+    });
+    if (authError){
+      showFormMessage('deleteMsg', 'كلمة المرور غير صحيحة', true);
+      btn.disabled = false; btn.textContent = 'تأكيد حذف الحساب';
+      return;
+    }
+
+    btn.textContent = 'جاري حذف الحساب...';
+    const { error: deleteError } = await supabaseClient.rpc('delete_own_account');
+    if (deleteError){
+      showFormMessage('deleteMsg', 'تعذر حذف الحساب: ' + deleteError.message, true);
+      btn.disabled = false; btn.textContent = 'تأكيد حذف الحساب';
+      return;
+    }
+
+    await supabaseClient.auth.signOut();
+    location.href = '02-login.html';
+  } catch (err){
+    showFormMessage('deleteMsg', 'حدث خطأ غير متوقع: ' + err.message, true);
+    btn.disabled = false; btn.textContent = 'تأكيد حذف الحساب';
+  }
+}
+
+async function handleLogout(){
+  await supabaseClient.auth.signOut();
+  location.href = '02-login.html';
+}
+
+(async function(){
+  const user = await requireAuth();
+  if (!user) return;
+  currentUser = user;
+
+  const { data: profile } = await supabaseClient
+    .from('profiles')
+    .select('phone')
+    .eq('id', user.id)
+    .maybeSingle();
+  if (profile) currentPhone = profile.phone;
+
+  renderLangUI(localStorage.getItem('lang') || 'ar');
+  renderNotifSwitch();
+  renderThemeSwitch();
+})();
+</script>
+</body></html>
+
+  

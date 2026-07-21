@@ -45,10 +45,6 @@
 .cooldown-note{text-align:center;font-size:12.5px;color:var(--text-muted);margin-top:12px;line-height:1.8;}
 .cooldown-note b{color:var(--gold-soft);font-family:var(--font-display);direction:ltr;display:inline-block;}
 
-.prize-legend{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:26px;}
-.leg-item{background:var(--bg-surface);border:1px solid var(--line);border-radius:10px;padding:8px 4px;text-align:center;}
-.leg-dot{width:10px;height:10px;border-radius:50%;margin:0 auto 6px;}
-.leg-amt{font-family:var(--font-display);font-weight:700;font-size:11.5px;color:var(--cream);direction:ltr;}
 
 .modal-overlay{position:fixed;inset:0;background:rgba(6,10,17,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:24px;}
 .modal-overlay.show{display:flex;}
@@ -78,7 +74,6 @@
     <button class="spin-btn" id="spinBtn">🎡 أدر العجلة</button>
     <div class="cooldown-note" id="cooldownNote" style="display:none;">⏳ استخدمت محاولتك اليومية — تبقى <b id="cooldownTime">00:00:00</b> للمحاولة التالية</div>
 
-    <div class="prize-legend" id="prizeLegend"></div>
   </div>
 </div></div>
 
@@ -136,14 +131,6 @@ function buildWheelFace(){
     rivet.style.transform = `rotate(${angle}deg) translate(0,-125px)`;
     rim.appendChild(rivet);
   }
-
-  // مفتاح الجوائز أسفل الشاشة
-  const legend = document.getElementById('prizeLegend');
-  const uniquePrizes = [...new Set(SEGMENTS.map(s => s.cents))].sort((a,b)=>a-b);
-  legend.innerHTML = uniquePrizes.map(c => {
-    const seg = SEGMENTS.find(s => s.cents === c);
-    return `<div class="leg-item"><div class="leg-dot" style="background:${seg.color}"></div><div class="leg-amt">${c}¢</div></div>`;
-  }).join('');
 }
 buildWheelFace();
 

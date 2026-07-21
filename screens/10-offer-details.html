@@ -3,8 +3,9 @@
 <title>10 — تفاصيل العرض</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
 .hero{height:150px;border-radius:var(--radius-card);background:linear-gradient(135deg,#1C2B40,#0F1A28);border:1px solid var(--gold);
-  display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+  display:flex;align-items:center;justify-content:center;margin-bottom:16px;overflow:hidden;}
 .hero svg{width:64px;height:64px;}
+.hero img{width:100%;height:100%;object-fit:cover;}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
 .stat-box{background:var(--bg-surface);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;}
 .stat-num{font-family:var(--font-display);font-weight:900;font-size:17px;color:var(--gold-soft);}
@@ -18,7 +19,7 @@
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
   <div class="top-row"><a href="09-marketplace.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title" id="offerTitle">تفاصيل العرض</div><div style="width:38px"></div></div>
-  <div class="hero"><svg viewBox="0 0 48 48" fill="none" stroke="#E8C170" stroke-width="1.5"><path d="M24 6L38 14V30L24 42L10 30V14L24 6Z"/></svg></div>
+  <div class="hero" id="offerHero"><svg viewBox="0 0 48 48" fill="none" stroke="#E8C170" stroke-width="1.5"><path d="M24 6L38 14V30L24 42L10 30V14L24 6Z"/></svg></div>
   <div class="stat-grid">
     <div class="stat-box"><div class="stat-num" id="statReturn">—</div><div class="stat-label">عائد تقديري شهري</div></div>
     <div class="stat-box"><div class="stat-num" id="statDuration">—</div><div class="stat-label">مدة الدورة</div></div>
@@ -63,6 +64,9 @@ async function loadOffer(){
 
   currentOffer = offer;
   document.getElementById('offerTitle').textContent = offer.title;
+  if(offer.image_url){
+    document.getElementById('offerHero').innerHTML = `<img src="${escapeAttr(offer.image_url)}" alt="${escapeAttr(offer.title)}">`;
+  }
   document.getElementById('statReturn').textContent = offer.min_return + '–' + offer.max_return + '%';
   document.getElementById('statDuration').textContent = toArabicDigits(offer.duration_days) + ' يوم';
   document.getElementById('statMin').textContent = offer.min_amount + '$';

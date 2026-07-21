@@ -64,6 +64,21 @@ function formatPercent(num, withArabicDigits) {
   return sign + body + '٪';
 }
 
+// ====== الوضع الليلي/النهاري: يطبّق على كل الشاشات تلقائياً (الكلاس مخزّن بالمتصفح محلياً) ======
+function applySavedTheme() {
+  const saved = localStorage.getItem('theme') || 'dark';
+  document.body.classList.toggle('light-theme', saved === 'light');
+  document.documentElement.style.colorScheme = saved;
+  return saved;
+}
+
+function setTheme(theme) {
+  localStorage.setItem('theme', theme);
+  applySavedTheme();
+}
+
+applySavedTheme();
+
 // ====== حارس الجلسة: يتأكد إن المستخدم مسجل دخول، وإلا يرجعه لصفحة الدخول ======
 // كذلك يتأكد إن الحساب مو مجمّد من طرف الإدمن (is_frozen) - إذا مجمّد يسجّل خروج تلقائي
 async function requireAuth() {
@@ -75,9 +90,16 @@ async function requireAuth() {
 
   const { data: profile } = await supabaseClient
     .from('profiles')
-    .select('is_frozen')
+    .select('is_frozen, deleted_at')
     .eq('id', session.user.id)
     .maybeSingle();
+
+  if (profile && profile.deleted_at) {
+    await supabaseClient.auth.signOut();
+    alert('هذا الحساب محذوف.');
+    location.href = '02-login.html';
+    return null;
+  }
 
   if (profile && profile.is_frozen === true) {
     await supabaseClient.auth.signOut();
@@ -105,4 +127,4 @@ async function requireAdmin() {
     return null;
   }
   return user;
-}
+        }

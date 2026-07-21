@@ -1,35 +1,334 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>16 — المكافآت اليومية</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<title>16 — عجلة الحظ اليومية</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
-.reward-hero{background:linear-gradient(135deg,#2E220C,#162233);border:1px solid var(--gold);border-radius:var(--radius-card);
-  padding:22px;text-align:center;margin-bottom:18px;}
-.reward-icon{width:56px;height:56px;margin:0 auto 12px;}
-.reward-amount{font-family:var(--font-display);font-weight:900;font-size:24px;color:var(--gold-soft);}
-.timer{font-family:var(--font-display);font-size:15px;color:var(--cream);margin-top:10px;letter-spacing:2px;direction:ltr;}
-.streak-row{display:flex;justify-content:space-between;gap:6px;margin-bottom:20px;}
-.day{flex:1;text-align:center;padding:10px 4px;border-radius:10px;background:var(--bg-surface);border:1px solid var(--line);font-size:11px;color:var(--text-muted);}
-.day.done{border-color:var(--success);color:#6FE3DC;}
-.day.today{border-color:var(--gold);color:var(--gold-soft);}
+.wheel-stage{position:relative;display:flex;flex-direction:column;align-items:center;padding:18px 0 8px;}
+.wheel-sub{font-size:12.5px;color:var(--text-muted);text-align:center;margin-bottom:18px;line-height:1.7;max-width:270px;}
+
+.wheel-wrap{position:relative;width:264px;height:264px;margin-bottom:22px;}
+
+.pointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);z-index:5;
+  width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;
+  border-top:22px solid var(--gold-soft);filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
+.pointer::after{content:'';position:absolute;top:-24px;left:-6px;width:12px;height:12px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#FFE9B0,var(--gold) 70%);box-shadow:0 1px 2px rgba(0,0,0,.5);}
+
+.wheel-rim{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,#B9862C,#F0D28A,#B9862C,#F0D28A,#B9862C,#F0D28A,#B9862C,#F0D28A,#B9862C,#F0D28A,#B9862C);
+  box-shadow:0 10px 26px rgba(0,0,0,.55), inset 0 0 0 2px rgba(0,0,0,.25);}
+.rivet{position:absolute;width:7px;height:7px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#FFF3D2,#B9862C 75%);box-shadow:0 1px 2px rgba(0,0,0,.5);}
+
+.wheel-disc{position:absolute;inset:9px;border-radius:50%;overflow:hidden;
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.35), inset 0 10px 24px rgba(0,0,0,.35);}
+.wheel-face{position:absolute;inset:0;border-radius:50%;transform:rotate(0deg);}
+.wheel-face::before{content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  background:repeating-conic-gradient(from 0deg,rgba(217,166,58,.85) 0deg .8deg,transparent .8deg 36deg);}
+.wheel-face::after{content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.16),transparent 55%);}
+
+.seg-label{position:absolute;top:50%;left:50%;font-family:var(--font-display);font-weight:900;font-size:14px;
+  color:#F7F3E8;text-shadow:0 1px 3px rgba(0,0,0,.6);transform-origin:0 0;white-space:nowrap;}
+
+.hub{position:absolute;top:50%;left:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;z-index:4;
+  background:radial-gradient(circle at 35% 30%,#F0D28A,#B9862C 60%,#8A611E 100%);
+  box-shadow:0 4px 10px rgba(0,0,0,.5), inset 0 0 0 2px rgba(255,255,255,.25);
+  display:flex;align-items:center;justify-content:center;}
+.hub img{width:34px;height:34px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));}
+
+.spin-btn{width:100%;background:linear-gradient(180deg,var(--gold-soft),var(--gold));color:#241A05;border:none;
+  border-radius:var(--radius-pill);padding:15px;font-family:var(--font-display);font-weight:900;font-size:15.5px;
+  display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 20px rgba(217,166,58,.3);}
+.spin-btn:disabled{background:var(--bg-surface-2);color:var(--text-muted);box-shadow:none;}
+.spin-btn.spinning{opacity:.85;}
+
+.cooldown-note{text-align:center;font-size:12.5px;color:var(--text-muted);margin-top:12px;line-height:1.8;}
+.cooldown-note b{color:var(--gold-soft);font-family:var(--font-display);direction:ltr;display:inline-block;}
+
+.prize-legend{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:26px;}
+.leg-item{background:var(--bg-surface);border:1px solid var(--line);border-radius:10px;padding:8px 4px;text-align:center;}
+.leg-dot{width:10px;height:10px;border-radius:50%;margin:0 auto 6px;}
+.leg-amt{font-family:var(--font-display);font-weight:700;font-size:11.5px;color:var(--cream);direction:ltr;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(6,10,17,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:24px;}
+.modal-overlay.show{display:flex;}
+.modal-card{background:var(--bg-surface);border:1px solid var(--gold);border-radius:var(--radius-card);
+  padding:28px 22px;text-align:center;max-width:300px;box-shadow:0 20px 50px rgba(0,0,0,.5);}
+.modal-emoji{font-size:38px;margin-bottom:10px;}
+.modal-text{font-size:14px;color:var(--cream);line-height:1.9;margin-bottom:20px;}
+.modal-ok{width:100%;background:linear-gradient(180deg,var(--gold-soft),var(--gold));color:#241A05;border:none;
+  border-radius:var(--radius-pill);padding:13px;font-family:var(--font-display);font-weight:800;font-size:14px;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
-  <div class="top-row"><a href="06-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">المكافآت اليومية</div><div style="width:38px"></div></div>
+  <div class="top-row"><a href="06-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">عجلة الحظ اليومية</div><div style="width:38px"></div></div>
 
-  <div class="reward-hero">
-    <svg class="reward-icon" viewBox="0 0 48 48" fill="none" stroke="#E8C170" stroke-width="1.5"><rect x="8" y="18" width="32" height="22" rx="3"/><path d="M8 26h32M24 18v22M16 18c0-5 3-8 8-8s8 3 8 8"/></svg>
-    <div class="card-sub">مكافأة تسجيل الدخول اليومي</div>
-    <div class="reward-amount">0.50 $</div>
-    <div class="timer">المكافأة القادمة خلال 06:12:45</div>
+  <div class="wheel-stage">
+    <div class="wheel-sub">دورة واحدة مجانية كل ٢٤ ساعة — جرّب حظك واربح رصيد إضافي فوري</div>
+
+    <div class="wheel-wrap">
+      <div class="pointer"></div>
+      <div class="wheel-rim" id="wheelRim"></div>
+      <div class="wheel-disc">
+        <div class="wheel-face" id="wheelFace"></div>
+      </div>
+      <div class="hub"><img src="../assets/logo.png" alt="KAZO"></div>
+    </div>
+
+    <button class="spin-btn" id="spinBtn">🎡 أدر العجلة</button>
+    <div class="cooldown-note" id="cooldownNote" style="display:none;">⏳ استخدمت محاولتك اليومية — تبقى <b id="cooldownTime">00:00:00</b> للمحاولة التالية</div>
+
+    <div class="prize-legend" id="prizeLegend"></div>
   </div>
+</div></div>
 
-  <div class="section-title" style="margin-bottom:10px;">سلسلة أيامك</div>
-  <div class="streak-row">
-    <div class="day done">١<br>✓</div><div class="day done">٢<br>✓</div><div class="day done">٣<br>✓</div>
-    <div class="day today">٤<br>اليوم</div><div class="day">٥</div><div class="day">٦</div><div class="day">٧</div>
+<div class="modal-overlay" id="resultModal">
+  <div class="modal-card">
+    <div class="modal-emoji" id="modalEmoji">🎉</div>
+    <div class="modal-text" id="modalText"></div>
+    <button class="modal-ok" id="modalOk">تم</button>
   </div>
+</div>
 
-  <div class="card-sub" style="text-align:center;line-height:1.9;margin-bottom:110px;">مكافأة رمزية لتشجيع المتابعة اليومية لأداء قطعانك — لا ترتبط بأي عائد استثماري</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+// ====== تعريف قطاعات العجلة (بصري فقط - القيمة الحقيقية تحددها قاعدة البيانات) ======
+const SEGMENTS = [
+  { cents: 0,  color: '#24344A' },
+  { cents: 2,  color: '#18C7C0' },
+  { cents: 0,  color: '#2E4159' },
+  { cents: 4,  color: '#2E9E6B' },
+  { cents: 7,  color: '#C9484F' },
+  { cents: 0,  color: '#24344A' },
+  { cents: 2,  color: '#18C7C0' },
+  { cents: 15, color: '#3B6FB5' },
+  { cents: 25, color: '#8A5FC9' },
+  { cents: 50, color: '#D9A63A' },
+];
+const SEG_ANGLE = 360 / SEGMENTS.length;
 
-  <button class="cta" style="position:absolute;bottom:26px;left:22px;right:22px;">استلام المكافأة</button>
-</div></div></body></html>
+function buildWheelFace(){
+  const stops = SEGMENTS.map((s, i) => {
+    const from = i * SEG_ANGLE, to = (i + 1) * SEG_ANGLE;
+    return `${s.color} ${from}deg ${to}deg`;
+  }).join(',');
+  document.getElementById('wheelFace').style.background = `conic-gradient(from 0deg, ${stops})`;
+
+  const face = document.getElementById('wheelFace');
+  SEGMENTS.forEach((s, i) => {
+    const mid = i * SEG_ANGLE + SEG_ANGLE / 2;
+    const label = document.createElement('div');
+    label.className = 'seg-label';
+    label.textContent = s.cents + '¢';
+    label.style.transform = `rotate(${mid}deg) translate(0,-92px) rotate(${-mid}deg)`;
+    face.appendChild(label);
+  });
+
+  // مسامير برونزية حول الإطار الخارجي
+  const rim = document.getElementById('wheelRim');
+  const rivetCount = 20;
+  for(let i = 0; i < rivetCount; i++){
+    const angle = (360 / rivetCount) * i;
+    const rivet = document.createElement('div');
+    rivet.className = 'rivet';
+    rivet.style.top = '50%'; rivet.style.left = '50%'; rivet.style.marginTop='-3.5px'; rivet.style.marginLeft='-3.5px';
+    rivet.style.transform = `rotate(${angle}deg) translate(0,-125px)`;
+    rim.appendChild(rivet);
+  }
+
+  // مفتاح الجوائز أسفل الشاشة
+  const legend = document.getElementById('prizeLegend');
+  const uniquePrizes = [...new Set(SEGMENTS.map(s => s.cents))].sort((a,b)=>a-b);
+  legend.innerHTML = uniquePrizes.map(c => {
+    const seg = SEGMENTS.find(s => s.cents === c);
+    return `<div class="leg-item"><div class="leg-dot" style="background:${seg.color}"></div><div class="leg-amt">${c}¢</div></div>`;
+  }).join('');
+}
+buildWheelFace();
+
+// ====== أصوات بسيطة عبر Web Audio (بدون ملفات خارجية) ======
+let audioCtx;
+function getAudioCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playTick(){
+  try{
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'square'; osc.frequency.value = 950;
+    gain.gain.setValueAtTime(.05, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .05);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + .05);
+  }catch(e){}
+}
+function playChime(win){
+  try{
+    const ctx = getAudioCtx();
+    const notes = win ? [523.25, 659.25, 783.99, 1046.5] : [392, 329.6];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.value = freq;
+      const t0 = ctx.currentTime + i * .12;
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(.09, t0 + .02);
+      gain.gain.exponentialRampToValueAtTime(.001, t0 + .35);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t0); osc.stop(t0 + .35);
+    });
+  }catch(e){}
+}
+
+// ====== منطق الدوران ======
+let currentUser = null;
+let cooldownInterval = null;
+let currentRotation = 0;
+
+function fmtHMS(totalSeconds){
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = Math.floor(totalSeconds % 60);
+  return [h,m,s].map(n => String(n).padStart(2,'0')).join(':');
+}
+
+function setCooldownUI(secondsRemaining){
+  const btn = document.getElementById('spinBtn');
+  const note = document.getElementById('cooldownNote');
+  btn.disabled = true;
+  btn.textContent = '🔒 غير متاح الآن';
+  note.style.display = 'block';
+
+  let remaining = secondsRemaining;
+  clearInterval(cooldownInterval);
+  const tick = () => {
+    if(remaining <= 0){
+      clearInterval(cooldownInterval);
+      note.style.display = 'none';
+      btn.disabled = false;
+      btn.textContent = '🎡 أدر العجلة';
+      return;
+    }
+    document.getElementById('cooldownTime').textContent = fmtHMS(remaining);
+    remaining -= 1;
+  };
+  tick();
+  cooldownInterval = setInterval(tick, 1000);
+}
+
+function setReadyUI(){
+  clearInterval(cooldownInterval);
+  document.getElementById('cooldownNote').style.display = 'none';
+  const btn = document.getElementById('spinBtn');
+  btn.disabled = false;
+  btn.textContent = '🎡 أدر العجلة';
+}
+
+async function loadStatus(){
+  const { data, error } = await supabaseClient.rpc('get_wheel_status');
+  if(error){ console.error(error); return; }
+  if(data.allowed){ setReadyUI(); } else { setCooldownUI(data.seconds_remaining); }
+}
+
+function easeOutQuint(t){ return 1 - Math.pow(1 - t, 5); }
+
+function pickSegmentIndexForPrize(cents){
+  const matches = SEGMENTS.map((s, i) => s.cents === cents ? i : -1).filter(i => i !== -1);
+  return matches[Math.floor(Math.random() * matches.length)];
+}
+
+function animateSpinTo(segIndex, onDone){
+  const face = document.getElementById('wheelFace');
+  const segMid = segIndex * SEG_ANGLE + SEG_ANGLE / 2;
+  const jitter = (Math.random() - 0.5) * (SEG_ANGLE * 0.5);
+  const targetWithinSeg = segMid + jitter;
+  const fullSpins = 6 + Math.floor(Math.random() * 3); // 6-8 لفات كاملة
+  const finalMod = (360 - targetWithinSeg + 360) % 360;
+  const totalRotation = currentRotation - (currentRotation % 360) + fullSpins * 360 + finalMod;
+
+  const duration = 4500 + Math.random() * 1500; // 4.5-6 ثانية
+  const startRotation = currentRotation;
+  const delta = totalRotation - startRotation;
+  const startTime = performance.now();
+  let lastSegCross = Math.floor((startRotation % 360) / SEG_ANGLE);
+
+  function frame(now){
+    const t = Math.min((now - startTime) / duration, 1);
+    const eased = easeOutQuint(t);
+    const rot = startRotation + delta * eased;
+    face.style.transform = `rotate(${rot}deg)`;
+
+    const segNow = Math.floor(((rot % 360) + 360) % 360 / SEG_ANGLE);
+    if(segNow !== lastSegCross){ playTick(); lastSegCross = segNow; }
+
+    if(t < 1){
+      requestAnimationFrame(frame);
+    }else{
+      currentRotation = totalRotation;
+      onDone();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+function showResultModal(cents){
+  const emoji = document.getElementById('modalEmoji');
+  const text = document.getElementById('modalText');
+  if(cents === 0){
+    emoji.textContent = '😔';
+    text.textContent = 'حظ أوفر! لم تربح أي سنت هذه المرة. يمكنك المحاولة مرة أخرى بعد 24 ساعة.';
+    playChime(false);
+  }else if(cents === 15 || cents === 25 || cents === 50){
+    emoji.textContent = '🎊🎉';
+    text.textContent = `تهانينا! لقد حصلت على الجائزة النادرة ${cents} سنت وتمت إضافتها إلى رصيدك.`;
+    playChime(true);
+  }else{
+    emoji.textContent = '🎉';
+    text.textContent = `مبروك! ربحت ${cents} سنت وتمت إضافتها إلى رصيدك.`;
+    playChime(true);
+  }
+  document.getElementById('resultModal').classList.add('show');
+}
+
+document.getElementById('modalOk').addEventListener('click', () => {
+  document.getElementById('resultModal').classList.remove('show');
+  loadStatus();
+});
+
+document.getElementById('spinBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('spinBtn');
+  if(btn.disabled) return;
+  btn.disabled = true;
+  btn.classList.add('spinning');
+  btn.textContent = '🎡 جاري الدوران...';
+
+  const { data, error } = await supabaseClient.rpc('spin_wheel');
+  if(error){
+    alert('صار خطأ: ' + error.message);
+    btn.disabled = false; btn.classList.remove('spinning'); btn.textContent = '🎡 أدر العجلة';
+    return;
+  }
+
+  if(!data.allowed){
+    btn.classList.remove('spinning');
+    setCooldownUI(data.seconds_remaining);
+    alert(`⏳ لقد استخدمت محاولتك اليومية. تبقى ${fmtHMS(data.seconds_remaining)} للمحاولة التالية.`);
+    return;
+  }
+
+  const segIndex = pickSegmentIndexForPrize(data.prize_cents);
+  animateSpinTo(segIndex, () => {
+    btn.classList.remove('spinning');
+    showResultModal(data.prize_cents);
+  });
+});
+
+async function init(){
+  currentUser = await requireAuth();
+  if(!currentUser) return;
+  loadStatus();
+}
+init();
+</script>
+</body></html>

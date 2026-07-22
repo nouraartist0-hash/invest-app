@@ -241,10 +241,16 @@ async function loadActivityFeed(){
     .limit(100);
 
   const track = document.getElementById('feedTrack');
+  const strip = document.querySelector('.feed-strip');
+
   if(error || !data || data.length === 0){
-    document.querySelector('.feed-strip').style.display = 'none';
+    console.error('activity feed load issue:', error);
+    // لا نخفي الشريط بشكل دائم؛ فقط نتخطى هذا التحديث وننتظر المحاولة القادمة
     return;
   }
+
+  // نجاح التحميل: نتأكد أن الشريط ظاهر (حتى لو كان قد اختفى سابقاً بسبب خطأ مؤقت)
+  strip.style.display = '';
 
   const renderItem = (r) => {
     const initial = (r.display_name || '؟').trim().charAt(0) || '؟';

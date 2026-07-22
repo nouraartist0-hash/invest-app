@@ -134,7 +134,7 @@ async function loadReferral(){
     indirectCount = count || 0;
   }
 
-  document.getElementById('totalReferrals').textContent = toArabicDigits(direct.length + indirectCount);
+  document.getElementById('totalReferrals').textContent = String(direct.length + indirectCount);
 
   // ===== العمولات الحقيقية =====
   const { data: commissions } = await supabaseClient

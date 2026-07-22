@@ -259,12 +259,19 @@ async function loadActivityFeed(){
       </div>`;
   };
 
-  // نكرر القائمة مرتين حتى تصير الحركة متواصلة بدون قطع
-  const itemsHtml = data.map(renderItem).join('');
+  // نكرر القائمة عدد كافٍ من المرات حتى يمتلئ الشريط بالكامل بدون أي فراغ،
+  // حتى لو كان عدد المستخدمين الحقيقيين قليل جداً
+  const minRepeats = Math.max(2, Math.ceil(24 / data.length));
+  let repeatedItems = [];
+  for(let i = 0; i < minRepeats; i++){
+    repeatedItems = repeatedItems.concat(data);
+  }
+  const itemsHtml = repeatedItems.map(renderItem).join('');
+  // نكرر المجموعة الكاملة مرتين إضافيتين لضمان حلقة متواصلة بدون قطع
   track.innerHTML = itemsHtml + itemsHtml;
 
-  // سرعة أبطأ: كل عنصر ~6 ثواني بدل 3.2
-  track.style.animationDuration = (data.length * 6) + 's';
+  // سرعة ثابتة نسبياً حسب عدد العناصر الفعلية المعروضة
+  track.style.animationDuration = (repeatedItems.length * 3) + 's';
 }
 
 loadActivityFeed();

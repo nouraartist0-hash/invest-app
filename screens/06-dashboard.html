@@ -64,7 +64,6 @@
     <a class="qa" href="08-withdraw.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><path d="M12 19V5M5 12l7 7 7-7"/></svg></div>سحب</a>
     <a class="qa" href="09-marketplace.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg></div>السوق</a>
     <a class="qa" href="12-referral.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/><circle cx="18" cy="8" r="2.5"/></svg></div>الإحالة</a>
-    <a class="qa" href="16-daily-rewards.html"><div class="circle" style="position:relative;"><span id="wheelBadge" style="display:none;position:absolute;top:-2px;left:-2px;width:9px;height:9px;border-radius:50%;background:var(--gold);border:1.5px solid var(--bg-deep);"></span><span style="font-size:18px;line-height:1;">🎡</span></div>عجلة الحظ</a>
   </div>
 
   <div class="section-head"><div class="section-title">حصصك الحالية</div><a class="see-all" href="09-marketplace.html">عرض الكل</a></div>
@@ -214,11 +213,6 @@ async function loadDashboard(){
 loadDashboard().catch(err => {
   document.getElementById('totalValue').textContent = '—';
   console.error(err);
-});
-
-supabaseClient.rpc('get_wheel_status').then(({ data, error }) => {
-  if(error) return;
-  document.getElementById('wheelBadge').style.display = data.allowed ? 'block' : 'none';
 });
 </script>
 </body></html>

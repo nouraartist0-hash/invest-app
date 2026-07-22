@@ -44,9 +44,9 @@
 .holding-change{font-size:11px;color:#6FE3DC;direction:ltr;}
 
 .feed-strip{position:absolute;bottom:66px;left:0;right:0;overflow:hidden;background:var(--bg-surface);
-  border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px 0;}
-.feed-track{display:flex;flex-wrap:nowrap;white-space:nowrap;width:max-content;direction:ltr;justify-content:flex-start;will-change:transform;}
-.feed-item{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:48px;padding:0 6px;border-left:1px solid var(--line);}
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px 0;min-height:52px;
+  display:flex;align-items:center;justify-content:center;}
+.feed-track{display:flex;width:max-content;direction:ltr;justify-content:flex-start;will-change:transform;}
 .feed-item{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:48px;padding:0 6px;
   border-left:1px solid var(--line);}
 .feed-avatar{width:22px;height:22px;border-radius:50%;overflow:hidden;background:var(--bg-surface-2);
@@ -55,6 +55,7 @@
 .feed-avatar img{width:100%;height:100%;object-fit:cover;}
 .feed-phone{font-size:9px;color:var(--text-muted);direction:ltr;white-space:nowrap;}
 .feed-label{font-size:9px;color:var(--gold-soft);white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis;}
+.feed-empty{font-size:12px;color:var(--text-muted);padding:8px 0;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
@@ -85,7 +86,8 @@
     <div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">جاري التحميل...</div>
   </div>
 
-  <div class="feed-strip">
+  <!-- ===== الشريط المتحرك ===== -->
+  <div class="feed-strip" id="feedStrip">
     <div class="feed-track" id="feedTrack"></div>
   </div>
 
@@ -118,11 +120,14 @@ function daysAgo(dateStr){
   return toArabicDigits(days);
 }
 
+// ================================================================
+// 🔹 تحميل بيانات لوحة التحكم
+// ================================================================
 async function loadDashboard(){
   const user = await requireAuth();
   if(!user) return;
 
-  // ===== شارة الإشعارات غير المقروءة =====
+  // شارة الإشعارات غير المقروءة
   const { count: unreadCount } = await supabaseClient
     .from('notifications')
     .select('id', { count: 'exact', head: true })
@@ -136,7 +141,7 @@ async function loadDashboard(){
     if (navBadge) navBadge.style.display = 'block';
   }
 
-  // ===== الملف الشخصي =====
+  // الملف الشخصي
   const { data: profile } = await supabaseClient
     .from('profiles')
     .select('full_name, avatar_url')
@@ -152,7 +157,7 @@ async function loadDashboard(){
     avatarBox.textContent = displayName.trim().charAt(0) || '؟';
   }
 
-  // ===== الرصيد =====
+  // الرصيد
   try{
     const { data: balanceRows, error: balError } = await supabaseClient
       .from('balances')
@@ -177,7 +182,7 @@ async function loadDashboard(){
     document.getElementById('totalValue').textContent = '—';
   }
 
-  // ===== الحصص الحالية (الاستثمارات النشطة) =====
+  // الحصص الحالية
   const { data: investments, error: invError } = await supabaseClient
     .from('investments')
     .select('id, amount, started_at, deed_number, status, offers(title, category, min_return, max_return)')
@@ -227,25 +232,15 @@ async function loadDashboard(){
   }).join('');
 }
 
-loadDashboard().catch(err => {
-  document.getElementById('totalValue').textContent = '—';
-  console.error(err);
-});
-
-// =====================================================================
-// الشريط المتحرك: آخر الأنشطة (شراء / فوز عجلة / فوز خزنة)
-// -----------------------------------------------------------------
-// مبني الآن بـ requestAnimationFrame بدل CSS animation، حتى يكون
-// السكرول مستمر (continuous) بدون أي "قفزة" أو انقطاع وقت تحديث
-// البيانات كل 15 ثانية. الموضع (feedPosition) متغيّر مستقل عن
-// محتوى الـ DOM، فتحديث البيانات ما يعيد تصفير الحركة أبداً.
-// =====================================================================
+// ================================================================
+// 🔹 الشريط المتحرك (Activity Feed) - يعرض جميع المستخدمين
+// ================================================================
 let feedItemsData = [];
-let feedPosition = 0;          // px، القيمة الحالية لـ translateX
-let feedSingleSetWidth = 0;    // عرض مجموعة واحدة من العناصر (بالبكسل)
+let feedPosition = 0;
+let feedSingleSetWidth = 0;
 let feedRafHandle = null;
 let feedLastTimestamp = null;
-const FEED_SPEED_PX_PER_SEC = 45; // سرعة السكرول — عدّلها حسب الذوق
+const FEED_SPEED_PX_PER_SEC = 45;
 
 function renderFeedItem(r){
   const initial = (r.display_name || '؟').trim().charAt(0) || '؟';
@@ -262,24 +257,28 @@ function renderFeedItem(r){
 
 function renderFeedTrack(){
   const track = document.getElementById('feedTrack');
-  if(!feedItemsData || feedItemsData.length === 0) return;
+  const strip = document.getElementById('feedStrip');
+  
+  if(!feedItemsData || feedItemsData.length === 0){
+    strip.innerHTML = `<div class="feed-empty">لا توجد أنشطة حالياً</div>`;
+    return;
+  }
 
-  // نكرر القائمة عدد كافٍ من المرات حتى تمتلئ مجموعة واحدة الشاشة بالكامل
-  // بدون أي فراغ، حتى لو كان عدد المستخدمين الحقيقيين قليل جداً
+  // إعادة تعيين الـ strip لعرض المحتوى الطبيعي
+  strip.innerHTML = `<div class="feed-track" id="feedTrack"></div>`;
+  const newTrack = document.getElementById('feedTrack');
+
   const minRepeats = Math.max(2, Math.ceil(24 / feedItemsData.length));
   let oneSet = [];
   for(let i = 0; i < minRepeats; i++){
     oneSet = oneSet.concat(feedItemsData);
   }
   const oneSetHtml = oneSet.map(renderFeedItem).join('');
-  // نكرر المجموعة الكاملة مرتين لضمان حلقة متواصلة بدون قطع
-  track.innerHTML = oneSetHtml + oneSetHtml;
+  newTrack.innerHTML = oneSetHtml + oneSetHtml;
 
-  // نقيس عرض مجموعة واحدة بعد ما ينرسم الـ DOM فعلياً
   requestAnimationFrame(() => {
-    const fullWidth = track.scrollWidth;
+    const fullWidth = newTrack.scrollWidth;
     feedSingleSetWidth = fullWidth / 2;
-    // إذا الموضع الحالي طلع خارج النطاق (مثلاً بيانات جديدة أقصر) نصححه
     if (feedSingleSetWidth > 0 && feedPosition <= -feedSingleSetWidth) {
       feedPosition = feedPosition % feedSingleSetWidth;
     }
@@ -288,6 +287,11 @@ function renderFeedTrack(){
 
 function feedTick(timestamp){
   const track = document.getElementById('feedTrack');
+  if (!track) {
+    feedRafHandle = null;
+    return;
+  }
+  
   if (feedLastTimestamp == null) feedLastTimestamp = timestamp;
   const dt = (timestamp - feedLastTimestamp) / 1000;
   feedLastTimestamp = timestamp;
@@ -295,7 +299,7 @@ function feedTick(timestamp){
   if (track && feedSingleSetWidth > 0) {
     feedPosition -= FEED_SPEED_PX_PER_SEC * dt;
     if (feedPosition <= -feedSingleSetWidth) {
-      feedPosition += feedSingleSetWidth; // يلف بسلاسة بدون قفزة مرئية
+      feedPosition += feedSingleSetWidth;
     }
     track.style.transform = `translateX(${feedPosition}px)`;
   }
@@ -303,36 +307,53 @@ function feedTick(timestamp){
   feedRafHandle = requestAnimationFrame(feedTick);
 }
 
+// ✅ تحميل الأنشطة - يعرض جميع المستخدمين (بدون استبعاد)
 async function loadActivityFeed(){
-  const { data, error } = await supabaseClient
-    .from('activity_feed')
-    .select('display_name, masked_phone, avatar_url, amount, label')
-    .order('created_at', { ascending: false })
-    .limit(100);
+  try {
+    // جلب جميع الأنشطة بدون استبعاد أي مستخدم
+    const { data, error } = await supabaseClient
+      .from('activity_feed')
+      .select('display_name, masked_phone, avatar_url, amount, label')
+      .order('created_at', { ascending: false })
+      .limit(100);
 
-  const strip = document.querySelector('.feed-strip');
+    if (error) {
+      console.error('activity feed error:', error);
+      return;
+    }
 
-  if(error || !data || data.length === 0){
-    console.error('activity feed load issue:', error);
-    // لا نوقف الحركة ولا نخفي الشريط بسبب خطأ مؤقت؛ فقط نتجاهل هذا التحديث
-    return;
-  }
+    const strip = document.getElementById('feedStrip');
+    
+    if (!data || data.length === 0) {
+      strip.innerHTML = `<div class="feed-empty">لا توجد أنشطة حالياً</div>`;
+      feedItemsData = [];
+      return;
+    }
 
-  strip.style.display = '';
-  feedItemsData = data;
-  renderFeedTrack();
+    feedItemsData = data;
+    renderFeedTrack();
 
-  // نبدأ حلقة الحركة مرة وحدة فقط، وتضل شغالة باستمرار حتى لو تحدثت البيانات لاحقاً
-  if (feedRafHandle == null) {
-    feedRafHandle = requestAnimationFrame(feedTick);
+    // بدء الحركة إذا لم تكن قيد التشغيل
+    if (feedRafHandle == null) {
+      feedRafHandle = requestAnimationFrame(feedTick);
+    }
+  } catch (err) {
+    console.error('loadActivityFeed error:', err);
   }
 }
 
+// ================================================================
+// 🔹 تشغيل كل شيء
+// ================================================================
+loadDashboard().catch(err => {
+  document.getElementById('totalValue').textContent = '—';
+  console.error(err);
+});
+
+// تحميل الشريط فوراً
 loadActivityFeed();
 
-// تحديث بيانات الشريط كل 15 ثانية بدون ما توقف أو تقطع الحركة المستمرة
+// تحديث الشريط كل 15 ثانية
 setInterval(loadActivityFeed, 15000);
 </script>
 </body></html>
-
-  

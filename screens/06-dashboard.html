@@ -44,19 +44,17 @@
 .holding-change{font-size:11px;color:#6FE3DC;direction:ltr;}
 
 .feed-strip{position:absolute;bottom:66px;left:0;right:0;overflow:hidden;background:var(--bg-surface);
-  border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0;}
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px 0;}
 .feed-track{display:flex;width:max-content;animation:feedScroll linear infinite;}
 @keyframes feedScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
-.feed-item{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:88px;padding:0 14px;
+.feed-item{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:64px;padding:0 10px;
   border-left:1px solid var(--line);}
-.feed-avatar{width:38px;height:38px;border-radius:50%;overflow:hidden;background:var(--bg-surface-2);
+.feed-avatar{width:28px;height:28px;border-radius:50%;overflow:hidden;background:var(--bg-surface-2);
   border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--gold-soft);}
+  font-family:var(--font-display);font-weight:700;font-size:11px;color:var(--gold-soft);}
 .feed-avatar img{width:100%;height:100%;object-fit:cover;}
-.feed-name{font-size:11px;color:var(--cream);white-space:nowrap;}
-.feed-phone{font-size:9.5px;color:var(--text-muted);direction:ltr;white-space:nowrap;}
-.feed-label{font-size:9.5px;color:var(--gold-soft);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;}
-.feed-amount{font-family:var(--font-display);font-weight:700;font-size:12px;color:#6FE3DC;direction:ltr;}
+.feed-phone{font-size:9px;color:var(--text-muted);direction:ltr;white-space:nowrap;}
+.feed-label{font-size:9px;color:var(--gold-soft);white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
@@ -83,7 +81,7 @@
 
   <div class="section-head"><div class="section-title">حصصك الحالية</div><a class="see-all" href="09-marketplace.html">عرض الكل</a></div>
 
-  <div id="holdingsList" style="margin-bottom:170px;">
+  <div id="holdingsList" style="margin-bottom:150px;">
     <div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">جاري التحميل...</div>
   </div>
 
@@ -256,10 +254,8 @@ async function loadActivityFeed(){
     return `
       <div class="feed-item">
         <div class="feed-avatar">${avatar}</div>
-        <div class="feed-name">${escapeHtml(r.display_name || 'مستخدم')}</div>
         <div class="feed-phone">${escapeHtml(r.masked_phone || '')}</div>
         <div class="feed-label">${escapeHtml(r.label || '')}</div>
-        <div class="feed-amount">$${formatMoney(r.amount)}</div>
       </div>`;
   };
 

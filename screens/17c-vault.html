@@ -2,12 +2,6 @@
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>الخزنة الرقمية</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
-  <link rel="icon" href="../assets/icons/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/apple-touch-icon.png">
-<link rel="manifest" href="../manifest.json">
-<meta name="theme-color" content="#0D1623">
 .section-title{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
 .section-title .emoji{font-size:17px;}
 .section-title .txt{font-family:var(--font-display);font-weight:800;font-size:14.5px;color:var(--gold-soft);}
@@ -241,50 +235,12 @@ async function loadStatus(){
   else { setCooldownUI(data.seconds_remaining, data.last_won, data.last_prize); }
 }
 
-// ====== دالة إضافة النشاط إلى الشريط ======
-async function addVaultWinToFeed(userId, prize) {
-  try {
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('full_name, avatar_url, phone')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (profile) {
-      const maskedPhone = profile.phone 
-        ? profile.phone.slice(0, 4) + '** *** ****' 
-        : '05** *** ****';
-      
-      await supabaseClient
-        .from('activity_feed')
-        .insert({
-          user_id: userId,
-          display_name: profile.full_name || 'مستخدم',
-          avatar_url: profile.avatar_url || null,
-          masked_phone: maskedPhone,
-          amount: prize,
-          label: `فتح الخزنة وربح ${formatMoney(prize)}$ 🔐`,
-          created_at: new Date().toISOString()
-        });
-      console.log('✅ تم إضافة نشاط الخزنة إلى الشريط');
-    }
-  } catch (err) {
-    console.error('❌ خطأ في إضافة نشاط الخزنة:', err);
-  }
-}
-
 function showResultModal(won, prize){
   const emoji = document.getElementById('modalEmoji');
   const text = document.getElementById('modalText');
   if(won){
     emoji.textContent = '🎉';
     text.textContent = `🎉 تهانينا! لقد نجحت في فتح الخزنة وربحت ${formatMoney(prize, false)}$. تمت إضافة الجائزة إلى رصيدك.`;
-    
-    // ⭐ إضافة النشاط إلى الشريط المتحرك (إذا فاز)
-    if(currentUser && prize > 0){
-      addVaultWinToFeed(currentUser.id, prize);
-    }
-    
   }else{
     emoji.textContent = '🔒';
     text.textContent = '🔒 الرمز غير صحيح. حظًا أوفر! ستتمكن من فتح الخزنة مرة أخرى بعد 24 ساعة.';

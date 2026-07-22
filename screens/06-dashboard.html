@@ -45,7 +45,8 @@
 
 .feed-strip{position:absolute;bottom:66px;left:0;right:0;overflow:hidden;background:var(--bg-surface);
   border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px 0;}
-.feed-track{display:flex;width:max-content;direction:ltr;justify-content:flex-start;will-change:transform;}
+.feed-track{display:flex;flex-wrap:nowrap;white-space:nowrap;width:max-content;direction:ltr;justify-content:flex-start;will-change:transform;}
+.feed-item{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:48px;padding:0 6px;border-left:1px solid var(--line);}
 .feed-item{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:48px;padding:0 6px;
   border-left:1px solid var(--line);}
 .feed-avatar{width:22px;height:22px;border-radius:50%;overflow:hidden;background:var(--bg-surface-2);
@@ -333,4 +334,5 @@ loadActivityFeed();
 setInterval(loadActivityFeed, 15000);
 </script>
 </body></html>
+
   

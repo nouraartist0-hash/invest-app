@@ -275,5 +275,9 @@ async function loadActivityFeed(){
 }
 
 loadActivityFeed();
+
+// تحديث الشريط تلقائياً كل 15 ثانية بدون حاجة لتحديث الصفحة يدوياً
+setInterval(loadActivityFeed, 15000);
 </script>
 </body></html>
+  

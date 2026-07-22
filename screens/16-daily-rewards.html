@@ -2,12 +2,6 @@
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>16 — عجلة الحظ اليومية</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
-  <link rel="icon" href="../assets/icons/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/apple-touch-icon.png">
-<link rel="manifest" href="../manifest.json">
-<meta name="theme-color" content="#0D1623">
 .wheel-stage{position:relative;display:flex;flex-direction:column;align-items:center;padding:18px 0 8px;}
 .wheel-sub{font-size:12.5px;color:var(--text-muted);text-align:center;margin-bottom:18px;line-height:1.7;max-width:270px;}
 
@@ -265,38 +259,6 @@ function animateSpinTo(segIndex, onDone){
   requestAnimationFrame(frame);
 }
 
-// ====== دالة إضافة النشاط إلى الشريط ======
-async function addWheelWinToFeed(userId, cents) {
-  try {
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('full_name, avatar_url, phone')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (profile) {
-      const maskedPhone = profile.phone 
-        ? profile.phone.slice(0, 4) + '** *** ****' 
-        : '05** *** ****';
-      
-      await supabaseClient
-        .from('activity_feed')
-        .insert({
-          user_id: userId,
-          display_name: profile.full_name || 'مستخدم',
-          avatar_url: profile.avatar_url || null,
-          masked_phone: maskedPhone,
-          amount: cents,
-          label: `فاز بـ ${formatMoney(cents)} سنت في عجلة الحظ 🎡`,
-          created_at: new Date().toISOString()
-        });
-      console.log('✅ تم إضافة نشاط عجلة الحظ إلى الشريط');
-    }
-  } catch (err) {
-    console.error('❌ خطأ في إضافة نشاط عجلة الحظ:', err);
-  }
-}
-
 function showResultModal(cents){
   const emoji = document.getElementById('modalEmoji');
   const text = document.getElementById('modalText');
@@ -313,12 +275,6 @@ function showResultModal(cents){
     text.textContent = `مبروك! ربحت ${cents} سنت وتمت إضافتها إلى رصيدك.`;
     playChime(true);
   }
-  
-  // ⭐ إضافة النشاط إلى الشريط المتحرك (إذا ربح أكثر من 0)
-  if(cents > 0 && currentUser){
-    addWheelWinToFeed(currentUser.id, cents);
-  }
-  
   document.getElementById('resultModal').classList.add('show');
 }
 

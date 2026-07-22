@@ -238,7 +238,7 @@ async function loadActivityFeed(){
     .from('activity_feed')
     .select('display_name, masked_phone, avatar_url, amount, label')
     .order('created_at', { ascending: false })
-    .limit(15);
+    .limit(100);
 
   const track = document.getElementById('feedTrack');
   if(error || !data || data.length === 0){
@@ -263,8 +263,8 @@ async function loadActivityFeed(){
   const itemsHtml = data.map(renderItem).join('');
   track.innerHTML = itemsHtml + itemsHtml;
 
-  // سرعة ثابتة تقريباً بغض النظر عن عدد العناصر (كل عنصر ~3.2 ثانية)
-  track.style.animationDuration = (data.length * 3.2) + 's';
+  // سرعة أبطأ: كل عنصر ~6 ثواني بدل 3.2
+  track.style.animationDuration = (data.length * 6) + 's';
 }
 
 loadActivityFeed();

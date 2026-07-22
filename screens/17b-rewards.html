@@ -2,165 +2,58 @@
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>الجوائز</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
-.section-title{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-.section-title .emoji{font-size:17px;}
-.section-title .txt{font-family:var(--font-display);font-weight:800;font-size:14.5px;color:var(--gold-soft);}
-
-.vault-card{background:linear-gradient(180deg,var(--bg-surface),var(--bg-surface-2));border:1px solid var(--gold);
-  border-radius:var(--radius-card);padding:14px 14px 16px;margin-bottom:12px;text-align:center;position:relative;overflow:hidden;}
-.vault-rules{font-size:10.8px;color:var(--text-muted);line-height:1.75;text-align:right;margin-bottom:8px;}
-.vault-rules b{color:var(--gold-soft);}
-.vault-range{display:inline-block;background:rgba(217,166,58,.14);border:1px solid var(--gold);color:var(--gold-soft);
-  font-size:10.5px;font-weight:700;padding:4px 12px;border-radius:var(--radius-pill);margin-bottom:10px;}
-
-/* ===== الخزنة البصرية ===== */
-.vault-stage{position:relative;width:118px;height:118px;margin:0 auto 12px;perspective:900px;}
-.vault-back{position:absolute;inset:0;border-radius:20px;
-  background:radial-gradient(circle at 50% 40%,#3a2c0d,#0D1623 75%);
-  border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;}
-.vault-back .prize-emoji{font-size:32px;filter:drop-shadow(0 0 12px rgba(217,166,58,.6));}
-.vault-back .prize-amount{font-family:var(--font-display);font-weight:900;font-size:15px;color:var(--gold-soft);direction:ltr;}
-.vault-door{position:absolute;inset:0;border-radius:20px;
-  background:linear-gradient(155deg,#2E3E56,#141E2E 60%);
-  border:3px solid var(--gold);box-shadow:inset 0 0 0 2px rgba(217,166,58,.25), 0 10px 26px rgba(0,0,0,.55);
-  display:flex;align-items:center;justify-content:center;
-  transform-origin:right center;transition:transform .85s cubic-bezier(.6,-0.1,.2,1), opacity .6s ease .2s;
-  z-index:3;}
-.vault-door.open{transform:rotateY(-108deg);opacity:0;pointer-events:none;}
-.vault-door.shake{animation:vaultShake .45s;}
-@keyframes vaultShake{
-  0%,100%{transform:translateX(0);} 20%{transform:translateX(-6px);} 40%{transform:translateX(6px);}
-  60%{transform:translateX(-4px);} 80%{transform:translateX(4px);}
-}
-.vault-dial{width:50px;height:50px;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#F0D28A,#B9862C 60%,#8A611E 100%);
-  box-shadow:0 4px 10px rgba(0,0,0,.5), inset 0 0 0 2px rgba(255,255,255,.25);
-  display:flex;align-items:center;justify-content:center;}
-.vault-dial::before{content:'🔒';font-size:19px;}
-.vault-dial.ready::before{content:'🔓';}
-
-.code-slots{display:flex;justify-content:center;gap:10px;margin-bottom:10px;}
-.code-slot{width:36px;height:44px;border-radius:10px;background:var(--bg-surface);border:1.5px solid var(--line);
-  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:18px;color:var(--cream);
-  transition:border-color .15s, transform .1s;}
-.code-slot.filled{border-color:var(--gold);}
-.code-slot.pulse{transform:scale(1.08);border-color:var(--gold-soft);}
-
-.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-width:230px;margin:0 auto;}
-.key{aspect-ratio:1;border-radius:50%;background:var(--bg-surface);border:1px solid var(--line);
-  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:16.5px;color:var(--cream);
-  user-select:none;-webkit-tap-highlight-color:transparent;}
-.key:active{background:var(--bg-surface-2);border-color:var(--gold);transform:scale(.94);}
-.key.fn{font-size:13px;color:var(--gold-soft);}
-.key.disabled{opacity:.35;pointer-events:none;}
-
-.cooldown-note{text-align:center;font-size:11.5px;color:var(--text-muted);margin-top:10px;line-height:1.7;}
-.cooldown-note b{color:var(--gold-soft);font-family:var(--font-display);direction:ltr;display:inline-block;}
-.last-result{text-align:center;font-size:11px;color:var(--text-muted);margin-top:6px;}
-
-.modal-overlay{position:fixed;inset:0;background:rgba(6,10,17,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:24px;}
-.modal-overlay.show{display:flex;}
-.modal-card{background:var(--bg-surface);border:1px solid var(--gold);border-radius:var(--radius-card);
-  padding:28px 22px;text-align:center;max-width:300px;box-shadow:0 20px 50px rgba(0,0,0,.5);}
-.modal-emoji{font-size:38px;margin-bottom:10px;}
-.modal-text{font-size:14px;color:var(--cream);line-height:1.9;margin-bottom:20px;}
-.modal-ok{width:100%;background:linear-gradient(180deg,var(--gold-soft),var(--gold));color:#241A05;border:none;
-  border-radius:var(--radius-pill);padding:13px;font-family:var(--font-display);font-weight:800;font-size:14px;}
+.reward-card{display:block;background:linear-gradient(180deg,var(--bg-surface),var(--bg-surface-2));border:1px solid var(--gold);
+  border-radius:var(--radius-card);padding:18px 16px;margin-bottom:14px;position:relative;overflow:hidden;}
+.reward-head{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.reward-icon{width:46px;height:46px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;
+  background:radial-gradient(circle at 35% 30%,#F0D28A,#B9862C 60%,#8A611E 100%);box-shadow:0 4px 10px rgba(0,0,0,.4);}
+.reward-info{flex:1;min-width:0;}
+.reward-title{font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--gold-soft);margin-bottom:2px;}
+.reward-status{font-size:11px;color:var(--text-muted);}
+.reward-status.ready{color:var(--success);font-weight:700;}
+.reward-chev{color:var(--text-muted);flex-shrink:0;}
+.reward-chev svg{width:18px;height:18px;}
+.reward-desc{font-size:11.5px;color:var(--text-muted);line-height:1.8;text-align:right;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
-  <div class="top-row" style="margin-bottom:12px;"><div class="top-title">🎁 الجوائز</div></div>
+  <div class="top-row" style="margin-bottom:16px;"><div class="top-title">🎁 الجوائز</div></div>
 
-  <div class="vault-card">
-    <div class="section-title" style="justify-content:center;"><span class="emoji">🔐</span><span class="txt">الخزنة الرقمية</span></div>
-
-    <div class="vault-rules">
-      لكل مستخدم محاولة واحدة كل <b>٢٤ ساعة</b>.<br>
-      اختر رقماً من <b>٠٠٠</b> إلى <b>٩٩٩</b> — إذا طابق الرمز الصحيح تفوز بجائزة فورية تُضاف لرصيدك.<br>
-      الرموز الرابحة <b>تتغيّر كل يوم</b> تلقائياً، فرقم اليوم لا يفوز مرة ثانية غداً.
-    </div>
-    <div class="vault-range">🎁 جوائز من ٠.٠٢$ إلى ٥.٠٠$</div>
-
-    <div class="vault-stage">
-      <div class="vault-back" id="vaultBack">
-        <div class="prize-emoji" id="prizeEmoji">💰</div>
-        <div class="prize-amount" id="prizeAmount"></div>
+  <a class="reward-card" href="17c-vault.html">
+    <div class="reward-head">
+      <div class="reward-icon">🔐</div>
+      <div class="reward-info">
+        <div class="reward-title">الخزنة الرقمية</div>
+        <div class="reward-status" id="vaultStatus">جاري التحقق...</div>
       </div>
-      <div class="vault-door" id="vaultDoor">
-        <div class="vault-dial" id="vaultDial"></div>
+      <div class="reward-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></div>
+    </div>
+    <div class="reward-desc">اختر رمزاً من ٠٠٠ إلى ٩٩٩ وجرّب فتح الخزنة — جوائز يومية من ٠.٠٢$ إلى ٥$</div>
+  </a>
+
+  <a class="reward-card" href="16-daily-rewards.html">
+    <div class="reward-head">
+      <div class="reward-icon">🎡</div>
+      <div class="reward-info">
+        <div class="reward-title">عجلة الحظ اليومية</div>
+        <div class="reward-status" id="wheelStatus">جاري التحقق...</div>
       </div>
+      <div class="reward-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></div>
     </div>
+    <div class="reward-desc">أدر العجلة مرة كل ٢٤ ساعة واربح رصيد إضافي فوري يُضاف لحسابك</div>
+  </a>
 
-    <div class="code-slots">
-      <div class="code-slot" id="slot0"></div>
-      <div class="code-slot" id="slot1"></div>
-      <div class="code-slot" id="slot2"></div>
-    </div>
-
-    <div class="keypad" id="keypad">
-      <div class="key" data-k="1">١</div><div class="key" data-k="2">٢</div><div class="key" data-k="3">٣</div>
-      <div class="key" data-k="4">٤</div><div class="key" data-k="5">٥</div><div class="key" data-k="6">٦</div>
-      <div class="key" data-k="7">٧</div><div class="key" data-k="8">٨</div><div class="key" data-k="9">٩</div>
-      <div class="key fn" data-k="clear">مسح</div><div class="key" data-k="0">٠</div><div class="key fn" data-k="back">⌫</div>
-    </div>
-
-    <div class="cooldown-note" id="cooldownNote" style="display:none;">⏳ استخدمت محاولتك اليومية — تبقى <b id="cooldownTime">00:00:00</b> لفتح الخزنة مرة أخرى</div>
-    <div class="last-result" id="lastResult"></div>
+  <div class="bottom-nav" style="position:absolute;bottom:0;left:0;right:0;">
+    <a class="nav-item" href="06-dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l9-7 9 7v10a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>الرئيسية</a>
+    <a class="nav-item" href="09-marketplace.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>السوق</a>
+    <a class="nav-item" href="13b-my-investments.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1z"/></svg>استثماراتي</a>
+    <a class="nav-item active" href="17b-rewards.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12v9H4v-9M2 7h20v5H2V7zM12 22V7M12 7c-2 0-3-2-3-3.5A2.5 2.5 0 0112 3a2.5 2.5 0 013 3.5C15 8 14 7 12 7zM12 7c2 0 3-2 3-3.5A2.5 2.5 0 0012 1a2.5 2.5 0 00-3 3.5C9 8 10 7 12 7z"/></svg>الجوائز</a>
+    <a class="nav-item" href="14-profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg>حسابي</a>
   </div>
 </div></div>
-
-<div class="modal-overlay" id="resultModal">
-  <div class="modal-card">
-    <div class="modal-emoji" id="modalEmoji">🎉</div>
-    <div class="modal-text" id="modalText"></div>
-    <button class="modal-ok" id="modalOk">تم</button>
-  </div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/supabase-client.js?v=1784451053"></script>
 <script>
-// ====== أصوات ومؤثرات بسيطة عبر Web Audio (بدون ملفات خارجية) ======
-let audioCtx;
-function getAudioCtx(){
-  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtx;
-}
-function playTick(){
-  try{
-    const ctx = getAudioCtx();
-    const osc = ctx.createOscillator(); const gain = ctx.createGain();
-    osc.type = 'square'; osc.frequency.value = 720;
-    gain.gain.setValueAtTime(.05, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .05);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(); osc.stop(ctx.currentTime + .05);
-  }catch(e){}
-}
-function playChime(win){
-  try{
-    const ctx = getAudioCtx();
-    const notes = win ? [523.25, 659.25, 783.99, 1046.5] : [392, 329.6];
-    notes.forEach((freq, i) => {
-      const osc = ctx.createOscillator(); const gain = ctx.createGain();
-      osc.type = 'sine'; osc.frequency.value = freq;
-      const t0 = ctx.currentTime + i * .12;
-      gain.gain.setValueAtTime(0, t0);
-      gain.gain.linearRampToValueAtTime(.09, t0 + .02);
-      gain.gain.exponentialRampToValueAtTime(.001, t0 + .35);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(t0); osc.stop(t0 + .35);
-    });
-  }catch(e){}
-}
-function buzz(pattern){ try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){} }
-
-// ====== منطق الخزنة ======
-let currentUser = null;
-let cooldownInterval = null;
-let codeDigits = [];
-let submitting = false;
-
 function fmtHMS(totalSeconds){
   const h = Math.floor(totalSeconds / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);
@@ -168,168 +61,35 @@ function fmtHMS(totalSeconds){
   return [h,m,s].map(n => String(n).padStart(2,'0')).join(':');
 }
 
-function setKeypadEnabled(enabled){
-  document.getElementById('keypad').classList.toggle('disabled', !enabled);
-  document.querySelectorAll('.key').forEach(k => k.classList.toggle('disabled', !enabled));
-}
-
-function renderSlots(){
-  for(let i = 0; i < 3; i++){
-    const slot = document.getElementById('slot' + i);
-    slot.textContent = codeDigits[i] != null ? toArabicDigits(codeDigits[i]) : '';
-    slot.classList.toggle('filled', codeDigits[i] != null);
-  }
-}
-
-function pulseSlot(i){
-  const slot = document.getElementById('slot' + i);
-  slot.classList.add('pulse');
-  setTimeout(() => slot.classList.remove('pulse'), 150);
-}
-
-function setCooldownUI(secondsRemaining, lastWon, lastPrize){
-  setKeypadEnabled(false);
-  document.getElementById('vaultDial').classList.remove('ready');
-  document.getElementById('cooldownNote').style.display = 'block';
-
-  const lastResultEl = document.getElementById('lastResult');
-  if(lastWon){
-    lastResultEl.textContent = `آخر محاولة: ربحت ${formatMoney(lastPrize)}$ 🎉`;
-  } else if(lastWon === false){
-    lastResultEl.textContent = 'آخر محاولة: لم يطابق الرمز';
-  } else {
-    lastResultEl.textContent = '';
-  }
-
-  let remaining = secondsRemaining;
-  clearInterval(cooldownInterval);
-  const tick = () => {
-    if(remaining <= 0){
-      clearInterval(cooldownInterval);
-      loadStatus();
-      return;
-    }
-    document.getElementById('cooldownTime').textContent = fmtHMS(remaining);
-    remaining -= 1;
-  };
-  tick();
-  cooldownInterval = setInterval(tick, 1000);
-}
-
-function setReadyUI(){
-  clearInterval(cooldownInterval);
-  document.getElementById('cooldownNote').style.display = 'none';
-  document.getElementById('lastResult').textContent = '';
-  document.getElementById('vaultDial').classList.add('ready');
-  document.getElementById('vaultDoor').classList.remove('open');
-  document.getElementById('prizeAmount').textContent = '';
-  codeDigits = [];
-  renderSlots();
-  setKeypadEnabled(true);
-  submitting = false;
-}
-
-async function loadStatus(){
+async function loadVaultStatus(){
+  const el = document.getElementById('vaultStatus');
   const { data, error } = await supabaseClient.rpc('get_vault_status');
-  if(error){ console.error(error); return; }
-  if(data.allowed){ setReadyUI(); }
-  else { setCooldownUI(data.seconds_remaining, data.last_won, data.last_prize); }
-}
-
-function showResultModal(won, prize){
-  const emoji = document.getElementById('modalEmoji');
-  const text = document.getElementById('modalText');
-  if(won){
-    emoji.textContent = '🎉';
-    text.textContent = `🎉 تهانينا! لقد نجحت في فتح الخزنة وربحت ${formatMoney(prize, false)}$. تمت إضافة الجائزة إلى رصيدك.`;
+  if(error){ el.textContent = 'اضغط للدخول'; return; }
+  if(data.allowed){
+    el.textContent = '✅ متاحة الآن — جرّب حظك';
+    el.classList.add('ready');
   }else{
-    emoji.textContent = '🔒';
-    text.textContent = '🔒 الرمز غير صحيح. حظًا أوفر! ستتمكن من فتح الخزنة مرة أخرى بعد 24 ساعة.';
-  }
-  document.getElementById('resultModal').classList.add('show');
-}
-
-document.getElementById('modalOk').addEventListener('click', () => {
-  document.getElementById('resultModal').classList.remove('show');
-  loadStatus();
-});
-
-async function submitCode(){
-  if(submitting) return;
-  submitting = true;
-  setKeypadEnabled(false);
-
-  const guess = Number(codeDigits.join(''));
-  const { data, error } = await supabaseClient.rpc('vault_attempt', { p_guess: guess });
-
-  if(error){
-    alert('صار خطأ: ' + error.message);
-    submitting = false;
-    setKeypadEnabled(true);
-    return;
-  }
-
-  if(!data.allowed){
-    setCooldownUI(data.seconds_remaining);
-    return;
-  }
-
-  const door = document.getElementById('vaultDoor');
-  if(data.won){
-    document.getElementById('prizeEmoji').textContent = '💰';
-    document.getElementById('prizeAmount').textContent = formatMoney(data.prize, false) + '$';
-    setTimeout(() => {
-      door.classList.add('open');
-      playChime(true);
-      buzz([80, 40, 80, 40, 140]);
-      setTimeout(() => showResultModal(true, data.prize), 700);
-    }, 350);
-  } else {
-    document.getElementById('prizeEmoji').textContent = '❌';
-    document.getElementById('prizeAmount').textContent = '';
-    door.classList.add('shake');
-    playChime(false);
-    buzz(200);
-    setTimeout(() => {
-      door.classList.remove('shake');
-      showResultModal(false, 0);
-    }, 500);
+    el.textContent = `⏳ متاحة بعد ${toArabicDigits(fmtHMS(data.seconds_remaining))}`;
   }
 }
 
-document.getElementById('keypad').addEventListener('click', (e) => {
-  const key = e.target.closest('.key');
-  if(!key || key.classList.contains('disabled') || submitting) return;
-  const k = key.dataset.k;
-
-  if(k === 'clear'){
-    codeDigits = [];
-    renderSlots();
-    playTick(); buzz(15);
-    return;
+async function loadWheelStatus(){
+  const el = document.getElementById('wheelStatus');
+  const { data, error } = await supabaseClient.rpc('get_wheel_status');
+  if(error){ el.textContent = 'اضغط للدخول'; return; }
+  if(data.allowed){
+    el.textContent = '✅ متاحة الآن — أدر العجلة';
+    el.classList.add('ready');
+  }else{
+    el.textContent = `⏳ متاحة بعد ${toArabicDigits(fmtHMS(data.seconds_remaining))}`;
   }
-  if(k === 'back'){
-    codeDigits.pop();
-    renderSlots();
-    playTick(); buzz(15);
-    return;
-  }
-  if(codeDigits.length >= 3) return;
-
-  codeDigits.push(k);
-  renderSlots();
-  pulseSlot(codeDigits.length - 1);
-  playTick(); buzz(15);
-
-  if(codeDigits.length === 3){
-    setTimeout(submitCode, 200);
-  }
-});
+}
 
 async function init(){
-  currentUser = await requireAuth();
-  if(!currentUser) return;
-  loadStatus();
+  const user = await requireAuth();
+  if(!user) return;
+  loadVaultStatus();
+  loadWheelStatus();
 }
 init();
 </script>

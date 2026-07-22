@@ -2,18 +2,15 @@
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>09 — السوق</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
-.tabs{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;}
-.tab{padding:8px 16px;border-radius:var(--radius-pill);font-size:12.5px;border:1px solid var(--line);color:var(--text-muted);white-space:nowrap;}
-.tab.active{background:var(--gold);color:#241A05;border-color:var(--gold);font-weight:700;}
+.tabs{display:flex;gap:8px;margin-bottom:16px;}
+.tab{flex:1;text-align:center;padding:10px 0;border-radius:var(--radius-pill);font-family:var(--font-display);font-weight:800;font-size:13.5px;border:1px solid var(--line);color:var(--text-muted);white-space:nowrap;}
+.tab.active{background:var(--gold);color:#241A05;border-color:var(--gold);}
 .offer{margin-bottom:14px;}
-.tier-section{margin-bottom:26px;}
-.tier-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
-.tier-header svg{width:19px;height:19px;color:var(--gold);flex-shrink:0;}
-.tier-name{font-family:var(--font-display);font-weight:800;font-size:15.5px;color:var(--gold-soft);flex:1;}
+.tier-count-row{display:flex;justify-content:flex-end;margin-bottom:12px;}
 .tier-count{background:var(--gold);color:#241A05;padding:5px 13px;border-radius:var(--radius-pill);font-size:11px;font-weight:700;white-space:nowrap;}
-.tier-scroll{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;margin:0 -2px;}
-.tier-card{flex:0 0 148px;background:var(--bg-surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;position:relative;}
-.tier-thumb-wrap{position:relative;height:88px;}
+.tier-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.tier-card{background:var(--bg-surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;position:relative;}
+.tier-thumb-wrap{position:relative;height:100px;}
 .tier-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
 .tier-thumb-wrap .tier-badge{position:absolute;top:6px;left:6px;background:rgba(10,15,24,.75);border:1px solid var(--gold);color:var(--gold-soft);
   font-family:var(--font-display);font-weight:800;font-size:10.5px;padding:2px 7px;border-radius:6px;}
@@ -30,9 +27,10 @@
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
-  <div class="top-row"><div class="top-title">سوق الحصص</div><a href="06-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg></a></div>
-  <div class="tabs"><div class="tab active" data-cat="الكل">الكل</div><div class="tab" data-cat="أبقار">أبقار</div><div class="tab" data-cat="أغنام">أغنام</div><div class="tab" data-cat="جاموس">جاموس</div><div class="tab" data-cat="دواجن">دواجن</div></div>
+  <div class="top-row" style="justify-content:flex-end;"><a href="06-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg></a></div>
+  <div class="tabs"><div class="tab active" data-tier="VIP A">VIP A</div><div class="tab" data-tier="VIP B">VIP B</div><div class="tab" data-tier="VIP C">VIP C</div></div>
 
+  <div class="tier-count-row"><div class="tier-count" id="tierCount">٠ عروض</div></div>
   <div id="offersList"><div style="text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;">جاري تحميل العروض...</div></div>
 
   <div class="disclaimer">النسب أعلاه تقديرية ومبنية على أداء دورات سابقة، وهي غير مضمونة وتتغير حسب الأداء الفعلي للقطيع والسوق</div>
@@ -80,31 +78,20 @@ function renderTierCard(o, letter, num){
   </a>`;
 }
 
-function renderOffers(category){
+function renderOffers(tier){
   const list = document.getElementById('offersList');
-  const filtered = category === 'الكل' ? allOffers : allOffers.filter(o => o.category === category);
+  const filtered = allOffers.filter(o => (TIER_ORDER.includes(o.tier) ? o.tier : 'VIP A') === tier);
+
+  document.getElementById('tierCount').textContent = `${toArabicDigits(filtered.length)} عروض`;
 
   if(filtered.length === 0){
-    list.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;">ما فيه عروض متاحة حالياً بهذا التصنيف</div>';
+    list.innerHTML = `<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;">ما فيه عروض متاحة حالياً ضمن ${tier}</div>`;
     return;
   }
 
-  const groups = {};
-  filtered.forEach(o => {
-    const t = TIER_ORDER.includes(o.tier) ? o.tier : 'VIP A';
-    (groups[t] = groups[t] || []).push(o);
-  });
-
-  list.innerHTML = TIER_ORDER.filter(t => groups[t] && groups[t].length).map(tier => {
-    const offers = groups[tier];
-    const letter = TIER_LETTER[tier];
-    const cards = offers.map((o, i) => renderTierCard(o, letter, i + 1)).join('');
-    return `
-    <div class="tier-section">
-      <div class="tier-header">${CROWN_SVG}<div class="tier-name">${tier}</div><div class="tier-count">${toArabicDigits(offers.length)} عروض</div></div>
-      <div class="tier-scroll">${cards}</div>
-    </div>`;
-  }).join('');
+  const letter = TIER_LETTER[tier];
+  const cards = filtered.map((o, i) => renderTierCard(o, letter, i + 1)).join('');
+  list.innerHTML = `<div class="tier-grid">${cards}</div>`;
 }
 
 async function loadOffers(){
@@ -123,14 +110,14 @@ async function loadOffers(){
   }
 
   allOffers = data || [];
-  renderOffers('الكل');
+  renderOffers('VIP A');
 }
 
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
-    renderOffers(tab.dataset.cat);
+    renderOffers(tab.dataset.tier);
   });
 });
 

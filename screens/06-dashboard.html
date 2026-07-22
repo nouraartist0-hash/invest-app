@@ -45,7 +45,7 @@
 
 .feed-strip{position:absolute;bottom:66px;left:0;right:0;overflow:hidden;background:var(--bg-surface);
   border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px 0;}
-.feed-track{display:flex;width:max-content;animation:feedScroll linear infinite;}
+.feed-track{display:flex;width:max-content;animation:feedScroll linear infinite;direction:ltr;justify-content:flex-start;}
 @keyframes feedScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
 .feed-item{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:48px;padding:0 6px;
   border-left:1px solid var(--line);}
@@ -277,4 +277,3 @@ async function loadActivityFeed(){
 loadActivityFeed();
 </script>
 </body></html>
-  

@@ -259,6 +259,38 @@ function animateSpinTo(segIndex, onDone){
   requestAnimationFrame(frame);
 }
 
+// ====== دالة إضافة النشاط إلى الشريط ======
+async function addWheelWinToFeed(userId, cents) {
+  try {
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('full_name, avatar_url, phone')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (profile) {
+      const maskedPhone = profile.phone 
+        ? profile.phone.slice(0, 4) + '** *** ****' 
+        : '05** *** ****';
+      
+      await supabaseClient
+        .from('activity_feed')
+        .insert({
+          user_id: userId,
+          display_name: profile.full_name || 'مستخدم',
+          avatar_url: profile.avatar_url || null,
+          masked_phone: maskedPhone,
+          amount: cents,
+          label: `فاز بـ ${formatMoney(cents)} سنت في عجلة الحظ 🎡`,
+          created_at: new Date().toISOString()
+        });
+      console.log('✅ تم إضافة نشاط عجلة الحظ إلى الشريط');
+    }
+  } catch (err) {
+    console.error('❌ خطأ في إضافة نشاط عجلة الحظ:', err);
+  }
+}
+
 function showResultModal(cents){
   const emoji = document.getElementById('modalEmoji');
   const text = document.getElementById('modalText');
@@ -275,6 +307,12 @@ function showResultModal(cents){
     text.textContent = `مبروك! ربحت ${cents} سنت وتمت إضافتها إلى رصيدك.`;
     playChime(true);
   }
+  
+  // ⭐ إضافة النشاط إلى الشريط المتحرك (إذا ربح أكثر من 0)
+  if(cents > 0 && currentUser){
+    addWheelWinToFeed(currentUser.id, cents);
+  }
+  
   document.getElementById('resultModal').classList.add('show');
 }
 

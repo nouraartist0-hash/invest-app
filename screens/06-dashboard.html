@@ -45,8 +45,7 @@
 
 .feed-strip{position:absolute;bottom:66px;left:0;right:0;overflow:hidden;background:var(--bg-surface);
   border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px 0;}
-.feed-track{display:flex;width:max-content;animation:feedScroll linear infinite;direction:ltr;justify-content:flex-start;}
-@keyframes feedScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+.feed-track{display:flex;width:max-content;direction:ltr;justify-content:flex-start;will-change:transform;}
 .feed-item{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:48px;padding:0 6px;
   border-left:1px solid var(--line);}
 .feed-avatar{width:22px;height:22px;border-radius:50%;overflow:hidden;background:var(--bg-surface-2);
@@ -232,7 +231,77 @@ loadDashboard().catch(err => {
   console.error(err);
 });
 
-// ===== الشريط المتحرك: آخر الأنشطة (شراء / فوز عجلة / فوز خزنة) =====
+// =====================================================================
+// الشريط المتحرك: آخر الأنشطة (شراء / فوز عجلة / فوز خزنة)
+// -----------------------------------------------------------------
+// مبني الآن بـ requestAnimationFrame بدل CSS animation، حتى يكون
+// السكرول مستمر (continuous) بدون أي "قفزة" أو انقطاع وقت تحديث
+// البيانات كل 15 ثانية. الموضع (feedPosition) متغيّر مستقل عن
+// محتوى الـ DOM، فتحديث البيانات ما يعيد تصفير الحركة أبداً.
+// =====================================================================
+let feedItemsData = [];
+let feedPosition = 0;          // px، القيمة الحالية لـ translateX
+let feedSingleSetWidth = 0;    // عرض مجموعة واحدة من العناصر (بالبكسل)
+let feedRafHandle = null;
+let feedLastTimestamp = null;
+const FEED_SPEED_PX_PER_SEC = 45; // سرعة السكرول — عدّلها حسب الذوق
+
+function renderFeedItem(r){
+  const initial = (r.display_name || '؟').trim().charAt(0) || '؟';
+  const avatar = r.avatar_url
+    ? `<img src="${r.avatar_url}" alt="">`
+    : initial;
+  return `
+    <div class="feed-item">
+      <div class="feed-avatar">${avatar}</div>
+      <div class="feed-phone">${escapeHtml(r.masked_phone || '')}</div>
+      <div class="feed-label">${escapeHtml(r.label || '')}</div>
+    </div>`;
+}
+
+function renderFeedTrack(){
+  const track = document.getElementById('feedTrack');
+  if(!feedItemsData || feedItemsData.length === 0) return;
+
+  // نكرر القائمة عدد كافٍ من المرات حتى تمتلئ مجموعة واحدة الشاشة بالكامل
+  // بدون أي فراغ، حتى لو كان عدد المستخدمين الحقيقيين قليل جداً
+  const minRepeats = Math.max(2, Math.ceil(24 / feedItemsData.length));
+  let oneSet = [];
+  for(let i = 0; i < minRepeats; i++){
+    oneSet = oneSet.concat(feedItemsData);
+  }
+  const oneSetHtml = oneSet.map(renderFeedItem).join('');
+  // نكرر المجموعة الكاملة مرتين لضمان حلقة متواصلة بدون قطع
+  track.innerHTML = oneSetHtml + oneSetHtml;
+
+  // نقيس عرض مجموعة واحدة بعد ما ينرسم الـ DOM فعلياً
+  requestAnimationFrame(() => {
+    const fullWidth = track.scrollWidth;
+    feedSingleSetWidth = fullWidth / 2;
+    // إذا الموضع الحالي طلع خارج النطاق (مثلاً بيانات جديدة أقصر) نصححه
+    if (feedSingleSetWidth > 0 && feedPosition <= -feedSingleSetWidth) {
+      feedPosition = feedPosition % feedSingleSetWidth;
+    }
+  });
+}
+
+function feedTick(timestamp){
+  const track = document.getElementById('feedTrack');
+  if (feedLastTimestamp == null) feedLastTimestamp = timestamp;
+  const dt = (timestamp - feedLastTimestamp) / 1000;
+  feedLastTimestamp = timestamp;
+
+  if (track && feedSingleSetWidth > 0) {
+    feedPosition -= FEED_SPEED_PX_PER_SEC * dt;
+    if (feedPosition <= -feedSingleSetWidth) {
+      feedPosition += feedSingleSetWidth; // يلف بسلاسة بدون قفزة مرئية
+    }
+    track.style.transform = `translateX(${feedPosition}px)`;
+  }
+
+  feedRafHandle = requestAnimationFrame(feedTick);
+}
+
 async function loadActivityFeed(){
   const { data, error } = await supabaseClient
     .from('activity_feed')
@@ -240,49 +309,27 @@ async function loadActivityFeed(){
     .order('created_at', { ascending: false })
     .limit(100);
 
-  const track = document.getElementById('feedTrack');
   const strip = document.querySelector('.feed-strip');
 
   if(error || !data || data.length === 0){
     console.error('activity feed load issue:', error);
-    // لا نخفي الشريط بشكل دائم؛ فقط نتخطى هذا التحديث وننتظر المحاولة القادمة
+    // لا نوقف الحركة ولا نخفي الشريط بسبب خطأ مؤقت؛ فقط نتجاهل هذا التحديث
     return;
   }
 
-  // نجاح التحميل: نتأكد أن الشريط ظاهر (حتى لو كان قد اختفى سابقاً بسبب خطأ مؤقت)
   strip.style.display = '';
+  feedItemsData = data;
+  renderFeedTrack();
 
-  const renderItem = (r) => {
-    const initial = (r.display_name || '؟').trim().charAt(0) || '؟';
-    const avatar = r.avatar_url
-      ? `<img src="${r.avatar_url}" alt="">`
-      : initial;
-    return `
-      <div class="feed-item">
-        <div class="feed-avatar">${avatar}</div>
-        <div class="feed-phone">${escapeHtml(r.masked_phone || '')}</div>
-        <div class="feed-label">${escapeHtml(r.label || '')}</div>
-      </div>`;
-  };
-
-  // نكرر القائمة عدد كافٍ من المرات حتى يمتلئ الشريط بالكامل بدون أي فراغ،
-  // حتى لو كان عدد المستخدمين الحقيقيين قليل جداً
-  const minRepeats = Math.max(2, Math.ceil(24 / data.length));
-  let repeatedItems = [];
-  for(let i = 0; i < minRepeats; i++){
-    repeatedItems = repeatedItems.concat(data);
+  // نبدأ حلقة الحركة مرة وحدة فقط، وتضل شغالة باستمرار حتى لو تحدثت البيانات لاحقاً
+  if (feedRafHandle == null) {
+    feedRafHandle = requestAnimationFrame(feedTick);
   }
-  const itemsHtml = repeatedItems.map(renderItem).join('');
-  // نكرر المجموعة الكاملة مرتين إضافيتين لضمان حلقة متواصلة بدون قطع
-  track.innerHTML = itemsHtml + itemsHtml;
-
-  // سرعة ثابتة نسبياً حسب عدد العناصر الفعلية المعروضة
-  track.style.animationDuration = (repeatedItems.length * 3) + 's';
 }
 
 loadActivityFeed();
 
-// تحديث الشريط تلقائياً كل 15 ثانية بدون حاجة لتحديث الصفحة يدوياً
+// تحديث بيانات الشريط كل 15 ثانية بدون ما توقف أو تقطع الحركة المستمرة
 setInterval(loadActivityFeed, 15000);
 </script>
 </body></html>

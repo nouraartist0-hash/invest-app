@@ -188,3 +188,186 @@ function pulseSlot(i){
 
 function setCooldownUI(secondsRemaining, lastWon, lastPrize){
   setKeypadEnabled(false);
+  document.getElementById('vaultDial').classList.remove('ready');
+  document.getElementById('cooldownNote').style.display = 'block';
+
+  const lastResultEl = document.getElementById('lastResult');
+  if(lastWon){
+    lastResultEl.textContent = `آخر محاولة: ربحت ${formatMoney(lastPrize)}$ 🎉`;
+  } else if(lastWon === false){
+    lastResultEl.textContent = 'آخر محاولة: لم يطابق الرمز';
+  } else {
+    lastResultEl.textContent = '';
+  }
+
+  let remaining = secondsRemaining;
+  clearInterval(cooldownInterval);
+  const tick = () => {
+    if(remaining <= 0){
+      clearInterval(cooldownInterval);
+      loadStatus();
+      return;
+    }
+    document.getElementById('cooldownTime').textContent = fmtHMS(remaining);
+    remaining -= 1;
+  };
+  tick();
+  cooldownInterval = setInterval(tick, 1000);
+}
+
+function setReadyUI(){
+  clearInterval(cooldownInterval);
+  document.getElementById('cooldownNote').style.display = 'none';
+  document.getElementById('lastResult').textContent = '';
+  document.getElementById('vaultDial').classList.add('ready');
+  document.getElementById('vaultDoor').classList.remove('open');
+  document.getElementById('prizeAmount').textContent = '';
+  codeDigits = [];
+  renderSlots();
+  setKeypadEnabled(true);
+  submitting = false;
+}
+
+async function loadStatus(){
+  const { data, error } = await supabaseClient.rpc('get_vault_status');
+  if(error){ console.error(error); return; }
+  if(data.allowed){ setReadyUI(); }
+  else { setCooldownUI(data.seconds_remaining, data.last_won, data.last_prize); }
+}
+
+// ====== دالة إضافة النشاط إلى الشريط ======
+async function addVaultWinToFeed(userId, prize) {
+  try {
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('full_name, avatar_url, phone')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (profile) {
+      const maskedPhone = profile.phone 
+        ? profile.phone.slice(0, 4) + '** *** ****' 
+        : '05** *** ****';
+      
+      await supabaseClient
+        .from('activity_feed')
+        .insert({
+          user_id: userId,
+          display_name: profile.full_name || 'مستخدم',
+          avatar_url: profile.avatar_url || null,
+          masked_phone: maskedPhone,
+          amount: prize,
+          label: `فتح الخزنة وربح ${formatMoney(prize)}$ 🔐`,
+          created_at: new Date().toISOString()
+        });
+      console.log('✅ تم إضافة نشاط الخزنة إلى الشريط');
+    }
+  } catch (err) {
+    console.error('❌ خطأ في إضافة نشاط الخزنة:', err);
+  }
+}
+
+function showResultModal(won, prize){
+  const emoji = document.getElementById('modalEmoji');
+  const text = document.getElementById('modalText');
+  if(won){
+    emoji.textContent = '🎉';
+    text.textContent = `🎉 تهانينا! لقد نجحت في فتح الخزنة وربحت ${formatMoney(prize, false)}$. تمت إضافة الجائزة إلى رصيدك.`;
+    
+    // ⭐ إضافة النشاط إلى الشريط المتحرك (إذا فاز)
+    if(currentUser && prize > 0){
+      addVaultWinToFeed(currentUser.id, prize);
+    }
+    
+  }else{
+    emoji.textContent = '🔒';
+    text.textContent = '🔒 الرمز غير صحيح. حظًا أوفر! ستتمكن من فتح الخزنة مرة أخرى بعد 24 ساعة.';
+  }
+  document.getElementById('resultModal').classList.add('show');
+}
+
+document.getElementById('modalOk').addEventListener('click', () => {
+  document.getElementById('resultModal').classList.remove('show');
+  loadStatus();
+});
+
+async function submitCode(){
+  if(submitting) return;
+  submitting = true;
+  setKeypadEnabled(false);
+
+  const guess = Number(codeDigits.join(''));
+  const { data, error } = await supabaseClient.rpc('vault_attempt', { p_guess: guess });
+
+  if(error){
+    alert('صار خطأ: ' + error.message);
+    submitting = false;
+    setKeypadEnabled(true);
+    return;
+  }
+
+  if(!data.allowed){
+    setCooldownUI(data.seconds_remaining);
+    return;
+  }
+
+  const door = document.getElementById('vaultDoor');
+  if(data.won){
+    document.getElementById('prizeEmoji').textContent = '💰';
+    document.getElementById('prizeAmount').textContent = formatMoney(data.prize, false) + '$';
+    setTimeout(() => {
+      door.classList.add('open');
+      playChime(true);
+      buzz([80, 40, 80, 40, 140]);
+      setTimeout(() => showResultModal(true, data.prize), 700);
+    }, 350);
+  } else {
+    document.getElementById('prizeEmoji').textContent = '❌';
+    document.getElementById('prizeAmount').textContent = '';
+    door.classList.add('shake');
+    playChime(false);
+    buzz(200);
+    setTimeout(() => {
+      door.classList.remove('shake');
+      showResultModal(false, 0);
+    }, 500);
+  }
+}
+
+document.getElementById('keypad').addEventListener('click', (e) => {
+  const key = e.target.closest('.key');
+  if(!key || key.classList.contains('disabled') || submitting) return;
+  const k = key.dataset.k;
+
+  if(k === 'clear'){
+    codeDigits = [];
+    renderSlots();
+    playTick(); buzz(15);
+    return;
+  }
+  if(k === 'back'){
+    codeDigits.pop();
+    renderSlots();
+    playTick(); buzz(15);
+    return;
+  }
+  if(codeDigits.length >= 3) return;
+
+  codeDigits.push(k);
+  renderSlots();
+  pulseSlot(codeDigits.length - 1);
+  playTick(); buzz(15);
+
+  if(codeDigits.length === 3){
+    setTimeout(submitCode, 200);
+  }
+});
+
+async function init(){
+  currentUser = await requireAuth();
+  if(!currentUser) return;
+  loadStatus();
+}
+init();
+</script>
+</body></html>

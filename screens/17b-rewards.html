@@ -2,25 +2,25 @@
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>الجوائز</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
-.section-title{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-.section-title .emoji{font-size:18px;}
-.section-title .txt{font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--gold-soft);}
+.section-title{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.section-title .emoji{font-size:17px;}
+.section-title .txt{font-family:var(--font-display);font-weight:800;font-size:14.5px;color:var(--gold-soft);}
 
 .vault-card{background:linear-gradient(180deg,var(--bg-surface),var(--bg-surface-2));border:1px solid var(--gold);
-  border-radius:var(--radius-card);padding:20px 16px;margin-bottom:20px;text-align:center;position:relative;overflow:hidden;}
-.vault-rules{font-size:11.5px;color:var(--text-muted);line-height:2;text-align:right;margin-bottom:18px;}
+  border-radius:var(--radius-card);padding:14px 14px 16px;margin-bottom:12px;text-align:center;position:relative;overflow:hidden;}
+.vault-rules{font-size:10.8px;color:var(--text-muted);line-height:1.75;text-align:right;margin-bottom:8px;}
 .vault-rules b{color:var(--gold-soft);}
 .vault-range{display:inline-block;background:rgba(217,166,58,.14);border:1px solid var(--gold);color:var(--gold-soft);
-  font-size:11px;font-weight:700;padding:5px 14px;border-radius:var(--radius-pill);margin-bottom:18px;}
+  font-size:10.5px;font-weight:700;padding:4px 12px;border-radius:var(--radius-pill);margin-bottom:10px;}
 
 /* ===== الخزنة البصرية ===== */
-.vault-stage{position:relative;width:172px;height:172px;margin:0 auto 20px;perspective:900px;}
-.vault-back{position:absolute;inset:0;border-radius:24px;
+.vault-stage{position:relative;width:118px;height:118px;margin:0 auto 12px;perspective:900px;}
+.vault-back{position:absolute;inset:0;border-radius:20px;
   background:radial-gradient(circle at 50% 40%,#3a2c0d,#0D1623 75%);
-  border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;}
-.vault-back .prize-emoji{font-size:44px;filter:drop-shadow(0 0 12px rgba(217,166,58,.6));}
-.vault-back .prize-amount{font-family:var(--font-display);font-weight:900;font-size:20px;color:var(--gold-soft);direction:ltr;}
-.vault-door{position:absolute;inset:0;border-radius:24px;
+  border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;}
+.vault-back .prize-emoji{font-size:32px;filter:drop-shadow(0 0 12px rgba(217,166,58,.6));}
+.vault-back .prize-amount{font-family:var(--font-display);font-weight:900;font-size:15px;color:var(--gold-soft);direction:ltr;}
+.vault-door{position:absolute;inset:0;border-radius:20px;
   background:linear-gradient(155deg,#2E3E56,#141E2E 60%);
   border:3px solid var(--gold);box-shadow:inset 0 0 0 2px rgba(217,166,58,.25), 0 10px 26px rgba(0,0,0,.55);
   display:flex;align-items:center;justify-content:center;
@@ -32,31 +32,31 @@
   0%,100%{transform:translateX(0);} 20%{transform:translateX(-6px);} 40%{transform:translateX(6px);}
   60%{transform:translateX(-4px);} 80%{transform:translateX(4px);}
 }
-.vault-dial{width:70px;height:70px;border-radius:50%;
+.vault-dial{width:50px;height:50px;border-radius:50%;
   background:radial-gradient(circle at 35% 30%,#F0D28A,#B9862C 60%,#8A611E 100%);
   box-shadow:0 4px 10px rgba(0,0,0,.5), inset 0 0 0 2px rgba(255,255,255,.25);
   display:flex;align-items:center;justify-content:center;}
-.vault-dial::before{content:'🔒';font-size:26px;}
+.vault-dial::before{content:'🔒';font-size:19px;}
 .vault-dial.ready::before{content:'🔓';}
 
-.code-slots{display:flex;justify-content:center;gap:12px;margin-bottom:18px;}
-.code-slot{width:44px;height:54px;border-radius:12px;background:var(--bg-surface);border:1.5px solid var(--line);
-  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:22px;color:var(--cream);
+.code-slots{display:flex;justify-content:center;gap:10px;margin-bottom:10px;}
+.code-slot{width:36px;height:44px;border-radius:10px;background:var(--bg-surface);border:1.5px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:18px;color:var(--cream);
   transition:border-color .15s, transform .1s;}
 .code-slot.filled{border-color:var(--gold);}
 .code-slot.pulse{transform:scale(1.08);border-color:var(--gold-soft);}
 
-.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:260px;margin:0 auto;}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-width:230px;margin:0 auto;}
 .key{aspect-ratio:1;border-radius:50%;background:var(--bg-surface);border:1px solid var(--line);
-  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:19px;color:var(--cream);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:16.5px;color:var(--cream);
   user-select:none;-webkit-tap-highlight-color:transparent;}
 .key:active{background:var(--bg-surface-2);border-color:var(--gold);transform:scale(.94);}
-.key.fn{font-size:15px;color:var(--gold-soft);}
+.key.fn{font-size:13px;color:var(--gold-soft);}
 .key.disabled{opacity:.35;pointer-events:none;}
 
-.cooldown-note{text-align:center;font-size:12.5px;color:var(--text-muted);margin-top:16px;line-height:1.8;}
+.cooldown-note{text-align:center;font-size:11.5px;color:var(--text-muted);margin-top:10px;line-height:1.7;}
 .cooldown-note b{color:var(--gold-soft);font-family:var(--font-display);direction:ltr;display:inline-block;}
-.last-result{text-align:center;font-size:12px;color:var(--text-muted);margin-top:8px;}
+.last-result{text-align:center;font-size:11px;color:var(--text-muted);margin-top:6px;}
 
 .modal-overlay{position:fixed;inset:0;background:rgba(6,10,17,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:24px;}
 .modal-overlay.show{display:flex;}
@@ -69,7 +69,7 @@
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
-  <div class="top-row"><a href="06-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">🎁 الجوائز</div><div style="width:38px"></div></div>
+  <div class="top-row" style="margin-bottom:12px;"><div class="top-title">🎁 الجوائز</div></div>
 
   <div class="vault-card">
     <div class="section-title" style="justify-content:center;"><span class="emoji">🔐</span><span class="txt">الخزنة الرقمية</span></div>
@@ -334,4 +334,3 @@ async function init(){
 init();
 </script>
 </body></html>
-  

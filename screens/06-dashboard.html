@@ -25,6 +25,7 @@
   border:1px solid var(--gold);border-radius:var(--radius-card);
   padding:22px;margin:18px 0 14px;position:relative;overflow:hidden;
   flex-shrink:0;
+  box-shadow:0 0 46px rgba(217,166,58,.22),0 10px 26px rgba(0,0,0,.35);
 }
 .balance-card::after{content:'';position:absolute;inset:6px;border:1px dashed rgba(217,166,58,.3);border-radius:14px;}
 .balance-label{font-size:12.5px;color:var(--gold-soft);font-family:var(--font-display);font-weight:700;margin-bottom:8px;}
@@ -35,7 +36,7 @@
 
 .quick-actions{display:flex;justify-content:space-between;margin-bottom:22px;flex-shrink:0;}
 .qa{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:12px;color:var(--cream);flex:1;}
-.qa .circle{width:48px;height:48px;border-radius:50%;background:var(--bg-surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;}
+.qa .circle{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--gold-soft),var(--gold));display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(217,166,58,.3);}
 .qa .circle svg{width:20px;height:20px;}
 
 .section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-shrink:0;}
@@ -81,10 +82,10 @@
   </div>
 
   <div class="quick-actions">
-    <a class="qa" href="07-deposit.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><path d="M12 5v14M5 12l7-7 7 7"/></svg></div>إيداع</a>
-    <a class="qa" href="08-withdraw.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><path d="M12 19V5M5 12l7 7 7-7"/></svg></div>سحب</a>
-    <a class="qa" href="09-marketplace.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg></div>السوق</a>
-    <a class="qa" href="12-referral.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/><circle cx="18" cy="8" r="2.5"/></svg></div>الإحالة</a>
+    <a class="qa" href="07-deposit.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7-7 7 7"/></svg></div>إيداع</a>
+    <a class="qa" href="08-withdraw.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7 7 7-7"/></svg></div>سحب</a>
+    <a class="qa" href="09-marketplace.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg></div>السوق</a>
+    <a class="qa" href="12-referral.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/><circle cx="18" cy="8" r="2.5"/></svg></div>الإحالة</a>
   </div>
 
   <div class="section-head"><div class="section-title">حصصك الحالية</div><a class="see-all" href="09-marketplace.html">عرض الكل</a></div>
@@ -314,7 +315,7 @@ function feedTick(timestamp){
   feedRafHandle = requestAnimationFrame(feedTick);
 }
 
-// ✅ تحميل الأنشطة - يعرض جميع المستخدمين (بدون استبعاد)
+// ✅ تحميل الأنشطة - يعرض جميع المستخدمين (بدون استبعاد أي مستخدم)
 async function loadActivityFeed(){
   try {
     // جلب جميع الأنشطة بدون استبعاد أي مستخدم
@@ -364,4 +365,3 @@ loadActivityFeed();
 setInterval(loadActivityFeed, 15000);
 </script>
 </body></html>
-                                                                                                                                       

@@ -22,7 +22,7 @@ html{color-scheme:dark;}
   --radius-pill:999px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;}
 
 /* الوضع النهاري: يتفعّل بإضافة كلاس light-theme على body (يسويها JS بملف supabase-client.js حسب تفضيل المستخدم المحفوظ) */
 body.light-theme{

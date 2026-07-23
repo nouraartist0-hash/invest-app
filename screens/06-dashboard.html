@@ -51,7 +51,7 @@
 .holding-amount{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--cream);direction:ltr;}
 .holding-change{font-size:11px;color:#6FE3DC;direction:ltr;}
 
-.feed-strip{position:absolute;bottom:calc(76px + env(safe-area-inset-bottom,0px));left:0;right:0;overflow:hidden;background:var(--bg-surface);
+.feed-strip{position:absolute;bottom:66px;left:0;right:0;overflow:hidden;background:var(--bg-surface);
   border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px 0;min-height:52px;
   display:flex;align-items:center;justify-content:center;}
 .feed-track{display:flex;width:max-content;direction:ltr;justify-content:flex-start;will-change:transform;}
@@ -64,6 +64,8 @@
 .feed-phone{font-size:9px;color:var(--text-muted);direction:ltr;white-space:nowrap;}
 .feed-label{font-size:9px;color:var(--gold-soft);white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis;}
 .feed-empty{font-size:12px;color:var(--text-muted);padding:8px 0;}
+.install-btn{display:none;align-items:center;justify-content:center;gap:9px;width:100%;background:linear-gradient(135deg,var(--gold-soft),var(--secondary));color:#241A05;font-family:var(--font-display);font-weight:700;font-size:13.5px;padding:13px;border-radius:12px;border:none;margin-top:14px;cursor:pointer;box-shadow:0 6px 16px rgba(217,166,58,.25);}
+.install-btn svg{width:18px;height:18px;flex-shrink:0;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
@@ -71,6 +73,11 @@
     <a href="17-notifications.html" class="icon-btn" style="position:relative;"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg><span id="notifBadgeTop" style="display:none;position:absolute;top:6px;left:6px;width:9px;height:9px;border-radius:50%;background:var(--danger);border:1.5px solid var(--bg-deep);"></span></a>
     <div class="who"><div><div class="hello">مرحباً بعودتك</div><div class="name" id="userName">...</div></div><div class="avatar" id="userAvatar">؟</div></div>
   </div>
+
+  <button id="installAppBtn" class="install-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>
+    تحميل التطبيق على جهازك
+  </button>
 
   <div class="balance-card">
     <div class="balance-label">إجمالي قيمة حصصك</div>
@@ -363,5 +370,38 @@ loadActivityFeed();
 
 // تحديث الشريط كل 15 ثانية
 setInterval(loadActivityFeed, 15000);
+
+// ================================================================
+// 🔹 زر تثبيت التطبيق (PWA Install)
+// ================================================================
+let deferredInstallPrompt = null;
+const installBtn = document.getElementById('installAppBtn');
+
+// المتصفح يرسل هذا الحدث فقط إذا التطبيق قابل للتثبيت وغير مثبت مسبقاً
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if (installBtn) installBtn.style.display = 'flex';
+});
+
+if (installBtn) {
+  installBtn.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) return;
+    installBtn.style.display = 'none';
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+  });
+}
+
+// إخفاء الزر فور اكتمال التثبيت (أو إذا كان مثبت أصلاً)
+window.addEventListener('appinstalled', () => {
+  if (installBtn) installBtn.style.display = 'none';
+  deferredInstallPrompt = null;
+});
+
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+  if (installBtn) installBtn.style.display = 'none';
+}
 </script>
 </body></html>

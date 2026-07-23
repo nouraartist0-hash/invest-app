@@ -9,32 +9,45 @@
 
 <title>09 — السوق</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
+.market-header{margin-bottom:18px;}
+.market-header-title{font-family:var(--font-display);font-weight:900;font-size:21px;color:var(--cream);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.market-header-title svg{width:20px;height:20px;flex-shrink:0;}
+.market-header-sub{font-size:12.5px;color:var(--text-muted);line-height:1.6;}
 .tabs{display:flex;gap:8px;margin-bottom:16px;}
-.tab{flex:1;text-align:center;padding:10px 0;border-radius:var(--radius-pill);font-family:var(--font-display);font-weight:800;font-size:13.5px;border:1px solid var(--line);color:var(--text-muted);white-space:nowrap;}
+.tab{flex:1;text-align:center;padding:10px 0;border-radius:var(--radius-pill);font-family:var(--font-display);font-weight:800;font-size:13.5px;border:1px solid var(--line);color:var(--text-muted);white-space:nowrap;transition:background .15s,color .15s,border-color .15s;}
 .tab.active{background:var(--gold);color:#241A05;border-color:var(--gold);}
 .offer{margin-bottom:14px;}
 .tier-count-row{display:flex;justify-content:flex-end;margin-bottom:12px;}
-.tier-count{background:var(--gold);color:#241A05;padding:5px 13px;border-radius:var(--radius-pill);font-size:11px;font-weight:700;white-space:nowrap;}
-.tier-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.tier-card{background:var(--bg-surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;position:relative;}
-.tier-thumb-wrap{position:relative;height:100px;}
+.tier-count{background:rgba(217,166,58,.12);color:var(--gold-soft);border:1px solid var(--gold);padding:5px 13px;border-radius:var(--radius-pill);font-size:11px;font-weight:700;white-space:nowrap;}
+.tier-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.tier-card{background:var(--bg-surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;position:relative;
+  box-shadow:0 4px 14px rgba(0,0,0,.22);transition:transform .12s,border-color .12s;}
+.tier-card:active{transform:scale(.97);border-color:var(--gold);}
+.tier-thumb-wrap{position:relative;height:104px;background:var(--bg-deep);}
 .tier-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
-.tier-thumb-wrap .tier-badge{position:absolute;top:6px;left:6px;background:rgba(10,15,24,.75);border:1px solid var(--gold);color:var(--gold-soft);
-  font-family:var(--font-display);font-weight:800;font-size:10.5px;padding:2px 7px;border-radius:6px;}
-.tier-card-body{padding:10px;}
-.tier-card-title{font-size:12px;color:var(--cream);font-weight:600;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tier-card-meta{font-size:10px;color:var(--text-muted);margin-bottom:3px;}
-.tier-card-return{font-size:10.5px;color:var(--gold-soft);font-weight:700;margin-bottom:6px;}
-.tier-progress{height:5px;background:var(--bg-deep);border-radius:3px;overflow:hidden;margin-bottom:4px;}
-.tier-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-soft));}
-.tier-funded{font-size:9.5px;color:var(--text-muted);margin-bottom:8px;}
-.tier-detail-btn{display:block;text-align:center;padding:7px 0;border:1px solid var(--gold);border-radius:8px;font-size:10.5px;color:var(--gold-soft);font-weight:700;}
+.tier-thumb-wrap::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,22,35,0) 55%,rgba(13,22,35,.55));}
+.tier-thumb-wrap .tier-badge{position:absolute;top:7px;left:7px;z-index:1;background:var(--gold);color:#241A05;
+  font-family:var(--font-display);font-weight:800;font-size:10.5px;padding:3px 8px;border-radius:7px;letter-spacing:.2px;box-shadow:0 2px 6px rgba(0,0,0,.35);}
+.tier-card-body{padding:12px;}
+.tier-card-title{font-family:var(--font-display);font-size:13px;color:var(--cream);font-weight:700;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tier-card-meta-row{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-muted);margin-bottom:3px;}
+.tier-card-meta-row b{color:var(--cream);font-weight:600;}
+.tier-card-return{font-size:11px;color:var(--gold-soft);font-weight:700;background:rgba(217,166,58,.1);border-radius:8px;padding:5px 8px;text-align:center;margin:8px 0;}
+.tier-progress{height:6px;background:var(--bg-deep);border-radius:3px;overflow:hidden;margin-bottom:5px;}
+.tier-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-soft));border-radius:3px;}
+.tier-funded{font-size:9.5px;color:var(--text-muted);margin-bottom:10px;display:flex;justify-content:space-between;}
+.tier-funded b{color:var(--gold-soft);font-weight:700;}
+.tier-detail-btn{display:block;text-align:center;padding:9px 0;background:linear-gradient(180deg,var(--gold-soft),var(--gold));
+  color:#241A05;border-radius:10px;font-size:11px;font-weight:800;font-family:var(--font-display);}
 .range-badge{text-align:left;}
 .disclaimer{font-size:11px;color:var(--text-muted);text-align:center;padding:6px 0 100px;line-height:1.8;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
-  <div class="top-row" style="justify-content:flex-end;"><a href="06-dashboard.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg></a></div>
+  <div class="market-header">
+    <div class="market-header-title"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>سوق الاستثمار</div>
+    <div class="market-header-sub">اختر فئة العضوية واستكشف الفرص المتاحة لتمويلها</div>
+  </div>
   <div class="tabs"><div class="tab active" data-tier="VIP A">VIP A</div><div class="tab" data-tier="VIP B">VIP B</div><div class="tab" data-tier="VIP C">VIP C</div></div>
 
   <div class="tier-count-row"><div class="tier-count" id="tierCount">٠ عروض</div></div>
@@ -75,11 +88,11 @@ function renderTierCard(o, letter, num){
     <div class="tier-thumb-wrap">${thumb}<span class="tier-badge">${letter}${num}</span></div>
     <div class="tier-card-body">
       <div class="tier-card-title">${escapeAttr(o.title)}</div>
-      <div class="tier-card-meta">مدة الدورة: ${toArabicDigits(o.duration_days)} يوم</div>
-      <div class="tier-card-meta">الحد الأدنى: ${o.min_amount}$</div>
+      <div class="tier-card-meta-row"><span>مدة الدورة</span><b>${toArabicDigits(o.duration_days)} يوم</b></div>
+      <div class="tier-card-meta-row"><span>الحد الأدنى</span><b>${o.min_amount}$</b></div>
       <div class="tier-card-return">${o.min_return}–${o.max_return}% تقديري/شهرياً</div>
       <div class="tier-progress"><div class="tier-progress-fill" style="width:${funded}%;"></div></div>
-      <div class="tier-funded">تم تمويل ${toArabicDigits(funded)}%</div>
+      <div class="tier-funded"><span>تم التمويل</span><b>${toArabicDigits(funded)}%</b></div>
       <div class="tier-detail-btn">عرض التفاصيل</div>
     </div>
   </a>`;

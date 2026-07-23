@@ -51,7 +51,6 @@
   <div class="set-row"><span>العملة المعروضة</span><span class="static-val">USD</span></div>
 
   <div class="set-row"><span>الإشعارات</span><div class="switch" id="notifSwitch" onclick="toggleNotif()"><div class="knob"></div></div></div>
-  <div class="set-row"><span>الوضع الليلي</span><div class="switch" id="themeSwitch" onclick="toggleThemeSwitch()"><div class="knob"></div></div></div>
 
   <a class="set-row" href="19-security.html"><span>تغيير كلمة المرور</span><div class="set-val">›</div></a>
   <a class="set-row" href="19-security.html#sessions"><span>الجلسات النشطة</span><div class="set-val">عرض ›</div></a>
@@ -119,17 +118,6 @@ function toggleNotif(){
   const on = localStorage.getItem('notifications') !== 'off';
   localStorage.setItem('notifications', on ? 'off' : 'on');
   renderNotifSwitch();
-}
-
-// ====== الوضع الليلي/النهاري (مطبّق على كل الشاشات عبر supabase-client.js) ======
-function renderThemeSwitch(){
-  const theme = localStorage.getItem('theme') || 'dark';
-  document.getElementById('themeSwitch').classList.toggle('on', theme === 'dark');
-}
-function toggleThemeSwitch(){
-  const theme = localStorage.getItem('theme') || 'dark';
-  setTheme(theme === 'dark' ? 'light' : 'dark');
-  renderThemeSwitch();
 }
 
 // ====== حذف الحساب ======
@@ -202,7 +190,6 @@ async function handleLogout(){
 
   renderLangUI(localStorage.getItem('lang') || 'ar');
   renderNotifSwitch();
-  renderThemeSwitch();
 })();
 </script>
 </body></html>

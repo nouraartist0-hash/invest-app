@@ -51,7 +51,7 @@
 .holding-amount{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--cream);direction:ltr;}
 .holding-change{font-size:11px;color:#6FE3DC;direction:ltr;}
 
-.feed-strip{position:absolute;bottom:66px;left:0;right:0;overflow:hidden;background:var(--bg-surface);
+.feed-strip{position:absolute;bottom:calc(66px + env(safe-area-inset-bottom,0px));left:0;right:0;overflow:hidden;background:var(--bg-surface);
   border-top:1px solid var(--line);border-bottom:1px solid var(--line);
   box-sizing:border-box;height:64px;padding:0;
   display:flex;align-items:center;justify-content:center;}
@@ -373,37 +373,45 @@ loadActivityFeed();
 setInterval(loadActivityFeed, 15000);
 
 // ================================================================
-// 🔹 زر تثبيت التطبيق (PWA Install)
+// 🔹 رفع الشريط المتحرك فوق شريط التنقل السفلي (يحسب الارتفاع الفعلي)
+// يعمل على كل الأجهزة: أندرويد، آيفون (بمناطق الأمان/الحافة)، مع
+// حماية كاملة من الأخطاء - إذا فشل الجافاسكربت لأي سبب، تبقى القيمة
+// الاحتياطية بالـ CSS (calc(66px + safe-area)) شغالة وتمنع أي تداخل.
 // ================================================================
-let deferredInstallPrompt = null;
-const installBtn = document.getElementById('installAppBtn');
+(function(){
+  try{
+    var nav = document.querySelector('.bottom-nav');
+    var strip = document.getElementById('feedStrip');
+    if(!nav || !strip) return;
 
-// المتصفح يرسل هذا الحدث فقط إذا التطبيق قابل للتثبيت وغير مثبت مسبقاً
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  if (installBtn) installBtn.style.display = 'flex';
-});
+    function adjustFeedStripPosition(){
+      try{
+        var h = nav.offsetHeight;
+        if(h > 0) strip.style.bottom = (h + 8) + 'px';
+      }catch(e){ console.error('adjustFeedStripPosition error:', e); }
+    }
 
-if (installBtn) {
-  installBtn.addEventListener('click', async () => {
-    if (!deferredInstallPrompt) return;
-    installBtn.style.display = 'none';
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt = null;
-  });
-}
+    adjustFeedStripPosition();
 
-// إخفاء الزر فور اكتمال التثبيت (أو إذا كان مثبت أصلاً)
-window.addEventListener('appinstalled', () => {
-  if (installBtn) installBtn.style.display = 'none';
-  deferredInstallPrompt = null;
-});
+    if(typeof ResizeObserver !== 'undefined'){
+      try{
+        new ResizeObserver(adjustFeedStripPosition).observe(nav);
+      }catch(e){
+        window.addEventListener('resize', adjustFeedStripPosition);
+      }
+    } else {
+      window.addEventListener('resize', adjustFeedStripPosition);
+    }
 
-if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-  if (installBtn) installBtn.style.display = 'none';
-}
-</script>
-</body></html>
-  
+    window.addEventListener('load', adjustFeedStripPosition);
+    window.addEventListener('orientationchange', adjustFeedStripPosition);
+    if(window.visualViewport){
+      window.visualViewport.addEventListener('resize', adjustFeedStripPosition);
+    }
+  }catch(e){
+    console.error('feed-strip position setup error:', e);
+  }
+})();
+
+// ================================================================
+// 🔹 زر تثبيت التطبيق (PWA In

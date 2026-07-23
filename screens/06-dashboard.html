@@ -9,67 +9,332 @@
 
 <title>06 — لوحة الحساب</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
 <style>
-.screen{padding:22px 22px 0;}
-.top-row{flex-shrink:0;}
-#holdingsList{flex-shrink:1;overflow-y:auto;}
-.avatar{width:40px;height:40px;border-radius:50%;background:var(--bg-surface-2);border:1.5px solid var(--gold);
-  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;color:var(--gold-soft);
-  overflow:hidden;}
-.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.hello{font-size:12px;color:var(--text-muted);}
-.name{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--cream);}
-.who{display:flex;align-items:center;gap:10px;}
-
-.balance-card{
-  background:linear-gradient(135deg,#1C2B40,#0F1A28);
-  border:1px solid var(--gold);border-radius:var(--radius-card);
-  padding:22px;margin:18px 0 14px;position:relative;overflow:hidden;
-  flex-shrink:0;
-  box-shadow:0 0 46px rgba(217,166,58,.22),0 10px 26px rgba(0,0,0,.35);
-}
-.balance-card::after{content:'';position:absolute;inset:6px;border:1px dashed rgba(217,166,58,.3);border-radius:14px;}
-.balance-label{font-size:12.5px;color:var(--gold-soft);font-family:var(--font-display);font-weight:700;margin-bottom:8px;}
-.balance-amount{font-family:var(--font-display);font-size:32px;font-weight:900;color:var(--cream);direction:ltr;text-align:right;min-height:38px;line-height:38px;}
-.balance-sub{display:flex;gap:18px;margin-top:14px;}
-.balance-sub .item{font-size:12px;color:var(--text-muted);}
-.balance-sub .item b{color:#6FE3DC;display:block;font-family:var(--font-display);font-size:13.5px;margin-top:2px;}
-
-.quick-actions{display:flex;justify-content:space-between;margin-bottom:22px;flex-shrink:0;}
-.qa{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:12px;color:var(--cream);flex:1;}
-.qa .circle{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--gold-soft),var(--secondary));display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(217,166,58,.25);}
-.qa .circle svg{width:20px;height:20px;}
-
-.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-shrink:0;}
-.section-title{font-family:var(--font-display);font-weight:700;font-size:15.5px;color:var(--cream);}
-.see-all{font-size:12.5px;color:var(--gold-soft);}
-
-.holding{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
-.holding-info{flex:1;}
-.holding-name{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--cream);}
-.holding-meta{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
-.holding-value{text-align:left;}
-.holding-amount{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--cream);direction:ltr;}
-.holding-change{font-size:11px;color:#6FE3DC;direction:ltr;}
-
-/* ================================================================
-   🎯 الشريط المتحرك - معدل بالكامل
-   ================================================================ */
-.feed-strip {
-  position: relative;
-  width: 100%;
+/* ===== إعادة ضبط الهيكل ===== */
+html, body {
+  height: 100%;
   overflow: hidden;
+}
+
+.device {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-deep);
+}
+
+.statusbar {
+  flex-shrink: 0;
+  padding: 8px 20px 4px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px 0 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ===== المحتوى القابل للتمرير ===== */
+.scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 0 10px 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-content::-webkit-scrollbar {
+  width: 3px;
+}
+.scroll-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-content::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 10px;
+}
+
+.top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   background: var(--bg-surface-2);
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  border-radius: 12px;
-  box-sizing: border-box;
-  height: 70px;
-  margin: 18px 0 16px 0;
+  border: 1.5px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--gold-soft);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hello {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--cream);
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 1px solid var(--line);
+  position: relative;
+}
+
+.icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ===== البطاقات ===== */
+.balance-card {
+  background: linear-gradient(135deg, #1C2B40, #0F1A28);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-card);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 0 46px rgba(217, 166, 58, .22), 0 10px 26px rgba(0, 0, 0, .35);
+  margin-bottom: 12px;
+}
+
+.balance-card::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px dashed rgba(217, 166, 58, .3);
+  border-radius: 14px;
+}
+
+.balance-label {
+  font-size: 12px;
+  color: var(--gold-soft);
+  font-family: var(--font-display);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.balance-amount {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--cream);
+  direction: ltr;
+  text-align: right;
+  min-height: 34px;
+  line-height: 34px;
+}
+
+.balance-sub {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.balance-sub .item {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.balance-sub .item b {
+  color: #6FE3DC;
+  display: block;
+  font-family: var(--font-display);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+/* ===== الأزرار السريعة ===== */
+.quick-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.qa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--cream);
+  flex: 1;
+  text-decoration: none;
+}
+
+.qa .circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-soft), var(--secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(217, 166, 58, .25);
+}
+
+.qa .circle svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ===== قسم الحصص ===== */
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--cream);
+}
+
+.see-all {
+  font-size: 12px;
+  color: var(--gold-soft);
+  text-decoration: none;
+}
+
+.holding {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+}
+
+.holding-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.holding-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--cream);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.holding-meta {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.holding-value {
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.holding-amount {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--cream);
+  direction: ltr;
+}
+
+.holding-change {
+  font-size: 10px;
+  color: #6FE3DC;
+  direction: ltr;
+}
+
+.seal-mini {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--gold);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+.seal-mini svg {
+  width: 16px;
+  height: 16px;
+}
+
+.deed-card, .card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--line);
+  margin-bottom: 6px;
+}
+
+.deed-card {
+  border-color: var(--gold);
+  border-width: 1.5px;
+}
+
+/* ===== 🎯 الشريط المتحرك - النسخة النهائية ===== */
+.feed-strip {
+  width: 100%;
+  overflow: hidden;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-sizing: border-box;
+  height: 72px;
+  margin: 10px 0 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
 }
 
 .feed-track {
@@ -80,7 +345,7 @@
   direction: ltr;
   justify-content: flex-start;
   will-change: transform;
-  gap: 2px;
+  gap: 0;
 }
 
 .feed-item {
@@ -88,12 +353,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  min-width: 64px;
+  gap: 2px;
+  min-width: 60px;
   padding: 0 10px;
-  border-left: 1px solid var(--line);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
   box-sizing: border-box;
   height: 100%;
+  flex-shrink: 0;
 }
 
 .feed-item:last-child {
@@ -121,7 +387,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 50%;
 }
 
 .feed-phone {
@@ -136,7 +401,7 @@
   font-size: 8.5px;
   color: var(--gold-soft);
   white-space: nowrap;
-  max-width: 80px;
+  max-width: 70px;
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 600;
@@ -149,16 +414,86 @@
   text-align: center;
 }
 
-.install-btn{display:none;align-items:center;justify-content:center;gap:9px;width:100%;background:linear-gradient(135deg,var(--gold-soft),var(--secondary));color:#241A05;font-family:var(--font-display);font-weight:700;font-size:13.5px;padding:13px;border-radius:12px;border:none;margin-top:14px;cursor:pointer;box-shadow:0 6px 16px rgba(217,166,58,.25);}
-.install-btn svg{width:18px;height:18px;flex-shrink:0;}
+/* ===== زر التثبيت ===== */
+.install-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  background: linear-gradient(135deg, var(--gold-soft), var(--secondary));
+  color: #241A05;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 11px;
+  border-radius: 12px;
+  border: none;
+  margin: 6px 0 10px 0;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(217, 166, 58, .25);
+  flex-shrink: 0;
+}
+
+.install-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* ===== شريط التنقل السفلي ===== */
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--line);
+  padding: 6px 0 10px 0;
+  flex-shrink: 0;
+  margin-top: auto;
+  gap: 2px;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  min-width: 44px;
+}
+
+.nav-item svg {
+  width: 22px;
+  height: 22px;
+}
+
+.nav-item.active {
+  color: var(--gold);
+}
+
+.nav-item.active svg {
+  stroke: var(--gold);
+}
 
 /* ================================================================
    📱 تحسينات للشاشات الصغيرة
    ================================================================ */
 @media (max-width: 420px) {
+  .screen {
+    padding: 0 10px 0 10px;
+  }
+  .scroll-content {
+    padding: 10px 0 6px 0;
+  }
   .feed-strip {
     height: 60px;
-    margin: 12px 0 12px 0;
+    margin: 8px 0 10px 0;
   }
   .feed-item {
     min-width: 48px;
@@ -168,20 +503,47 @@
     width: 22px;
     height: 22px;
     font-size: 9px;
+    border-width: 1px;
   }
   .feed-phone {
     font-size: 8px;
   }
   .feed-label {
     font-size: 7px;
-    max-width: 60px;
+    max-width: 50px;
+  }
+  .balance-amount {
+    font-size: 24px;
+  }
+  .qa .circle {
+    width: 38px;
+    height: 38px;
+  }
+  .qa .circle svg {
+    width: 16px;
+    height: 16px;
+  }
+  .qa {
+    font-size: 10px;
+  }
+  .bottom-nav {
+    padding: 4px 0 8px 0;
+  }
+  .nav-item {
+    font-size: 9px;
+    min-width: 36px;
+    padding: 2px 4px;
+  }
+  .nav-item svg {
+    width: 18px;
+    height: 18px;
   }
 }
 
 @media (max-width: 360px) {
   .feed-strip {
-    height: 54px;
-    margin: 8px 0 8px 0;
+    height: 52px;
+    margin: 6px 0 8px 0;
   }
   .feed-item {
     min-width: 40px;
@@ -198,23 +560,38 @@
   }
   .feed-label {
     font-size: 6.5px;
-    max-width: 50px;
+    max-width: 40px;
+  }
+  .balance-card {
+    padding: 14px 16px;
+  }
+  .balance-amount {
+    font-size: 20px;
+  }
+  .balance-sub .item {
+    font-size: 10px;
+  }
+  .balance-sub .item b {
+    font-size: 11px;
   }
 }
 
-/* للشاشات الكبيرة */
+/* ===== للشاشات الكبيرة ===== */
 @media (min-width: 768px) {
+  .screen {
+    padding: 0 32px 0 32px;
+  }
   .feed-strip {
-    height: 82px;
-    margin: 22px 0 20px 0;
+    height: 84px;
+    margin: 14px 0 16px 0;
   }
   .feed-item {
     min-width: 80px;
     padding: 0 16px;
   }
   .feed-avatar {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     font-size: 14px;
   }
   .feed-phone {
@@ -224,63 +601,118 @@
     font-size: 10px;
     max-width: 100px;
   }
+  .balance-amount {
+    font-size: 36px;
+  }
 }
 
-/* وضع ملء الشاشة (PWA) */
+/* ===== وضع PWA ===== */
 @media (display-mode: standalone) {
-  .feed-strip {
-    margin: 16px 0 14px 0;
+  .statusbar {
+    padding-top: 12px;
   }
 }
 </style>
 </head>
-<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
-<div class="screen">
-  <div class="top-row">
-    <a href="17-notifications.html" class="icon-btn" style="position:relative;"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg><span id="notifBadgeTop" style="display:none;position:absolute;top:6px;left:6px;width:9px;height:9px;border-radius:50%;background:var(--danger);border:1.5px solid var(--bg-deep);"></span></a>
-    <div class="who"><div><div class="hello">مرحباً بعودتك</div><div class="name" id="userName">...</div></div><div class="avatar" id="userAvatar">؟</div></div>
-  </div>
+<body><div class="device">
+  <!-- شريط الحالة -->
+  <div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 
-  <button id="installAppBtn" class="install-btn">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>
-    تحميل التطبيق على جهازك
-  </button>
+  <div class="screen">
+    <!-- المحتوى القابل للتمرير -->
+    <div class="scroll-content" id="scrollContent">
 
-  <div class="balance-card">
-    <div class="balance-label">إجمالي قيمة حصصك</div>
-    <div class="balance-amount" id="totalValue">٠.٠٠ $</div>
-    <div class="balance-sub">
-      <div class="item">إجمالي الأرباح<b id="totalEarned">٠.٠٠ $</b></div>
-      <div class="item">الرصيد المتاح<b id="availableBalance">٠.٠٠ $</b></div>
+      <!-- الصف العلوي -->
+      <div class="top-row">
+        <a href="17-notifications.html" class="icon-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="1.8">
+            <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.7 21a2 2 0 01-3.4 0"/>
+          </svg>
+          <span id="notifBadgeTop" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--danger);border:1.5px solid var(--bg-deep);"></span>
+        </a>
+        <div class="who">
+          <div>
+            <div class="hello">مرحباً بعودتك</div>
+            <div class="name" id="userName">...</div>
+          </div>
+          <div class="avatar" id="userAvatar">؟</div>
+        </div>
+      </div>
+
+      <!-- زر التثبيت -->
+      <button id="installAppBtn" class="install-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v13M7 11l5 5 5-5"/>
+          <path d="M5 20h14"/>
+        </svg>
+        تحميل التطبيق على جهازك
+      </button>
+
+      <!-- بطاقة الرصيد -->
+      <div class="balance-card">
+        <div class="balance-label">إجمالي قيمة حصصك</div>
+        <div class="balance-amount" id="totalValue">٠.٠٠ $</div>
+        <div class="balance-sub">
+          <div class="item">إجمالي الأرباح <b id="totalEarned">٠.٠٠ $</b></div>
+          <div class="item">الرصيد المتاح <b id="availableBalance">٠.٠٠ $</b></div>
+        </div>
+      </div>
+
+      <!-- الأزرار السريعة -->
+      <div class="quick-actions">
+        <a class="qa" href="07-deposit.html">
+          <div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7-7 7 7"/></svg></div>إيداع
+        </a>
+        <a class="qa" href="08-withdraw.html">
+          <div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7 7 7-7"/></svg></div>سحب
+        </a>
+        <a class="qa" href="09-marketplace.html">
+          <div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg></div>السوق
+        </a>
+        <a class="qa" href="12-referral.html">
+          <div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/><circle cx="18" cy="8" r="2.5"/></svg></div>الإحالة
+        </a>
+      </div>
+
+      <!-- قسم الحصص -->
+      <div class="section-head">
+        <div class="section-title">حصصك الحالية</div>
+        <a class="see-all" href="09-marketplace.html">عرض الكل</a>
+      </div>
+
+      <div id="holdingsList">
+        <div style="text-align:center;color:var(--text-muted);font-size:13px;padding:16px 0;">جاري التحميل...</div>
+      </div>
+
+      <!-- ===== الشريط المتحرك ===== -->
+      <div class="feed-strip" id="feedStrip">
+        <div class="feed-track" id="feedTrack"></div>
+      </div>
+
+    </div><!-- نهاية scroll-content -->
+
+    <!-- ===== شريط التنقل السفلي ===== -->
+    <div class="bottom-nav">
+      <a class="nav-item active" href="06-dashboard.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l9-7 9 7v10a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>الرئيسية
+      </a>
+      <a class="nav-item" href="09-marketplace.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>السوق
+      </a>
+      <a class="nav-item" href="13b-my-investments.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1z"/></svg>استثماراتي
+      </a>
+      <a class="nav-item" href="17b-rewards.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12v9H4v-9M2 7h20v5H2V7zM12 22V7M12 7c-2 0-3-2-3-3.5A2.5 2.5 0 0112 3a2.5 2.5 0 013 3.5C15 8 14 7 12 7zM12 7c2 0 3-2 3-3.5A2.5 2.5 0 0012 1a2.5 2.5 0 00-3 3.5C9 8 10 7 12 7z"/></svg>الجوائز
+      </a>
+      <a class="nav-item" href="14-profile.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg>حسابي
+      </a>
     </div>
   </div>
+</div>
 
-  <div class="quick-actions">
-    <a class="qa" href="07-deposit.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7-7 7 7"/></svg></div>إيداع</a>
-    <a class="qa" href="08-withdraw.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7 7 7-7"/></svg></div>سحب</a>
-    <a class="qa" href="09-marketplace.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg></div>السوق</a>
-    <a class="qa" href="12-referral.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/><circle cx="18" cy="8" r="2.5"/></svg></div>الإحالة</a>
-  </div>
-
-  <div class="section-head"><div class="section-title">حصصك الحالية</div><a class="see-all" href="09-marketplace.html">عرض الكل</a></div>
-
-  <div id="holdingsList" style="margin-bottom:20px;">
-    <div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">جاري التحميل...</div>
-  </div>
-
-  <!-- ===== الشريط المتحرك ===== -->
-  <div class="feed-strip" id="feedStrip">
-    <div class="feed-track" id="feedTrack"></div>
-  </div>
-
-  <div class="bottom-nav" style="position:relative;bottom:auto;left:auto;right:auto;margin-top:10px;flex-shrink:0;">
-    <a class="nav-item active" href="06-dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l9-7 9 7v10a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>الرئيسية</a>
-    <a class="nav-item" href="09-marketplace.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>السوق</a>
-    <a class="nav-item" href="13b-my-investments.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1z"/></svg>استثماراتي</a>
-    <a class="nav-item" href="17b-rewards.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12v9H4v-9M2 7h20v5H2V7zM12 22V7M12 7c-2 0-3-2-3-3.5A2.5 2.5 0 0112 3a2.5 2.5 0 013 3.5C15 8 14 7 12 7zM12 7c2 0 3-2 3-3.5A2.5 2.5 0 0012 1a2.5 2.5 0 00-3 3.5C9 8 10 7 12 7z"/></svg>الجوائز</a>
-    <a class="nav-item" href="14-profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg>حسابي</a>
-  </div>
-</div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/supabase-client.js?v=1784451053"></script>
 <script>
@@ -309,7 +741,7 @@ async function loadDashboard(){
   const user = await requireAuth();
   if(!user) return;
 
-  // شارة الإشعارات غير المقروءة
+  // شارة الإشعارات
   const { count: unreadCount } = await supabaseClient
     .from('notifications')
     .select('id', { count: 'exact', head: true })
@@ -317,10 +749,8 @@ async function loadDashboard(){
     .eq('is_read', false);
 
   if (unreadCount && unreadCount > 0) {
-    const topBadge = document.getElementById('notifBadgeTop');
-    const navBadge = document.getElementById('notifBadgeNav');
-    if (topBadge) topBadge.style.display = 'block';
-    if (navBadge) navBadge.style.display = 'block';
+    const badge = document.getElementById('notifBadgeTop');
+    if (badge) badge.style.display = 'block';
   }
 
   // الملف الشخصي
@@ -360,11 +790,11 @@ async function loadDashboard(){
     document.getElementById('totalEarned').textContent = formatMoney(totalEarned) + ' $';
     document.getElementById('availableBalance').textContent = formatMoney(availableBalance) + ' $';
   } catch(balErr){
-    console.error('balance section error:', balErr);
+    console.error('balance error:', balErr);
     document.getElementById('totalValue').textContent = '—';
   }
 
-  // الحصص الحالية
+  // الحصص
   const { data: investments, error: invError } = await supabaseClient
     .from('investments')
     .select('id, amount, started_at, deed_number, status, offers(title, category, min_return, max_return)')
@@ -376,151 +806,17 @@ async function loadDashboard(){
   const holdingsList = document.getElementById('holdingsList');
 
   if(invError){
-    holdingsList.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">تعذر تحميل الحصص</div>';
+    holdingsList.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:16px 0;">تعذر تحميل الحصص</div>';
     return;
   }
 
   if(!investments || investments.length === 0){
     holdingsList.innerHTML = `
-      <div class="card" style="text-align:center;padding:28px 16px;">
-        <div style="color:var(--text-muted);font-size:13.5px;margin-bottom:14px;">ما عندك حصص فعالة حالياً</div>
-        <a class="cta" style="display:inline-block;padding:10px 22px;" href="09-marketplace.html">تصفح السوق</a>
+      <div class="card" style="text-align:center;padding:20px 12px;">
+        <div style="color:var(--text-muted);font-size:13px;margin-bottom:10px;">ما عندك حصص فعالة حالياً</div>
+        <a class="cta" style="display:inline-block;padding:8px 20px;font-size:13px;" href="09-marketplace.html">تصفح السوق</a>
       </div>`;
     return;
   }
 
-  holdingsList.innerHTML = investments.map((inv, idx) => {
-    const offer = inv.offers || {};
-    const category = offer.category || 'default';
-    const icon = CATEGORY_ICONS[category] || CATEGORY_ICONS['default'];
-    const avgReturn = offer.min_return != null && offer.max_return != null
-      ? ((Number(offer.min_return) + Number(offer.max_return)) / 2)
-      : 0;
-    const cardClass = idx % 2 === 0 ? 'deed-card' : 'card';
-    return `
-      <div class="${cardClass}" style="margin-bottom:10px;">
-        <div class="holding">
-          <div class="seal-mini"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8">${icon}</svg></div>
-          <div class="holding-info">
-            <div class="holding-name">${escapeHtml(offer.title || 'حصة استثمارية')}</div>
-            <div class="holding-meta">منذ ${daysAgo(inv.started_at)} يوم · وثيقة ملكية #${inv.deed_number || '—'}</div>
-          </div>
-          <div class="holding-value">
-            <div class="holding-amount">${formatMoney(inv.amount)} $</div>
-            <div class="holding-change">${formatPercent(avgReturn)}</div>
-          </div>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-// ================================================================
-// 🔹 الشريط المتحرك (Activity Feed)
-// ================================================================
-let feedItemsData = [];
-let feedPosition = 0;
-let feedSingleSetWidth = 0;
-let feedRafHandle = null;
-let feedLastTimestamp = null;
-const FEED_SPEED_PX_PER_SEC = 40;
-
-function renderFeedItem(r){
-  const initial = (r.display_name || '؟').trim().charAt(0) || '؟';
-  const avatar = r.avatar_url
-    ? `<img src="${r.avatar_url}" alt="">`
-    : initial;
-  return `
-    <div class="feed-item">
-      <div class="feed-avatar">${avatar}</div>
-      <div class="feed-phone">${escapeHtml(r.masked_phone || '')}</div>
-      <div class="feed-label">${escapeHtml(r.label || '')}</div>
-    </div>`;
-}
-
-function renderFeedTrack(){
-  const strip = document.getElementById('feedStrip');
-  
-  if(!feedItemsData || feedItemsData.length === 0){
-    strip.innerHTML = `<div class="feed-empty">لا توجد أنشطة حالياً</div>`;
-    return;
-  }
-
-  strip.innerHTML = `<div class="feed-track" id="feedTrack"></div>`;
-  const newTrack = document.getElementById('feedTrack');
-
-  const minRepeats = Math.max(2, Math.ceil(20 / feedItemsData.length));
-  let oneSet = [];
-  for(let i = 0; i < minRepeats; i++){
-    oneSet = oneSet.concat(feedItemsData);
-  }
-  const oneSetHtml = oneSet.map(renderFeedItem).join('');
-  newTrack.innerHTML = oneSetHtml + oneSetHtml;
-
-  requestAnimationFrame(() => {
-    const fullWidth = newTrack.scrollWidth;
-    feedSingleSetWidth = fullWidth / 2;
-    if (feedSingleSetWidth > 0 && feedPosition <= -feedSingleSetWidth) {
-      feedPosition = feedPosition % feedSingleSetWidth;
-    }
-  });
-}
-
-function feedTick(timestamp){
-  const track = document.getElementById('feedTrack');
-  if (!track) {
-    feedRafHandle = null;
-    return;
-  }
-  
-  if (feedLastTimestamp == null) feedLastTimestamp = timestamp;
-  const dt = (timestamp - feedLastTimestamp) / 1000;
-  feedLastTimestamp = timestamp;
-
-  if (track && feedSingleSetWidth > 0) {
-    feedPosition -= FEED_SPEED_PX_PER_SEC * dt;
-    if (feedPosition <= -feedSingleSetWidth) {
-      feedPosition += feedSingleSetWidth;
-    }
-    track.style.transform = `translateX(${feedPosition}px)`;
-  }
-
-  feedRafHandle = requestAnimationFrame(feedTick);
-}
-
-async function loadActivityFeed(){
-  try {
-    const { data, error } = await supabaseClient
-      .from('activity_feed')
-      .select('display_name, masked_phone, avatar_url, amount, label')
-      .order('created_at', { ascending: false })
-      .limit(100);
-
-    if (error) {
-      console.error('activity feed error:', error);
-      return;
-    }
-
-    const strip = document.getElementById('feedStrip');
-    
-    if (!data || data.length === 0) {
-      strip.innerHTML = `<div class="feed-empty">لا توجد أنشطة حالياً</div>`;
-      feedItemsData = [];
-      return;
-    }
-
-    feedItemsData = data;
-    renderFeedTrack();
-
-    if (feedRafHandle == null) {
-      feedRafHandle = requestAnimationFrame(feedTick);
-    }
-  } catch (err) {
-    console.error('loadActivityFeed error:', err);
-  }
-}
-
-// ================================================================
-// 🔹 تشغيل كل شيء
-// ================================================================
-loadDashboard().catch(err => {
-  document.getElementById('totalValue
+  holdingsList.innerHTML

@@ -27,6 +27,10 @@
 .progress-bar-bg{width:100%;height:9px;background:var(--bg-surface-2);border-radius:999px;overflow:hidden;margin-top:10px;}
 .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold-soft),var(--gold));border-radius:999px;width:0%;transition:width .4s ease;}
 .progress-top{display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.stat-box{background:var(--bg-surface);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;}
+.stat-num{font-family:var(--font-display);font-weight:900;font-size:19px;color:var(--gold-soft);}
+.stat-label{font-size:11px;color:var(--text-muted);margin-top:4px;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
@@ -38,8 +42,13 @@
     <div class="subtitle">القادة أعضاء يبنون شبكة إحالة نشطة، ويحصلون مقابلها على عمولات أعلى ومزايا حصرية داخل المنصة</div>
   </div>
 
+  <div class="stat-grid">
+    <div class="stat-box"><div class="stat-num" id="memberCount">٠</div><div class="stat-label">عدد الأعضاء</div></div>
+    <div class="stat-box"><div class="stat-num" id="leaderEarnings">٠.٠٠$</div><div class="stat-label">أرباحك كقائد</div></div>
+  </div>
+
   <div class="section-title" style="margin-bottom:10px;">مستويات القيادة</div>
-  <div class="card" style="margin-bottom:20px;">
+  <div class="card" style="margin-bottom:20px;" id="tierCardsList">
     <div class="tier-card"><div class="tier-badge">🥈</div><div class="tier-info"><div class="tier-name">قائد فضي</div><div class="tier-req">٥ إحالات نشطة فأكثر</div></div></div>
     <div class="tier-card"><div class="tier-badge">🥇</div><div class="tier-info"><div class="tier-name">قائد ذهبي</div><div class="tier-req">١٥ إحالة نشطة فأكثر</div></div></div>
     <div class="tier-card"><div class="tier-badge">💎</div><div class="tier-info"><div class="tier-name">قائد الماس</div><div class="tier-req">٤٠ إحالة نشطة فأكثر</div></div></div>
@@ -77,36 +86,82 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/supabase-client.js?v=1784451053"></script>
 <script>
-const TIERS = [
-  { name:'قائد فضي', badge:'🥈', min:5 },
-  { name:'قائد ذهبي', badge:'🥇', min:15 },
-  { name:'قائد الماس', badge:'💎', min:40 }
+const TIER_DEFS = [
+  { name:'قائد فضي', badge:'🥈', key:'leader_tier_silver_min', fallback:5 },
+  { name:'قائد ذهبي', badge:'🥇', key:'leader_tier_gold_min', fallback:15 },
+  { name:'قائد الماس', badge:'💎', key:'leader_tier_diamond_min', fallback:40 }
 ];
+let TIERS = TIER_DEFS.map(t => ({ name:t.name, badge:t.badge, min:t.fallback }));
+
+function renderTierCards(){
+  document.getElementById('tierCardsList').innerHTML = TIERS.map(t => `
+    <div class="tier-card"><div class="tier-badge">${t.badge}</div><div class="tier-info"><div class="tier-name">${t.name}</div><div class="tier-req">${t.min} إحالات نشطة فأكثر</div></div></div>`).join('');
+}
 
 (async function(){
   const user = await requireAuth();
   if(!user) return;
 
+  // عتبات المستويات (قابلة للتعديل من لوحة الأدمن)
+  const { data: settingsRows } = await supabaseClient
+    .from('system_settings')
+    .select('key, value')
+    .in('key', TIER_DEFS.map(t => t.key));
+
+  const settingsMap = {};
+  (settingsRows || []).forEach(r => { settingsMap[r.key] = r.value; });
+  TIERS = TIER_DEFS.map(t => ({
+    name: t.name, badge: t.badge,
+    min: settingsMap[t.key] != null ? Number(settingsMap[t.key]) : t.fallback
+  }));
+  renderTierCards();
+
+  // المستوى الأول: إحالات مباشرة
   const { data: directRefs } = await supabaseClient
     .from('profiles')
     .select('id')
     .eq('referred_by', user.id);
 
-  const count = (directRefs || []).length;
+  const direct = directRefs || [];
+  const directIds = direct.map(r => r.id);
 
-  const next = TIERS.find(t => count < t.min);
+  // المستوى الثاني: إحالات غير مباشرة (أعضاء الأعضاء)
+  let indirectCount = 0;
+  if(directIds.length > 0){
+    const { count } = await supabaseClient
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .in('referred_by', directIds);
+    indirectCount = count || 0;
+  }
+
+  const totalMembers = direct.length + indirectCount;
+  document.getElementById('memberCount').textContent = String(totalMembers);
+
+  // إجمالي الأرباح الحقيقية كقائد (من جدول عمولات الإحالة)
+  const { data: commissions } = await supabaseClient
+    .from('referral_commissions')
+    .select('commission_amount')
+    .eq('beneficiary_id', user.id);
+
+  const totalEarnings = (commissions || []).reduce((sum, c) => sum + Number(c.commission_amount), 0);
+  document.getElementById('leaderEarnings').textContent = formatMoney(totalEarnings, false) + '$';
+
+  // شريط التقدّم يعتمد على عدد الأعضاء المباشرين (شرط الترقية بين المستويات)
+  const activeCount = direct.length;
+  const next = TIERS.find(t => activeCount < t.min);
   const fill = document.getElementById('progressFill');
   const label = document.getElementById('progressLabel');
   const nextLabel = document.getElementById('nextTierLabel');
 
   if (!next) {
-    label.textContent = `${count} إحالة نشطة`;
+    label.textContent = `${activeCount} إحالة نشطة`;
     nextLabel.textContent = 'وصلت لأعلى مستوى 💎';
     fill.style.width = '100%';
   } else {
-    label.textContent = `${count} من ${next.min} إحالة نشطة`;
+    label.textContent = `${activeCount} من ${next.min} إحالة نشطة`;
     nextLabel.textContent = `حتى ${next.name}`;
-    fill.style.width = Math.min(100, (count / next.min) * 100) + '%';
+    fill.style.width = Math.min(100, (activeCount / next.min) * 100) + '%';
   }
 })();
 </script>

@@ -19,6 +19,7 @@
 .tier-req-btn{width:100%;text-align:center;padding:10px 0;border-radius:10px;font-size:13px;font-weight:700;border:1px solid var(--line);}
 .tier-req-btn.eligible{background:var(--gold);color:#241A05;border-color:var(--gold);}
 .tier-req-btn.locked{color:var(--text-muted);opacity:.6;}
+.tier-req-btn.approved-state{background:rgba(24,199,192,.12);color:#6FE3DC;border-color:var(--success);}
 .status-pill{font-size:10.5px;padding:3px 10px;border-radius:var(--radius-pill);border:1px solid var(--line);}
 .status-pill.pending{color:var(--gold-soft);border-color:var(--gold);}
 .status-pill.approved{color:#6FE3DC;border-color:var(--success);}
@@ -50,6 +51,7 @@ const STATUS_LABELS = { pending:'قيد المراجعة', approved:'مقبول'
 
 let eligibility = {};
 let myLastRequest = null;
+let myProfile = { is_leader: false, leader_tier: null };
 
 function renderCurrentRequest(){
   const box = document.getElementById('currentRequestBox');
@@ -67,10 +69,23 @@ function renderTiers(){
   const list = document.getElementById('tiersList');
   const pending = myLastRequest && myLastRequest.status === 'pending';
   list.innerHTML = TIER_INFO.map(t => {
+    const isCurrentLeaderTier = myProfile.is_leader && myProfile.leader_tier === t.tier;
     const ok = !!eligibility[t.tier];
-    const btnDisabled = !ok || pending;
-    const btnClass = ok && !pending ? 'eligible' : 'locked';
-    const btnText = pending ? 'عندك طلب قيد المراجعة' : (ok ? 'قدّم طلب هذا المستوى' : 'الشرط غير مكتمل بعد');
+    const btnDisabled = isCurrentLeaderTier || !ok || pending;
+    let btnClass, btnText;
+    if(isCurrentLeaderTier){
+      btnClass = 'approved-state';
+      btnText = 'أنت قائد بهذا المستوى حالياً ✅';
+    } else if(pending){
+      btnClass = 'locked';
+      btnText = 'عندك طلب قيد المراجعة';
+    } else if(ok){
+      btnClass = 'eligible';
+      btnText = 'قدّم طلب هذا المستوى';
+    } else {
+      btnClass = 'locked';
+      btnText = 'الشرط غير مكتمل بعد';
+    }
     return `
       <div class="tier-req-card">
         <div class="tier-req-head">
@@ -91,7 +106,7 @@ async function submitRequest(tier){
   await loadAll();
 }
 
-async function loadAll(){
+async function loadAll(user){
   const { data: elig } = await supabaseClient.rpc('get_leader_eligibility');
   eligibility = {};
   (elig || []).forEach(r => { eligibility[r.tier] = r.eligible; });
@@ -103,6 +118,13 @@ async function loadAll(){
     .limit(1);
   myLastRequest = (reqs && reqs[0]) || null;
 
+  const { data: profile } = await supabaseClient
+    .from('profiles')
+    .select('is_leader, leader_tier')
+    .eq('id', user.id)
+    .maybeSingle();
+  myProfile = profile || { is_leader: false, leader_tier: null };
+
   renderCurrentRequest();
   renderTiers();
 }
@@ -110,7 +132,7 @@ async function loadAll(){
 (async function(){
   const user = await requireAuth();
   if(!user) return;
-  loadAll();
+  loadAll(user);
 })();
 </script>
 </body></html>

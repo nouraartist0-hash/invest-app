@@ -66,6 +66,14 @@
 .feed-empty{font-size:12px;color:var(--text-muted);padding:8px 0;}
 .install-btn{display:none;align-items:center;justify-content:center;gap:9px;width:100%;background:linear-gradient(135deg,var(--gold-soft),var(--secondary));color:#241A05;font-family:var(--font-display);font-weight:700;font-size:13.5px;padding:13px;border-radius:12px;border:none;margin-top:14px;cursor:pointer;box-shadow:0 6px 16px rgba(217,166,58,.25);}
 .install-btn svg{width:18px;height:18px;flex-shrink:0;}
+
+.promo-slider{position:relative;width:100%;border-radius:var(--radius-card);overflow:hidden;margin-bottom:18px;flex-shrink:0;background:var(--bg-surface-2);border:1px solid var(--line);}
+.promo-slider::before{content:'';display:block;padding-top:43.75%;}
+.promo-track{position:absolute;top:0;left:0;display:flex;direction:ltr;width:100%;height:100%;transition:transform .5s ease;}
+.promo-track img{width:100%;height:100%;object-fit:cover;flex-shrink:0;}
+.promo-dots{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:6px;}
+.promo-dots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.45);transition:all .3s;}
+.promo-dots span.active{background:var(--gold-soft);width:16px;border-radius:3px;}
 </style></head>
 <body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
 <div class="screen">
@@ -93,6 +101,16 @@
     <a class="qa" href="08-withdraw.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7 7 7-7"/></svg></div>سحب</a>
     <a class="qa" href="09-marketplace.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg></div>السوق</a>
     <a class="qa" href="12-referral.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/><circle cx="18" cy="8" r="2.5"/></svg></div>الإحالة</a>
+  </div>
+
+  <!-- ===== سلايدر الصور التعليمية ===== -->
+  <div class="promo-slider" id="promoSlider">
+    <div class="promo-track" id="promoTrack">
+      <img src="../assets/promo/promo1.jpg" alt="تعليمات 1">
+      <img src="../assets/promo/promo2.jpg" alt="تعليمات 2">
+      <img src="../assets/promo/promo3.jpg" alt="تعليمات 3">
+    </div>
+    <div class="promo-dots" id="promoDots"></div>
   </div>
 
   <!-- ===== الشريط المتحرك ===== -->
@@ -316,6 +334,40 @@ loadActivityFeed();
 
 // تحديث الشريط كل 15 ثانية
 setInterval(loadActivityFeed, 15000);
+
+// ================================================================
+// 🔹 سلايدر الصور التعليمية (يتغير كل 4 ثواني)
+// ================================================================
+(function initPromoSlider(){
+  const track = document.getElementById('promoTrack');
+  const dotsWrap = document.getElementById('promoDots');
+  if(!track || !dotsWrap) return;
+
+  const slides = track.querySelectorAll('img');
+  if(slides.length === 0) return;
+
+  let promoIdx = 0;
+
+  slides.forEach((_, i) => {
+    const dot = document.createElement('span');
+    if(i === 0) dot.classList.add('active');
+    dot.addEventListener('click', () => goToPromo(i));
+    dotsWrap.appendChild(dot);
+  });
+  const dots = dotsWrap.querySelectorAll('span');
+
+  function goToPromo(i){
+    promoIdx = i;
+    track.style.transform = `translateX(-${promoIdx * 100}%)`;
+    dots.forEach((d, j) => d.classList.toggle('active', j === promoIdx));
+  }
+
+  if(slides.length > 1){
+    setInterval(() => {
+      goToPromo((promoIdx + 1) % slides.length);
+    }, 4000);
+  }
+})();
 
 // ================================================================
 // 🔹 زر تثبيت التطبيق (PWA Install)

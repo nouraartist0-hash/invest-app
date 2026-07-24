@@ -48,20 +48,19 @@ function generateReferralCode(fullName) {
   return namePart + randomPart;
 }
 
-// ====== تنسيق الأرقام بالأرقام العربية (كما تظهر بتصميم الواجهة) ======
+// ====== تنسيق الأرقام (تم تعطيل التحويل للأرقام العربية - تُعرض الآن بالأرقام الإنجليزية) ======
 function toArabicDigits(str) {
-  const map = { "0":"٠","1":"١","2":"٢","3":"٣","4":"٤","5":"٥","6":"٦","7":"٧","8":"٨","9":"٩" };
-  return String(str).replace(/[0-9]/g, d => map[d]);
+  return String(str);
 }
 
-// يحول رقم مثل 12540.5 إلى "١٢,٥٤٠.٥٠"
+// يحول رقم مثل 12540.5 إلى "12,540.50"
 function formatMoney(num, withArabicDigits) {
   const n = Number(num) || 0;
   const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return withArabicDigits === false ? formatted : toArabicDigits(formatted);
 }
 
-// يحول نسبة مثل 2.6 إلى "+٢.٦٪" أو "-٢.٦٪"
+// يحول نسبة مثل 2.6 إلى "+2.6٪" أو "-2.6٪"
 function formatPercent(num, withArabicDigits) {
   const n = Number(num) || 0;
   const sign = n >= 0 ? '+' : '-';
@@ -133,5 +132,4 @@ async function requireAdmin() {
     return null;
   }
   return user;
-         }
-      
+}

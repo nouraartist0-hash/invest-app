@@ -47,6 +47,14 @@
     <div class="stat-box"><div class="stat-num" id="leaderEarnings">٠.٠٠$</div><div class="stat-label">أرباحك كقائد</div></div>
   </div>
 
+  <div class="section-title" style="margin-bottom:10px;">حالة شراء أعضائك</div>
+  <div class="stat-grid" id="purchaseBreakdown" style="grid-template-columns:repeat(4,1fr);gap:8px;">
+    <div class="stat-box"><div class="stat-num" id="statNoPurchase" style="color:var(--terracotta);">٠</div><div class="stat-label">بدون شراء</div></div>
+    <div class="stat-box"><div class="stat-num" id="statVipA">٠</div><div class="stat-label">مشتري VIP A</div></div>
+    <div class="stat-box"><div class="stat-num" id="statVipB">٠</div><div class="stat-label">مشتري VIP B</div></div>
+    <div class="stat-box"><div class="stat-num" id="statVipC">٠</div><div class="stat-label">مشتري VIP C</div></div>
+  </div>
+
   <div class="section-title" style="margin-bottom:10px;">مستويات القيادة</div>
   <div class="card" style="margin-bottom:20px;" id="tierCardsList">
     <div class="tier-card"><div class="tier-badge">🥈</div><div class="tier-info"><div class="tier-name">قائد فضي</div><div class="tier-req">٥ إحالات نشطة فأكثر</div></div></div>
@@ -147,6 +155,16 @@ function renderTierCards(){
 
   const totalEarnings = (commissions || []).reduce((sum, c) => sum + Number(c.commission_amount), 0);
   document.getElementById('leaderEarnings').textContent = formatMoney(totalEarnings, false) + '$';
+
+  // حالة شراء الأعضاء المسجلين بإحالتك المباشرة (بدون شراء / VIP A / VIP B / VIP C)
+  const { data: purchaseStats, error: statsError } = await supabaseClient.rpc('get_my_referral_purchase_stats');
+  if(!statsError && purchaseStats && purchaseStats[0]){
+    const s = purchaseStats[0];
+    document.getElementById('statNoPurchase').textContent = String(s.no_purchase);
+    document.getElementById('statVipA').textContent = String(s.vip_a);
+    document.getElementById('statVipB').textContent = String(s.vip_b);
+    document.getElementById('statVipC').textContent = String(s.vip_c);
+  }
 
   // شريط التقدّم يعتمد على عدد الأعضاء المباشرين (شرط الترقية بين المستويات)
   const activeCount = direct.length;

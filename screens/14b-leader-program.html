@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<link rel="manifest" href="../manifest.json">
+<link rel="icon" href="../assets/icons/favicon.ico" sizes="any">
+<link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="../assets/icons/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#0D1623">
+
+<title>14ب — برنامج القادة</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.crown-hero{text-align:center;padding:6px 0 22px;}
+.crown-hero .crown-icon{font-size:44px;margin-bottom:8px;}
+.crown-hero .title{font-size:20px;}
+.tier-card{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);}
+.tier-card:last-child{border:none;}
+.tier-badge{font-size:24px;flex-shrink:0;width:34px;text-align:center;}
+.tier-info{flex:1;}
+.tier-name{font-family:var(--font-display);font-weight:700;font-size:14.5px;color:var(--cream);}
+.tier-req{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.benefit-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);}
+.benefit-row:last-child{border:none;}
+.benefit-icon{width:32px;height:32px;border-radius:10px;background:rgba(24,199,192,.12);color:var(--secondary);
+  display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.benefit-text .t{font-family:var(--font-display);font-weight:700;font-size:13.5px;color:var(--cream);margin-bottom:2px;}
+.benefit-text .d{font-size:12px;color:var(--text-muted);line-height:1.7;}
+.progress-bar-bg{width:100%;height:9px;background:var(--bg-surface-2);border-radius:999px;overflow:hidden;margin-top:10px;}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold-soft),var(--gold));border-radius:999px;width:0%;transition:width .4s ease;}
+.progress-top{display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><a href="14-profile.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">برنامج القادة</div><div style="width:38px"></div></div>
+
+  <div class="crown-hero">
+    <div class="crown-icon">👑</div>
+    <div class="title" style="font-family:var(--font-display);font-weight:900;color:var(--gold-soft);">كن قائدًا في مزرايا</div>
+    <div class="subtitle">القادة أعضاء يبنون شبكة إحالة نشطة، ويحصلون مقابلها على عمولات أعلى ومزايا حصرية داخل المنصة</div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:10px;">مستويات القيادة</div>
+  <div class="card" style="margin-bottom:20px;">
+    <div class="tier-card"><div class="tier-badge">🥈</div><div class="tier-info"><div class="tier-name">قائد فضي</div><div class="tier-req">٥ إحالات نشطة فأكثر</div></div></div>
+    <div class="tier-card"><div class="tier-badge">🥇</div><div class="tier-info"><div class="tier-name">قائد ذهبي</div><div class="tier-req">١٥ إحالة نشطة فأكثر</div></div></div>
+    <div class="tier-card"><div class="tier-badge">💎</div><div class="tier-info"><div class="tier-name">قائد الماس</div><div class="tier-req">٤٠ إحالة نشطة فأكثر</div></div></div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:10px;">تقدّمك الحالي</div>
+  <div class="card" style="margin-bottom:20px;">
+    <div class="progress-top"><span id="progressLabel">جاري التحميل...</span><span id="nextTierLabel"></span></div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:10px;">مزايا القادة</div>
+  <div class="card" style="margin-bottom:20px;">
+    <div class="benefit-row">
+      <div class="benefit-icon">%</div>
+      <div class="benefit-text"><div class="t">عمولة إحالة أعلى</div><div class="d">نسبة عمولة إضافية على رسوم كل استثمار من شبكتك مقارنة بالمستخدم العادي</div></div>
+    </div>
+    <div class="benefit-row">
+      <div class="benefit-icon">🎯</div>
+      <div class="benefit-text"><div class="t">عروض حصرية</div><div class="d">أولوية الوصول إلى عروض الاستثمار المحدودة قبل بقية المستخدمين</div></div>
+    </div>
+    <div class="benefit-row">
+      <div class="benefit-icon">💬</div>
+      <div class="benefit-text"><div class="t">دعم مخصص</div><div class="d">قناة تواصل مباشرة مع فريق الدعم لحل الطلبات بشكل أسرع</div></div>
+    </div>
+    <div class="benefit-row">
+      <div class="benefit-icon">🏅</div>
+      <div class="benefit-text"><div class="t">شارة مميزة على الملف الشخصي</div><div class="d">شارة القائد تظهر لباقي المستخدمين في صفحتك الشخصية</div></div>
+    </div>
+  </div>
+
+  <a href="12-referral.html" class="cta outline" style="display:block;text-align:center;margin-bottom:24px;">شارك رابط الإحالة الآن</a>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+const TIERS = [
+  { name:'قائد فضي', badge:'🥈', min:5 },
+  { name:'قائد ذهبي', badge:'🥇', min:15 },
+  { name:'قائد الماس', badge:'💎', min:40 }
+];
+
+(async function(){
+  const user = await requireAuth();
+  if(!user) return;
+
+  const { data: directRefs } = await supabaseClient
+    .from('profiles')
+    .select('id')
+    .eq('referred_by', user.id);
+
+  const count = (directRefs || []).length;
+
+  const next = TIERS.find(t => count < t.min);
+  const fill = document.getElementById('progressFill');
+  const label = document.getElementById('progressLabel');
+  const nextLabel = document.getElementById('nextTierLabel');
+
+  if (!next) {
+    label.textContent = `${count} إحالة نشطة`;
+    nextLabel.textContent = 'وصلت لأعلى مستوى 💎';
+    fill.style.width = '100%';
+  } else {
+    label.textContent = `${count} من ${next.min} إحالة نشطة`;
+    nextLabel.textContent = `حتى ${next.name}`;
+    fill.style.width = Math.min(100, (count / next.min) * 100) + '%';
+  }
+})();
+</script>
+</body></html>

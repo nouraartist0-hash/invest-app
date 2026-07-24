@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="google" content="notranslate"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<link rel="manifest" href="../manifest.json">
+<link rel="icon" href="../assets/icons/favicon.ico" sizes="any">
+<link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="../assets/icons/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#0D1623">
+
+<title>14ج — طلب قائد VIP</title><link rel="stylesheet" href="../assets/style.css?v=1784451053">
+<style>
+.crown-hero{text-align:center;padding:6px 0 20px;}
+.crown-hero .crown-icon{font-size:40px;margin-bottom:8px;}
+.tier-req-card{background:var(--bg-surface);border:1px solid var(--line);border-radius:var(--radius-card);padding:16px;margin-bottom:12px;}
+.tier-req-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.tier-req-name{font-family:var(--font-display);font-weight:700;font-size:14.5px;color:var(--cream);}
+.tier-req-rate{font-size:11px;color:var(--gold-soft);}
+.tier-req-cond{font-size:12px;color:var(--text-muted);line-height:1.8;margin-bottom:12px;}
+.tier-req-btn{width:100%;text-align:center;padding:10px 0;border-radius:10px;font-size:13px;font-weight:700;border:1px solid var(--line);}
+.tier-req-btn.eligible{background:var(--gold);color:#241A05;border-color:var(--gold);}
+.tier-req-btn.locked{color:var(--text-muted);opacity:.6;}
+.status-pill{font-size:10.5px;padding:3px 10px;border-radius:var(--radius-pill);border:1px solid var(--line);}
+.status-pill.pending{color:var(--gold-soft);border-color:var(--gold);}
+.status-pill.approved{color:#6FE3DC;border-color:var(--success);}
+.status-pill.rejected{color:#F2A0A0;border-color:var(--danger);}
+.current-request-card{background:rgba(217,166,58,.08);border:1px solid var(--gold);border-radius:var(--radius-card);padding:14px 16px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;}
+</style></head>
+<body><div class="device"><div class="statusbar"><span>٩:٤١</span><span>●●●</span></div>
+<div class="screen">
+  <div class="top-row"><a href="14b-leader-program.html" class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></a><div class="top-title">طلب قائد VIP</div><div style="width:38px"></div></div>
+
+  <div class="crown-hero">
+    <div class="crown-icon">👑</div>
+    <div class="subtitle">قدّم طلبك لتصبح قائد VIP واحصل على نسبة عمولة إحالة أعلى بعد موافقة الإدارة</div>
+  </div>
+
+  <div id="currentRequestBox"></div>
+
+  <div id="tiersList"><div style="text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;">جاري التحميل...</div></div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/supabase-client.js?v=1784451053"></script>
+<script>
+const TIER_INFO = [
+  { tier:'VIP A', label:'قائد VIP A', rateNote:'أعلى نسبة عمولة', cond:'يتطلب استثمار واحد على الأقل بعرض VIP A (غالي) + استثمار بعرض VIP B (متوسط)' },
+  { tier:'VIP B', label:'قائد VIP B', rateNote:'نسبة عمولة متوسطة', cond:'يتطلب استثمار واحد على الأقل بعرض VIP B (متوسط)' },
+  { tier:'VIP C', label:'قائد VIP C', rateNote:'نسبة عمولة أساسية', cond:'يتطلب استثمار واحد على الأقل بعرض VIP C (أدنى)' }
+];
+const STATUS_LABELS = { pending:'قيد المراجعة', approved:'مقبول', rejected:'مرفوض' };
+
+let eligibility = {};
+let myLastRequest = null;
+
+function renderCurrentRequest(){
+  const box = document.getElementById('currentRequestBox');
+  if(!myLastRequest){ box.innerHTML = ''; return; }
+  box.innerHTML = `
+    <div class="current-request-card">
+      <div>
+        <div style="font-size:12.5px;color:var(--cream);font-weight:600;">آخر طلب: ${myLastRequest.requested_tier}</div>
+      </div>
+      <div class="status-pill ${myLastRequest.status}">${STATUS_LABELS[myLastRequest.status]}</div>
+    </div>`;
+}
+
+function renderTiers(){
+  const list = document.getElementById('tiersList');
+  const pending = myLastRequest && myLastRequest.status === 'pending';
+  list.innerHTML = TIER_INFO.map(t => {
+    const ok = !!eligibility[t.tier];
+    const btnDisabled = !ok || pending;
+    const btnClass = ok && !pending ? 'eligible' : 'locked';
+    const btnText = pending ? 'عندك طلب قيد المراجعة' : (ok ? 'قدّم طلب هذا المستوى' : 'الشرط غير مكتمل بعد');
+    return `
+      <div class="tier-req-card">
+        <div class="tier-req-head">
+          <div class="tier-req-name">${t.label}</div>
+          <div class="tier-req-rate">${t.rateNote}</div>
+        </div>
+        <div class="tier-req-cond">${t.cond}</div>
+        <div class="tier-req-btn ${btnClass}" ${btnDisabled ? '' : `onclick="submitRequest('${t.tier}')"`}>${btnText}</div>
+      </div>`;
+  }).join('');
+}
+
+async function submitRequest(tier){
+  if(!confirm(`تأكيد تقديم طلب ${tier}؟`)) return;
+  const { error } = await supabaseClient.rpc('request_leader_status', { p_tier: tier });
+  if(error){ alert('تعذر إرسال الطلب: ' + error.message); return; }
+  alert('تم إرسال الطلب، بانتظار موافقة الإدارة');
+  await loadAll();
+}
+
+async function loadAll(){
+  const { data: elig } = await supabaseClient.rpc('get_leader_eligibility');
+  eligibility = {};
+  (elig || []).forEach(r => { eligibility[r.tier] = r.eligible; });
+
+  const { data: reqs } = await supabaseClient
+    .from('leader_requests')
+    .select('requested_tier, status, created_at')
+    .order('created_at', { ascending: false })
+    .limit(1);
+  myLastRequest = (reqs && reqs[0]) || null;
+
+  renderCurrentRequest();
+  renderTiers();
+}
+
+(async function(){
+  const user = await requireAuth();
+  if(!user) return;
+  loadAll();
+})();
+</script>
+</body></html>

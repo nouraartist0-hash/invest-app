@@ -43,10 +43,11 @@
 <script src="../assets/supabase-client.js?v=1784451053"></script>
 <script>
 const TIER_INFO = [
-  { tier:'VIP A', label:'قائد VIP A', rateNote:'أعلى نسبة عمولة', cond:'يتطلب استثمار واحد على الأقل بعرض VIP A (غالي) + استثمار بعرض VIP B (متوسط)' },
-  { tier:'VIP B', label:'قائد VIP B', rateNote:'نسبة عمولة متوسطة', cond:'يتطلب استثمار واحد على الأقل بعرض VIP B (متوسط)' },
-  { tier:'VIP C', label:'قائد VIP C', rateNote:'نسبة عمولة أساسية', cond:'يتطلب استثمار واحد على الأقل بعرض VIP C (أدنى)' }
+  { tier:'VIP A', label:'قائد VIP A', settingKey:'leader_commission_vip_a', fallbackNote:'أعلى نسبة عمولة', cond:'يتطلب استثمار واحد على الأقل بعرض VIP A (غالي) + استثمار بعرض VIP B (متوسط)' },
+  { tier:'VIP B', label:'قائد VIP B', settingKey:'leader_commission_vip_b', fallbackNote:'نسبة عمولة متوسطة', cond:'يتطلب استثمار واحد على الأقل بعرض VIP B (متوسط)' },
+  { tier:'VIP C', label:'قائد VIP C', settingKey:'leader_commission_vip_c', fallbackNote:'نسبة عمولة أساسية', cond:'يتطلب استثمار واحد على الأقل بعرض VIP C (أدنى)' }
 ];
+let leaderRates = {}; // settingKey -> النسبة الفعلية اللي عدّلها الأدمن
 const STATUS_LABELS = { pending:'قيد المراجعة', approved:'مقبول', rejected:'مرفوض' };
 
 let eligibility = {};
@@ -91,7 +92,7 @@ function renderTiers(){
       <div class="tier-req-card">
         <div class="tier-req-head">
           <div class="tier-req-name">${t.label}</div>
-          <div class="tier-req-rate">${t.rateNote}</div>
+          <div class="tier-req-rate">${leaderRates[t.settingKey] != null ? 'نسبة العمولة: ' + leaderRates[t.settingKey] + '%' : t.fallbackNote}</div>
         </div>
         <div class="tier-req-cond">${t.cond}</div>
         <div class="tier-req-btn ${btnClass}" ${btnDisabled ? '' : `onclick="submitRequest('${t.tier}')"`}>${btnText}</div>
@@ -108,6 +109,14 @@ async function submitRequest(tier){
 }
 
 async function loadAll(user){
+  // النسب الفعلية اللي حدّدها الأدمن من لوحة التحكم (تنعكس هنا فورًا)
+  const { data: rateRows } = await supabaseClient
+    .from('system_settings')
+    .select('key, value')
+    .in('key', TIER_INFO.map(t => t.settingKey));
+  leaderRates = {};
+  (rateRows || []).forEach(r => { leaderRates[r.key] = Number(r.value); });
+
   const { data: elig } = await supabaseClient.rpc('get_leader_eligibility');
   eligibility = {};
   (elig || []).forEach(r => { eligibility[r.tier] = r.eligible; });

@@ -52,6 +52,7 @@ const STATUS_LABELS = { pending:'قيد المراجعة', approved:'مقبول'
 let eligibility = {};
 let myLastRequest = null;
 let myProfile = { is_leader: false, leader_tier: null };
+let achievedTiers = new Set(); // كل المستويات اللي تمت الموافقة عليها فعلاً (تاريخياً)
 
 function renderCurrentRequest(){
   const box = document.getElementById('currentRequestBox');
@@ -69,7 +70,7 @@ function renderTiers(){
   const list = document.getElementById('tiersList');
   const pending = myLastRequest && myLastRequest.status === 'pending';
   list.innerHTML = TIER_INFO.map(t => {
-    const isCurrentLeaderTier = myProfile.is_leader && myProfile.leader_tier === t.tier;
+    const isCurrentLeaderTier = achievedTiers.has(t.tier); // أي مستوى تمت الموافقة عليه سابقاً يبقى أخضر دائماً
     const ok = !!eligibility[t.tier];
     const btnDisabled = isCurrentLeaderTier || !ok || pending;
     let btnClass, btnText;
@@ -114,9 +115,15 @@ async function loadAll(user){
   const { data: reqs } = await supabaseClient
     .from('leader_requests')
     .select('requested_tier, status, created_at')
-    .order('created_at', { ascending: false })
-    .limit(1);
-  myLastRequest = (reqs && reqs[0]) || null;
+    .order('created_at', { ascending: false });
+
+  const allReqs = reqs || [];
+  myLastRequest = allReqs[0] || null;
+
+  // نبني مجموعة كل المستويات اللي تمت الموافقة عليها تاريخياً (مو بس آخر واحد)
+  achievedTiers = new Set(
+    allReqs.filter(r => r.status === 'approved').map(r => r.requested_tier)
+  );
 
   const { data: profile } = await supabaseClient
     .from('profiles')

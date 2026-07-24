@@ -11,7 +11,6 @@
 <style>
 .screen{padding:22px 22px 0;}
 .top-row{flex-shrink:0;}
-#holdingsList{flex-shrink:1;overflow-y:auto;}
 .avatar{width:40px;height:40px;border-radius:50%;background:var(--bg-surface-2);border:1.5px solid var(--gold);
   display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;color:var(--gold-soft);
   overflow:hidden;}
@@ -94,12 +93,6 @@
     <a class="qa" href="08-withdraw.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7 7 7-7"/></svg></div>سحب</a>
     <a class="qa" href="09-marketplace.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg></div>السوق</a>
     <a class="qa" href="12-referral.html"><div class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="#241A05" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.5 3-5 7-5s7 1.5 7 5"/><circle cx="18" cy="8" r="2.5"/></svg></div>الإحالة</a>
-  </div>
-
-  <div class="section-head"><div class="section-title">حصصك الحالية</div><a class="see-all" href="09-marketplace.html">عرض الكل</a></div>
-
-  <div id="holdingsList" style="margin-bottom:150px;">
-    <div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">جاري التحميل...</div>
   </div>
 
   <!-- ===== الشريط المتحرك ===== -->
@@ -198,54 +191,6 @@ async function loadDashboard(){
     document.getElementById('totalValue').textContent = '—';
   }
 
-  // الحصص الحالية
-  const { data: investments, error: invError } = await supabaseClient
-    .from('investments')
-    .select('id, amount, started_at, deed_number, status, offers(title, category, min_return, max_return)')
-    .eq('user_id', user.id)
-    .eq('status', 'active')
-    .order('started_at', { ascending: false })
-    .limit(5);
-
-  const holdingsList = document.getElementById('holdingsList');
-
-  if(invError){
-    holdingsList.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">تعذر تحميل الحصص</div>';
-    return;
-  }
-
-  if(!investments || investments.length === 0){
-    holdingsList.innerHTML = `
-      <div class="card" style="text-align:center;padding:28px 16px;">
-        <div style="color:var(--text-muted);font-size:13.5px;margin-bottom:14px;">ما عندك حصص فعالة حالياً</div>
-        <a class="cta" style="display:inline-block;padding:10px 22px;" href="09-marketplace.html">تصفح السوق</a>
-      </div>`;
-    return;
-  }
-
-  holdingsList.innerHTML = investments.map((inv, idx) => {
-    const offer = inv.offers || {};
-    const category = offer.category || 'default';
-    const icon = CATEGORY_ICONS[category] || CATEGORY_ICONS['default'];
-    const avgReturn = offer.min_return != null && offer.max_return != null
-      ? ((Number(offer.min_return) + Number(offer.max_return)) / 2)
-      : 0;
-    const cardClass = idx % 2 === 0 ? 'deed-card' : 'card';
-    return `
-      <div class="${cardClass}" style="margin-bottom:10px;">
-        <div class="holding">
-          <div class="seal-mini"><svg viewBox="0 0 24 24" fill="none" stroke="#E8C170" stroke-width="1.8">${icon}</svg></div>
-          <div class="holding-info">
-            <div class="holding-name">${escapeHtml(offer.title || 'حصة استثمارية')}</div>
-            <div class="holding-meta">منذ ${daysAgo(inv.started_at)} يوم · وثيقة ملكية #${inv.deed_number || '—'}</div>
-          </div>
-          <div class="holding-value">
-            <div class="holding-amount">${formatMoney(inv.amount)} $</div>
-            <div class="holding-change">${formatPercent(avgReturn)}</div>
-          </div>
-        </div>
-      </div>`;
-  }).join('');
 }
 
 // ================================================================
@@ -406,4 +351,3 @@ if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.
 }
 </script>
 </body></html>
-  

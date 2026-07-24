@@ -42,7 +42,10 @@
     </div>
     <div class="p-name" id="profileName">...</div>
     <div class="p-email" id="profilePhone"></div>
-    <div class="chip kyc-chip" id="kycChip" style="display:none;"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
+      <div class="chip kyc-chip" id="kycChip" style="display:none;"></div>
+      <div class="chip" id="leaderChip" style="display:none;background:rgba(232,193,112,.15);color:var(--gold-soft);"></div>
+    </div>
   </div>
 
   <a class="cta outline" href="14b-leader-program.html" style="display:block;text-align:center;margin-bottom:18px;">👑 كن قائدًا</a>
@@ -154,6 +157,36 @@ async function handleAvatarChange(input){
   } else {
     kycChip.textContent = 'الهوية غير موثّقة';
     kycChip.style.display = '';
+  }
+
+  // شارة مستوى القيادة (تظهر فقط إذا وصل العضو لمستوى قائد)
+  const TIER_DEFS = [
+    { name:'قائد فضي', badge:'🥈', key:'leader_tier_silver_min', fallback:5 },
+    { name:'قائد ذهبي', badge:'🥇', key:'leader_tier_gold_min', fallback:15 },
+    { name:'قائد الماس', badge:'💎', key:'leader_tier_diamond_min', fallback:40 }
+  ];
+  const { data: settingsRows } = await supabaseClient
+    .from('system_settings')
+    .select('key, value')
+    .in('key', TIER_DEFS.map(t => t.key));
+  const settingsMap = {};
+  (settingsRows || []).forEach(r => { settingsMap[r.key] = r.value; });
+  const TIERS = TIER_DEFS.map(t => ({
+    name: t.name, badge: t.badge,
+    min: settingsMap[t.key] != null ? Number(settingsMap[t.key]) : t.fallback
+  }));
+
+  const { count: directCount } = await supabaseClient
+    .from('profiles')
+    .select('id', { count: 'exact', head: true })
+    .eq('referred_by', user.id);
+
+  const achieved = TIERS.filter(t => (directCount || 0) >= t.min);
+  const currentTier = achieved.length ? achieved[achieved.length - 1] : null;
+  const leaderChip = document.getElementById('leaderChip');
+  if (currentTier) {
+    leaderChip.textContent = `${currentTier.badge} ${currentTier.name}`;
+    leaderChip.style.display = '';
   }
 })();
 </script>
